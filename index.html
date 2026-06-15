@@ -3,325 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>紫微斗數 AI 命理大師</title>
-    <!-- 引入 Tailwind CSS 進行快速且美觀的排版 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Marked.js 來解析 AI 回傳的 Markdown 格式 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>GYGS 紫微大數據演算中心 | gygs.ca</title>
     <style>
-        /* 替換為以夜空圖片為主的神祕宇宙背景 */
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --bg-color: #f8f9fa;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #050814;
-            background-image: url('night_sky.png');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: #f8fafc;
-            min-height: 100vh;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
         }
-
-        /* 調整毛玻璃效果以適應暗色背景，加入微微的金色邊框反光 */
-        .glass-panel {
-            background: rgba(10, 15, 30, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(234, 179, 8, 0.15);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.05) inset;
-            color: #e2e8f0;
+        .container {
+            max-width: 650px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--primary-color);
         }
-
-        /* 讓 Markdown 渲染出來的內容更好看，適應暗色模式與星空金配色 */
-        .prose {
-            color: #cbd5e1;
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 28px;
+            letter-spacing: 1px;
         }
-        .prose h1, .prose h2, .prose h3 {
-            color: #fbbf24; /* 金色 */
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        p.subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
         }
-        .prose p {
-            margin-bottom: 1em;
-            line-height: 1.7;
-        }
-        .prose ul {
-            list-style-type: disc;
-            padding-left: 1.5em;
-            margin-bottom: 1em;
-            color: #94a3b8;
-        }
-        .prose li::marker {
-            color: #fbbf24;
-        }
-        .prose strong {
-            color: #fef08a; /* 亮金色 */
+        label {
+            display: block;
+            margin-top: 20px;
             font-weight: 600;
+            color: var(--primary-color);
         }
-        
-        /* 針對 select 的下拉選單給予暗色背景，避免白底黑字突兀 */
-        option {
-            background-color: #0f172a;
-            color: #f8fafc;
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
-        
-        /* Loading 旋轉動畫，改為金色軌跡 */
-        .spinner {
-            border: 4px solid rgba(251, 191, 36, 0.1);
-            border-left-color: #fbbf24;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 10px;
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            margin-top: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
         }
-        
-        /* 讓捲軸也暗色系化 */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(234, 179, 8, 0.3); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(234, 179, 8, 0.5); }
+        button:hover {
+            background-color: #34495e;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        #result-box {
+            margin-top: 35px;
+            padding: 25px;
+            background-color: #fdfefe;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 0 6px 6px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: none;
+            white-space: pre-wrap;
+            font-size: 15px;
+            color: #2c3e50;
+        }
+        .loading {
+            text-align: center;
+            color: var(--accent-color);
+            font-weight: bold;
+            display: none;
+            margin-top: 25px;
+            font-size: 16px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #95a5a6;
+        }
     </style>
 </head>
-<body class="flex items-center justify-center py-12 px-4">
+<body>
 
-<div class="glass-panel w-full max-w-2xl rounded-2xl overflow-hidden relative">
+<div class="container">
+    <h1>GYGS 演算中心</h1>
+    <p class="subtitle">客觀・數據・去迷信的命理交叉比對系統</p>
     
-    <!-- 神秘的光暈點綴 -->
-    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-32 bg-yellow-500 opacity-[0.03] blur-[80px] pointer-events-none"></div>
+    <form id="astro-form">
+        <label for="date">出生日期 (陽曆):</label>
+        <input type="date" id="date" required>
 
-    <!-- 標題與 LOGO 區塊 -->
-    <div class="py-8 px-8 text-center border-b border-white/5 relative z-10">
-        <!-- 嵌入上傳的 GYGS Galaxy Logo -->
-        <img src="gygs_galaxy_logo.png" alt="GYGS Logo" class="h-24 md:h-32 mx-auto object-contain mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-        
-        <h1 class="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-gray-300 via-yellow-400 to-gray-300">
-            紫微斗數 AI 大師
-        </h1>
-        <p class="text-yellow-200/60 mt-2 text-sm tracking-wide">洞悉星象軌跡，點亮命理玄機</p>
-    </div>
+        <label for="timeIndex">出生時辰:</label>
+        <select id="timeIndex" required>
+            <option value="0">早子時 (00:00 - 01:00)</option>
+            <option value="1">丑時 (01:00 - 03:00)</option>
+            <option value="2">寅時 (03:00 - 05:00)</option>
+            <option value="3">卯時 (05:00 - 07:00)</option>
+            <option value="4">辰時 (07:00 - 09:00)</option>
+            <option value="5">巳時 (09:00 - 11:00)</option>
+            <option value="6">午時 (11:00 - 13:00)</option>
+            <option value="7">未時 (13:00 - 15:00)</option>
+            <option value="8">申時 (15:00 - 17:00)</option>
+            <option value="9">酉時 (17:00 - 19:00)</option>
+            <option value="10">戌時 (19:00 - 21:00)</option>
+            <option value="11">亥時 (21:00 - 23:00)</option>
+            <option value="12">晚子時 (23:00 - 00:00)</option>
+        </select>
 
-    <!-- 表單區塊 -->
-    <div class="p-8 relative z-10">
-        <form id="astro-form" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="date" class="block text-sm font-medium text-gray-300 mb-2">出生日期 (陽曆)</label>
-                    <input type="date" id="date" required 
-                           class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700/80 rounded-xl focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 text-white placeholder-gray-500 outline-none transition-all shadow-inner">
-                </div>
-                
-                <div>
-                    <label for="gender" class="block text-sm font-medium text-gray-300 mb-2">性別</label>
-                    <select id="gender" required 
-                            class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700/80 rounded-xl focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 text-white outline-none transition-all shadow-inner appearance-none cursor-pointer">
-                        <option value="男">男</option>
-                        <option value="女">女</option>
-                    </select>
-                </div>
-            </div>
+        <label for="gender">性別:</label>
+        <select id="gender" required>
+            <option value="男">男</option>
+            <option value="女">女</option>
+        </select>
 
-            <div>
-                <label for="timeIndex" class="block text-sm font-medium text-gray-300 mb-2">出生時辰</label>
-                <select id="timeIndex" required 
-                        class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700/80 rounded-xl focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 text-white outline-none transition-all shadow-inner appearance-none cursor-pointer">
-                    <option value="0">早子時 (00:00 - 01:00)</option>
-                    <option value="1">丑時 (01:00 - 03:00)</option>
-                    <option value="2">寅時 (03:00 - 05:00)</option>
-                    <option value="3">卯時 (05:00 - 07:00)</option>
-                    <option value="4">辰時 (07:00 - 09:00)</option>
-                    <option value="5">巳時 (09:00 - 11:00)</option>
-                    <option value="6">午時 (11:00 - 13:00)</option>
-                    <option value="7">未時 (13:00 - 15:00)</option>
-                    <option value="8">申時 (15:00 - 17:00)</option>
-                    <option value="9">酉時 (17:00 - 19:00)</option>
-                    <option value="10">戌時 (19:00 - 21:00)</option>
-                    <option value="11">亥時 (21:00 - 23:00)</option>
-                    <option value="12">晚子時 (23:00 - 00:00)</option>
-                </select>
-            </div>
+        <label for="question">當前狀況與分析目標：</label>
+        <textarea id="question" rows="4" placeholder="例如：我即將展開一個全球經濟數據分析專案，請從流年角度分析我近期的資源調度與潛在阻礙。" required></textarea>
 
-            <div>
-                <label for="question" class="block text-sm font-medium text-gray-300 mb-2">你想問什麼問題？</label>
-                <textarea id="question" rows="4" required 
-                          placeholder="例如：我即將展開一個軟體開發專案，請分析我的事業運勢與執行力建議。" 
-                          class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700/80 rounded-xl focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 text-white placeholder-gray-600 outline-none transition-all resize-none shadow-inner"></textarea>
-            </div>
+        <button type="submit" id="submit-btn">啟動數據演算</button>
+    </form>
 
-            <button type="submit" id="submit-btn" 
-                    class="w-full bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-500 text-gray-900 font-bold py-3.5 px-4 rounded-xl shadow-[0_0_15px_rgba(234,179,8,0.25)] transform transition-all hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] focus:outline-none focus:ring-4 focus:ring-yellow-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex justify-center items-center gap-2">
-                🔮 啟動星盤解析
-            </button>
-        </form>
+    <div class="loading" id="loading-text">演算法運行中，正在調用三大知識庫進行交叉比對... ⏳</div>
+    
+    <div id="result-box"></div>
+</div>
 
-        <!-- 讀取狀態 -->
-        <div id="loading-state" class="hidden mt-8 text-center bg-gray-900/60 p-6 rounded-xl border border-yellow-500/20 backdrop-blur-sm">
-            <div class="spinner"></div>
-            <span class="text-yellow-400 font-medium tracking-wide">大師正在觀星排盤，推演天機，請稍候... ⏳</span>
-        </div>
-        
-        <!-- 錯誤訊息區塊 -->
-        <div id="error-box" class="hidden mt-8 p-5 bg-red-950/50 text-red-300 rounded-xl border border-red-800/50 backdrop-blur-sm">
-        </div>
-
-        <!-- 結果顯示區塊 -->
-        <div id="result-box" class="hidden mt-8">
-            <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-3">
-                <span class="text-2xl drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">📜</span>
-                <h2 class="text-xl font-bold text-yellow-400 tracking-wide w-full">天機解析結果</h2>
-            </div>
-            
-            <!-- 使用自定義的 prose class 渲染暗色系 Markdown 內容 -->
-            <div id="result-content" class="prose max-w-none bg-gray-900/60 p-6 md:p-8 rounded-2xl border border-gray-700/50 shadow-inner backdrop-blur-sm"></div>
-            
-            <button id="reset-btn" class="mt-8 w-full bg-transparent border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 font-bold py-3 px-4 rounded-xl transition-all duration-300">
-                ✨ 重新請示大師
-            </button>
-        </div>
-    </div>
+<div class="footer">
+    &copy; 2026 gygs.ca - Powered by AI & Data Analytics
 </div>
 
 <script>
-    // 運行環境會自動提供正確的 API Key
-    const apiKey = ""; 
-
-    // 時辰對照表，用於將 select 的值轉換為中文描述供 AI 閱讀
-    const timeOptions = {
-        "0": "早子時 (00:00 - 01:00)",
-        "1": "丑時 (01:00 - 03:00)",
-        "2": "寅時 (03:00 - 05:00)",
-        "3": "卯時 (05:00 - 07:00)",
-        "4": "辰時 (07:00 - 09:00)",
-        "5": "巳時 (09:00 - 11:00)",
-        "6": "午時 (11:00 - 13:00)",
-        "7": "未時 (13:00 - 15:00)",
-        "8": "申時 (15:00 - 17:00)",
-        "9": "酉時 (17:00 - 19:00)",
-        "10": "戌時 (19:00 - 21:00)",
-        "11": "亥時 (21:00 - 23:00)",
-        "12": "晚子時 (23:00 - 00:00)"
-    };
-
-    // 處理 Gemini API 請求（包含指數退避重試機制）
-    async function generateAstrologyReading(prompt) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: { 
-                parts: [{ 
-                    text: "你是一位擁有數十年經驗的紫微斗數與東方命理大師。請使用繁體中文，以專業、溫暖且富有洞察力的口吻回答用戶。請將回答格式化為 Markdown，包含清晰的段落與標題。如果用戶提供的資訊不足以精確排盤，請以八字或大方向的紫微星象概念，給予最實用的建議。" 
-                }] 
-            }
-        };
-
-        const maxRetries = 5;
-        
-        for (let i = 0; i < maxRetries; i++) {
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`伺服器回應錯誤: ${response.status}`);
-                }
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates[0].content.parts[0].text) {
-                    return result.candidates[0].content.parts[0].text;
-                } else {
-                    throw new Error('無法解析回傳資料');
-                }
-
-            } catch (error) {
-                // 如果是最後一次重試仍然失敗，則拋出錯誤
-                if (i === maxRetries - 1) {
-                    throw error;
-                }
-                // 指數退避: 等待 1s, 2s, 4s, 8s...
-                const delay = Math.pow(2, i) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-    }
-
     document.getElementById('astro-form').addEventListener('submit', async function(e) {
         e.preventDefault(); 
 
         const btn = document.getElementById('submit-btn');
-        const loadingState = document.getElementById('loading-state');
+        const loading = document.getElementById('loading-text');
         const resultBox = document.getElementById('result-box');
-        const resultContent = document.getElementById('result-content');
-        const errorBox = document.getElementById('error-box');
 
-        // 隱藏之前的結果或錯誤
-        resultBox.classList.add('hidden');
-        errorBox.classList.add('hidden');
-        
-        // 取得輸入值
-        const date = document.getElementById('date').value;
-        const timeValue = document.getElementById('timeIndex').value;
-        const timeString = timeOptions[timeValue];
-        const gender = document.getElementById('gender').value;
-        const question = document.getElementById('question').value;
+        const payload = {
+            date: document.getElementById('date').value,
+            timeIndex: parseInt(document.getElementById('timeIndex').value),
+            gender: document.getElementById('gender').value,
+            question: document.getElementById('question').value
+        };
 
-        // 組合給 AI 的提示詞 (Prompt)
-        const userPrompt = `
-以下是一位尋求指點的求問者的基本資料與問題：
-- 性別：${gender}
-- 出生日期(陽曆)：${date}
-- 出生時辰：${timeString}
-- 詢問問題：${question}
-
-請根據以上資訊，運用您的紫微斗數知識，為他/她進行命盤分析與問題解答。請著重於事業、性格潛力或針對其問題的核心癥結，給予建設性與具體的人生建議。
-        `;
-
-        // 畫面切換為讀取中狀態
         btn.disabled = true;
-        btn.innerHTML = '星軌解析中...';
-        loadingState.classList.remove('hidden');
+        loading.style.display = 'block';
+        resultBox.style.display = 'none';
 
         try {
-            // 呼叫 AI 產生內容
-            const aiResponseText = await generateAstrologyReading(userPrompt);
-            
-            // 使用 Marked.js 將 Markdown 轉換為 HTML，並插入到結果區塊
-            resultContent.innerHTML = marked.parse(aiResponseText);
-            
-            // 顯示結果
-            resultBox.classList.remove('hidden');
-            
-            // 自動滾動到結果區域
-            resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // 已經精準指向你在 Render 上的專屬 API 節點
+            const response = await fetch('https://gygs-ca.onrender.com/api/ask-chart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                resultBox.innerText = data.answer;
+                resultBox.style.display = 'block';
+            } else {
+                alert('伺服器回應錯誤：' + (data.message || '未知錯誤'));
+            }
         } catch (error) {
-            console.error('API 請求失敗:', error);
-            errorBox.innerHTML = `<strong>抱歉，星象紊亂，大師目前靈力耗盡（連線發生錯誤）。</strong><br>請確認您的網路連線，或稍後再試一次。<br><span class="text-sm opacity-75 text-red-400">錯誤細節: ${error.message}</span>`;
-            errorBox.classList.remove('hidden');
+            alert('無法連線到雲端大腦，請稍後再試。');
+            console.error(error);
         } finally {
-            // 恢復表單狀態
             btn.disabled = false;
-            btn.innerHTML = '🔮 啟動星盤解析';
-            loadingState.classList.add('hidden');
+            loading.style.display = 'none';
         }
-    });
-
-    // 重新提問按鈕邏輯
-    document.getElementById('reset-btn').addEventListener('click', () => {
-        document.getElementById('result-box').classList.add('hidden');
-        document.getElementById('question').value = '';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 </script>
 
