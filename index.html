@@ -47,8 +47,11 @@
             margin-bottom: 15px;
         }
         .logo {
-            max-width: 180px;
-            height: auto;
+            width: 140px; /* 固定寬度 */
+            height: 140px; /* 固定高度，確保是正方形比例 */
+            object-fit: cover; /* 確保圖片不變形，完美填滿圓形 */
+            border-radius: 50%; /* 將形狀轉換為正圓形 */
+            border: 2px solid var(--primary-color); /* 增加淡淡的金色邊框修飾邊緣 */
             filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)); /* 給 Logo 微微的金色發光感 */
         }
         h1 {
@@ -63,16 +66,7 @@
             text-align: center;
             color: #a0aec0;
             font-size: 14px;
-            margin-bottom: 5px;
-        }
-        p.beta-notice {
-            text-align: center;
-            color: var(--primary-color);
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 0;
             margin-bottom: 30px;
-            letter-spacing: 1px;
         }
         label {
             display: block;
@@ -178,7 +172,6 @@
 
     <h1>GYGS 演算中心</h1>
     <p class="subtitle">結合傳統命理與現代邏輯的客觀分析平台</p>
-    <p class="beta-notice">【Closed Beta】系統目前為封閉測試階段，僅限受邀之親友憑代碼預約使用。</p>
     
     <form id="astro-form">
         <label for="date">出生日期 (陽曆):</label>
