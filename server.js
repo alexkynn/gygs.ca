@@ -3,8 +3,10 @@ const { astro } = require('iztro');
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors'); // 👈 加入這行 (引入跨域套件)
 
 const app = express();
+app.use(cors()); // 👈 加入這行 (啟用跨域通行證)
 app.use(express.json());
 
 // ⚠️ 請務必將 'YOUR_API_KEY_HERE' 替換成你真實的 API Key
