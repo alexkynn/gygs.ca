@@ -20,6 +20,12 @@ const housesDef = fs.readFileSync(path.join(__dirname, '2_twelve_houses.md'), 'u
 const transformDef = fs.readFileSync(path.join(__dirname, '3_four_transformations.md'), 'utf-8');
 const auxStarsDef = fs.readFileSync(path.join(__dirname, '4_auxiliary_stars.md'), 'utf-8'); 
 const patternsDef = fs.readFileSync(path.join(__dirname, '5_chart_patterns.md'), 'utf-8');
+const flyingStarsDef = fs.readFileSync(path.join(__dirname, '6_flying_stars_causality.md'), 'utf-8');
+const timeSeriesDef = fs.readFileSync(path.join(__dirname, '7_time_series_nested.md'), 'utf-8');
+const healthDef = fs.readFileSync(path.join(__dirname, '8_secondary_stars_and_health.md'), 'utf-8');
+const calibrationDef = fs.readFileSync(path.join(__dirname, '9_palace_calibration_rules.md'), 'utf-8');
+const monthlyDailyDef = fs.readFileSync(path.join(__dirname, '10_monthly_daily_tracking.md'), 'utf-8');
+const synastryDef = fs.readFileSync(path.join(__dirname, '11_synastry_matrix.md'), 'utf-8');
 
 // ==========================================
 // 🛡️ 2. 建構終極系統指令 (System Instruction)
@@ -50,6 +56,24 @@ ${auxStarsDef}
 
 === 知識庫 5：核心格局與技術型態 ===
 ${patternsDef}
+
+=== 知識庫 6：飛星四化因果與資金流向 ===
+${flyingStarsDef}
+
+=== 知識庫 7：長短期時間序列與嵌套矩陣 ===
+${timeSeriesDef}
+
+=== 知識庫 8：乙級星催化劑與身心健康 ===
+${healthDef}
+
+=== 知識庫 9：宮位重疊與維度校正規則 ===
+${calibrationDef}
+
+=== 知識庫 10：高頻波動率與短線追蹤 ===
+${monthlyDailyDef}
+
+=== 知識庫 11：雙人合盤與對手件風險 ===
+${synastryDef}
 
 【輸出格式要求】
 請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。在提出論點時，請適時在括號內標註你的推演依據（例如：依據命宮七殺、流年財帛宮化忌、擎羊星的物理摩擦等），讓使用者明白這是嚴謹的交叉比對結果，而非隨機猜測。
