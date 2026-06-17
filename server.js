@@ -26,6 +26,7 @@ const healthDef = fs.readFileSync(path.join(__dirname, '8_secondary_stars_and_he
 const calibrationDef = fs.readFileSync(path.join(__dirname, '9_palace_calibration_rules.md'), 'utf-8');
 const monthlyDailyDef = fs.readFileSync(path.join(__dirname, '10_monthly_daily_tracking.md'), 'utf-8');
 const synastryDef = fs.readFileSync(path.join(__dirname, '11_synastry_matrix.md'), 'utf-8');
+const baziMacroDef = fs.readFileSync(path.join(__dirname, '12_bazi_macro_logic.md'), 'utf-8');
 
 // ==========================================
 // 🛡️ 2. 建構終極系統指令 (System Instruction)
@@ -74,6 +75,9 @@ ${monthlyDailyDef}
 
 === 知識庫 11：雙人合盤與對手件風險 ===
 ${synastryDef}
+
+=== 知識庫 12：八字宏觀環境與十神邏輯 ===
+${baziMacroDef}
 
 【輸出格式要求】
 請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。在提出論點時，請適時在括號內標註你的推演依據（例如：依據命宮七殺、流年財帛宮化忌、擎羊星的物理摩擦等），讓使用者明白這是嚴謹的交叉比對結果，而非隨機猜測。
