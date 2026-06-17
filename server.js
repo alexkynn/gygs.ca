@@ -3,13 +3,13 @@ const { astro } = require('iztro');
 const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors'); // 👈 加入這行 (引入跨域套件)
+const cors = require('cors');
 
 const app = express();
-app.use(cors()); // 👈 加入這行 (啟用跨域通行證)
+app.use(cors());
 app.use(express.json());
 
-// ⚠️ 請務必將 'YOUR_API_KEY_HERE' 替換成你真實的 API Key
+// 讀取 Render 雲端設定的環境變數金鑰
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // ==========================================
@@ -18,6 +18,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const starsDef = fs.readFileSync(path.join(__dirname, '1_stars_definition.md'), 'utf-8');
 const housesDef = fs.readFileSync(path.join(__dirname, '2_twelve_houses.md'), 'utf-8');
 const transformDef = fs.readFileSync(path.join(__dirname, '3_four_transformations.md'), 'utf-8');
+// 👇 新增讀取第四個知識庫：輔星與煞星
+const auxStarsDef = fs.readFileSync(path.join(__dirname, '4_auxiliary_stars.md'), 'utf-8'); 
 
 // ==========================================
 // 🛡️ 2. 建構終極系統指令 (System Instruction)
@@ -32,7 +34,7 @@ const SYSTEM_INSTRUCTION = `
 3. 所有的預測必須轉化為「行為傾向」、「心理狀態」或「客觀的環境變數」。
 
 【運算知識庫】
-請完全依照以下提供的三個核心數據庫進行邏輯推演：
+請完全依照以下提供的四個核心數據庫進行邏輯推演：
 
 === 知識庫 1：十四主星現代定義 ===
 ${starsDef}
@@ -43,8 +45,11 @@ ${housesDef}
 === 知識庫 3：四化動態演算法 ===
 ${transformDef}
 
+=== 知識庫 4：輔星與煞星動態參數 ===
+${auxStarsDef}
+
 【輸出格式要求】
-請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。在提出論點時，請適時在括號內標註你的推演依據（例如：依據命宮七殺、流年財帛宮化忌等），讓使用者明白這是嚴謹的交叉比對結果，而非隨機猜測。
+請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。在提出論點時，請適時在括號內標註你的推演依據（例如：依據命宮七殺、流年財帛宮化忌、擎羊星的物理摩擦等），讓使用者明白這是嚴謹的交叉比對結果，而非隨機猜測。
 `;
 
 // ==========================================
@@ -104,7 +109,7 @@ app.post('/api/ask-chart', async (req, res) => {
   }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🟢 gygs.ca 紫微 AI 大腦 API 已啟動，監聽 Port: ${PORT}`);
+  console.log(\`🟢 gygs.ca 紫微 AI 大腦 API 已啟動，監聽 Port: \${PORT}\`);
 });
