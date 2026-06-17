@@ -18,7 +18,6 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const starsDef = fs.readFileSync(path.join(__dirname, '1_stars_definition.md'), 'utf-8');
 const housesDef = fs.readFileSync(path.join(__dirname, '2_twelve_houses.md'), 'utf-8');
 const transformDef = fs.readFileSync(path.join(__dirname, '3_four_transformations.md'), 'utf-8');
-// 👇 新增讀取第四個知識庫：輔星與煞星
 const auxStarsDef = fs.readFileSync(path.join(__dirname, '4_auxiliary_stars.md'), 'utf-8'); 
 
 // ==========================================
@@ -111,5 +110,5 @@ app.post('/api/ask-chart', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(\`🟢 gygs.ca 紫微 AI 大腦 API 已啟動，監聽 Port: \${PORT}\`);
+  console.log(`🟢 gygs.ca 紫微 AI 大腦 API 已啟動，監聽 Port: ${PORT}`);
 });
