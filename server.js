@@ -19,6 +19,7 @@ const starsDef = fs.readFileSync(path.join(__dirname, '1_stars_definition.md'), 
 const housesDef = fs.readFileSync(path.join(__dirname, '2_twelve_houses.md'), 'utf-8');
 const transformDef = fs.readFileSync(path.join(__dirname, '3_four_transformations.md'), 'utf-8');
 const auxStarsDef = fs.readFileSync(path.join(__dirname, '4_auxiliary_stars.md'), 'utf-8'); 
+const patternsDef = fs.readFileSync(path.join(__dirname, '5_chart_patterns.md'), 'utf-8');
 
 // ==========================================
 // 🛡️ 2. 建構終極系統指令 (System Instruction)
@@ -46,6 +47,9 @@ ${transformDef}
 
 === 知識庫 4：輔星與煞星動態參數 ===
 ${auxStarsDef}
+
+=== 知識庫 5：核心格局與技術型態 ===
+${patternsDef}
 
 【輸出格式要求】
 請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。在提出論點時，請適時在括號內標註你的推演依據（例如：依據命宮七殺、流年財帛宮化忌、擎羊星的物理摩擦等），讓使用者明白這是嚴謹的交叉比對結果，而非隨機猜測。
