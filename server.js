@@ -29,6 +29,8 @@ const monthlyDailyDef = fs.readFileSync(path.join(__dirname, '10_monthly_daily_t
 const synastryDef = fs.readFileSync(path.join(__dirname, '11_synastry_matrix.md'), 'utf-8');
 // 👇 八字宏觀數據庫
 const baziMacroDef = fs.readFileSync(path.join(__dirname, '12_bazi_macro_logic.md'), 'utf-8'); 
+const baziInteractionsDef = fs.readFileSync(path.join(__dirname, '13_bazi_interactions_volatility.md'), 'utf-8');
+const baziCapacityDef = fs.readFileSync(path.join(__dirname, '14_day_master_capacity.md'), 'utf-8');
 
 // ==========================================
 // 🛡️ 2. 建構雙引擎系統指令 (System Instruction)
@@ -66,6 +68,12 @@ ${synastryDef}
 
 === 知識庫 12：八字宏觀環境與十神邏輯 ===
 ${baziMacroDef}
+
+=== 知識庫 13：天干地支刑沖合害矩陣 ===
+${baziInteractionsDef}
+
+=== 知識庫 14：日主強度與系統承載力 ===
+${baziCapacityDef}
 
 【輸出格式要求】
 1. 請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。
