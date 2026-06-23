@@ -31,6 +31,9 @@ const synastryDef = fs.readFileSync(path.join(__dirname, '11_synastry_matrix.md'
 const baziMacroDef = fs.readFileSync(path.join(__dirname, '12_bazi_macro_logic.md'), 'utf-8'); 
 const baziInteractionsDef = fs.readFileSync(path.join(__dirname, '13_bazi_interactions_volatility.md'), 'utf-8');
 const baziCapacityDef = fs.readFileSync(path.join(__dirname, '14_day_master_capacity.md'), 'utf-8');
+const baziSeasonalDef = fs.readFileSync(path.join(__dirname, '15_bazi_seasonal_weighting.md'), 'utf-8');
+const baziOptimizationDef = fs.readFileSync(path.join(__dirname, '16_bazi_useful_god_optimization.md'), 'utf-8');
+const macroCycleDef = fs.readFileSync(path.join(__dirname, '17_macro_cycle_resonance.md'), 'utf-8');
 
 // ==========================================
 // 🛡️ 2. 建構雙引擎系統指令 (System Instruction)
@@ -74,6 +77,15 @@ ${baziInteractionsDef}
 
 === 知識庫 14：日主強度與系統承載力 ===
 ${baziCapacityDef}
+
+=== 知識庫 15：月令得時與動態權重校正 ===
+${baziSeasonalDef}
+
+=== 知識庫 16：用神與忌神選取優化演算法 ===
+${baziOptimizationDef}
+
+=== 知識庫 17：巨觀週期共振與極端尾部風險 ===
+${macroCycleDef}
 
 【輸出格式要求】
 1. 請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。
