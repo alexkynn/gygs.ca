@@ -14,6 +14,18 @@
             font-family: 'SF Pro Display', -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
 
+        .logo-img {
+            max-width: 250px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.02);
+        }
+
         .main-title {
             font-size: 2.25rem;
             font-weight: 800;
@@ -104,17 +116,28 @@
             margin-bottom: 0.5rem;
         }
 
-        /* 讓輸入框在深色模式下更好看 */
         .form-control, .form-select {
             background-color: #1f2937;
             border-color: #374151;
             color: #f3f4f6;
         }
+        
         .form-control:focus, .form-select:focus {
             background-color: #1f2937;
             border-color: #38bdf8;
             color: #f3f4f6;
             box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
+        }
+
+        .disclaimer-box {
+            font-size: 0.75rem;
+            color: #6b7280;
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-top: 2rem;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -123,6 +146,10 @@
 <div class="container py-5" style="max-width: 1000px;">
     
     <header class="text-center mb-5">
+        <div class="mb-4">
+            <img src="gygs_galaxy_logo.png" alt="gygs.ca Galaxy Logo" class="logo-img img-fluid">
+        </div>
+        
         <div class="badge-soft-launch mb-2">⚡ SYSTEM STATUS: SOFT LAUNCH</div>
         <h1 class="main-title mb-3">gygs.ca 雙引擎數據決策中心</h1>
         <p class="text-secondary">
@@ -233,8 +260,8 @@
 
                 <div class="booking-action-zone mt-4">
                     <div class="price-tag mb-3">
-                        <span class="text-secondary text-decoration-line-through fs-6">Original: $280</span>
-                        <span class="text-success fs-5 font-monospace ms-2 fw-bold">Soft Launch: $0</span>
+                        <span class="text-secondary text-decoration-line-through fs-6">Original: $280 USD</span>
+                        <span class="text-success fs-5 font-monospace ms-2 fw-bold">Soft Launch: $0 USD</span>
                     </div>
                     <a href="https://calendly.com/your-profile" target="_blank" id="booking-link-btn" class="btn btn-success w-100 py-3 fw-bold">
                         立即預約 1-on-1 深度解析
@@ -243,8 +270,17 @@
                 </div>
             </div>
         </div>
-
     </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="disclaimer-box text-center">
+                <strong>Disclaimer & Limitation of Liability:</strong><br>
+                All information, analysis, algorithms, and strategic concepts provided by gygs.ca—including but not limited to AI-generated reports and 1-on-1 consultation services—are solely for educational, informational, and personal planning purposes. They do not constitute certified financial, investment, legal, accounting, medical, or professional advice. The dual-engine macro/micro framework is a theoretical data model and should not be relied upon as the sole basis for making trading, investment, or life-altering decisions. Users are entirely responsible for their own actions and risk management. The creators, developers, analysts, and operators associated with gygs.ca shall not be held liable for any direct, indirect, incidental, consequential, or financial losses arising from the use or interpretation of this platform. Past historical correlations or algorithm results do not guarantee future performance or specific outcomes.
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -262,7 +298,6 @@
         const question = document.getElementById('question').value;
 
         try {
-            // 請確保這裡的 API 網址與你伺服器設定的相符
             const response = await fetch('/api/ask-chart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
