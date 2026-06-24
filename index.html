@@ -1,221 +1,291 @@
-<style>
-    /* gygs.ca Soft Launch 專屬科技風美學 */
-    .soft-launch-container {
-        background-color: #0b0f19;
-        color: #e2e8f0;
-        font-family: 'SF Pro Display', -apple-system, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    .main-title {
-        font-size: 2.25rem;
-        font-weight: 800;
-        letter-spacing: -0.05em;
-        background: linear-gradient(to right, #38bdf8, #818cf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .badge-soft-launch {
-        display: inline-block;
-        background-color: rgba(56, 189, 248, 0.1);
-        color: #38bdf8;
-        padding: 0.25rem 0.75rem;
-        font-size: 0.75rem;
-        font-family: monospace;
-        border-radius: 4px;
-        border: 1px solid rgba(56, 189, 248, 0.2);
-    }
-
-    .badge-booking {
-        display: inline-block;
-        background-color: rgba(244, 63, 94, 0.1);
-        color: #f43f5e;
-        padding: 0.25rem 0.75rem;
-        font-size: 0.75rem;
-        font-family: monospace;
-        border-radius: 4px;
-        border: 1px solid rgba(244, 63, 94, 0.2);
-    }
-
-    .status-card {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 8px;
-    }
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gygs.ca - 雙引擎數據決策中心</title>
     
-    .card-num {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #f3f4f6;
-        font-family: monospace;
-    }
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    .card-label {
-        font-size: 0.75rem;
-        color: #9ca3af;
-    }
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            font-family: 'SF Pro Display', -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
 
-    .engine-box, .booking-box {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
+        .main-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .engine-box:hover, .booking-box:hover {
-        border-color: #374151;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    }
+        .badge-soft-launch {
+            display: inline-block;
+            background-color: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
 
-    .box-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-    }
+        .badge-booking {
+            display: inline-block;
+            background-color: rgba(244, 63, 94, 0.1);
+            color: #f43f5e;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border-radius: 4px;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
 
-    .btn-glow {
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        border: none;
-        transition: opacity 0.2s;
-        color: white;
-    }
-    
-    .btn-glow:hover {
-        opacity: 0.9;
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-    }
-
-    .booking-desc {
-        font-size: 0.9rem;
-        line-height: 1.6;
-    }
-
-    .service-item {
-        font-size: 0.85rem;
-        color: #cbd5e1;
-        margin-bottom: 0.5rem;
-    }
-</style>
-<div class="container-fluid soft-launch-container py-5">
-    <div class="max-w-4xl mx-auto px-4">
+        .status-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+        }
         
-        <header class="text-center mb-5">
-            <div class="badge-soft-launch mb-2">⚡ SYSTEM STATUS: SOFT LAUNCH</div>
-            <h1 class="main-title">gygs.ca 雙引擎數據決策中心</h1>
-            <p class="subtitle text-muted">
-                融合「紫微斗數微觀資產配置」與「八字五行宏觀週期」，為您的商業、財務與人生跑道提供零幻覺的量化對沖策略。
-            </p>
-        </header>
+        .card-num {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f3f4f6;
+            font-family: monospace;
+        }
+        
+        .card-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-            <div class="status-card text-center p-3">
+        .engine-box, .booking-box {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .engine-box:hover, .booking-box:hover {
+            border-color: #374151;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .box-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            border: none;
+            transition: opacity 0.2s;
+            color: white;
+        }
+        
+        .btn-glow:hover {
+            opacity: 0.9;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .booking-desc {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .service-item {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 讓輸入框在深色模式下更好看 */
+        .form-control, .form-select {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #1f2937;
+            border-color: #38bdf8;
+            color: #f3f4f6;
+            box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5" style="max-width: 1000px;">
+    
+    <header class="text-center mb-5">
+        <div class="badge-soft-launch mb-2">⚡ SYSTEM STATUS: SOFT LAUNCH</div>
+        <h1 class="main-title mb-3">gygs.ca 雙引擎數據決策中心</h1>
+        <p class="text-secondary">
+            融合「紫微斗數微觀資產配置」與「八字五行宏觀週期」，為您的商業、財務與人生跑道提供零幻覺的量化對沖策略。
+        </p>
+    </header>
+
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="status-card text-center p-3 h-100">
                 <div class="card-num">17</div>
                 <div class="card-label">核心演算法矩陣已封裝</div>
             </div>
-            <div class="status-card text-center p-3">
+        </div>
+        <div class="col-md-4">
+            <div class="status-card text-center p-3 h-100">
                 <div class="card-num">0%</div>
                 <div class="card-label">宿命論與迷信雜訊</div>
             </div>
-            <div class="status-card text-center p-3">
+        </div>
+        <div class="col-md-4">
+            <div class="status-card text-center p-3 h-100">
                 <div class="card-num">有限</div>
                 <div class="card-label">Soft Launch 一對一席次</div>
             </div>
         </div>
+    </div>
 
-        <div class="row g-4">
-            
-            <div class="col-lg-7">
-                <div class="engine-box p-4 h-100">
-                    <h3 class="box-title mb-4">🟢 1. 即時雙引擎 AI 演算</h3>
-                    <form id="ask-chart-form">
-                        <div class="mb-3">
-                            <label for="date" class="form-label">出生西曆日期</label>
-                            <input type="date" class="form-control bg-dark text-light border-secondary" id="date" required>
+    <div class="row g-4">
+        
+        <div class="col-lg-7">
+            <div class="engine-box p-4 h-100">
+                <h3 class="box-title mb-4">🟢 1. 即時雙引擎 AI 演算</h3>
+                <form id="ask-chart-form">
+                    <div class="mb-3">
+                        <label for="date" class="form-label text-light">出生西曆日期</label>
+                        <input type="date" class="form-control" id="date" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="timeIndex" class="form-label text-light">出生時辰</label>
+                            <select class="form-select" id="timeIndex" required>
+                                <option value="" disabled selected>請選擇時辰</option>
+                                <option value="0">子時 (23:00 - 00:59)</option>
+                                <option value="1">丑時 (01:00 - 02:59)</option>
+                                <option value="2">寅時 (03:00 - 04:59)</option>
+                                <option value="3">卯時 (05:00 - 06:59)</option>
+                                <option value="4">辰時 (07:00 - 08:59)</option>
+                                <option value="5">巳時 (09:00 - 10:59)</option>
+                                <option value="6">午時 (11:00 - 12:59)</option>
+                                <option value="7">未時 (13:00 - 14:59)</option>
+                                <option value="8">申時 (15:00 - 16:59)</option>
+                                <option value="9">酉時 (17:00 - 18:59)</option>
+                                <option value="10">戌時 (19:00 - 20:59)</option>
+                                <option value="11">亥時 (21:00 - 22:59)</option>
+                            </select>
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="timeIndex" class="form-label">出生時辰</label>
-                                <select class="form-select bg-dark text-light border-secondary" id="timeIndex" required>
-                                    <option value="" disabled selected>請選擇時辰</option>
-                                    <option value="0">子時 (23:00 - 00:59)</option>
-                                    <option value="1">丑時 (01:00 - 02:59)</option>
-                                    <option value="2">寅時 (03:00 - 04:59)</option>
-                                    <option value="3">卯時 (05:00 - 06:59)</option>
-                                    <option value="4">辰時 (07:00 - 08:59)</option>
-                                    <option value="5">巳時 (09:00 - 10:59)</option>
-                                    <option value="6">午時 (11:00 - 12:59)</option>
-                                    <option value="7">未時 (13:00 - 14:59)</option>
-                                    <option value="8">申時 (15:00 - 16:59)</option>
-                                    <option value="9">酉時 (17:00 - 18:59)</option>
-                                    <option value="10">戌時 (19:00 - 20:59)</option>
-                                    <option value="11">亥時 (21:00 - 22:59)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">生理性別</label>
-                                <div class="d-flex gap-3 pt-1">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
-                                        <label class="form-check-label" for="gender-male">男 (Male)</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female">
-                                        <label class="form-check-label" for="gender-female">女 (Female)</label>
-                                    </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-light">生理性別</label>
+                            <div class="d-flex gap-3 pt-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
+                                    <label class="form-check-label text-light" for="gender-male">男 (Male)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female">
+                                    <label class="form-check-label text-light" for="gender-female">女 (Female)</label>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="question" class="form-label">當前戰略目標與分析訴求</label>
-                            <textarea class="form-control bg-dark text-light border-secondary" id="question" rows="4" placeholder="例如：本人目前面臨跑道轉換/資產配置調整，請綜合評估流年微觀風險與大環境十神走向..." required></textarea>
-                        </div>
-
-                        <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">啟動雙引擎量化分析</button>
-                    </form>
-
-                    <div id="analysis-result-container" class="mt-4 d-none">
-                        <hr class="border-secondary">
-                        <h4 class="text-info mb-3">📊 演算法分析報告產出：</h4>
-                        <div id="analysis-text" class="text-light-50 lh-lg" style="white-space: pre-line;"></div>
                     </div>
+
+                    <div class="mb-4">
+                        <label for="question" class="form-label text-light">當前戰略目標與分析訴求</label>
+                        <textarea class="form-control" id="question" rows="4" placeholder="例如：本人目前面臨跑道轉換/資產配置調整，請綜合評估流年微觀風險與大環境十神走向..." required></textarea>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">啟動雙引擎量化分析</button>
+                </form>
+
+                <div id="analysis-result-container" class="mt-4 d-none">
+                    <hr class="border-secondary">
+                    <h4 class="text-info mb-3">📊 演算法分析報告產出：</h4>
+                    <div id="analysis-text" class="text-light-50 lh-lg" style="white-space: pre-line;"></div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-lg-5">
-                <div class="booking-box p-4 h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="badge-booking mb-2">🔥 LIMITED SLOTS</div>
-                        <h3 class="box-title mb-3">🔵 2. 深度戰術決策預約</h3>
-                        <p class="booking-desc">
-                            AI 報告能指出波動方向，但複雜的「對手件風險」與「跨範式跑道轉換」需要更精密的動態對沖。
-                        </p>
-                        <p class="booking-desc text-muted">
-                            在 Soft Launch 期間，我們每日僅開放 <strong>2 組</strong> 尊榮席次，由首席分析師依據 17 個核心知識庫，為您進行面對面的系統性盲點清查。
-                        </p>
-                        
-                        <div class="service-include mb-4">
-                            <div class="service-item">✔ 雙引擎排盤極化修正（真太陽時校正）</div>
-                            <div class="service-item">✔ 商業合夥/對手件風險多維矩陣比對</div>
-                            <div class="service-item">✔ 長天期資產水庫防禦邊界全面診斷</div>
-                        </div>
-                    </div>
-
-                    <div class="booking-action-zone">
-                        <div class="price-tag mb-3">
-                            <span class="text-muted text-decoration-line-through fs-6">Original: $280</span>
-                            <span class="text-success fs-4 font-monospace ms-2">Soft Launch: $0 (限期開放)</span>
-                        </div>
-                        <a href="https://calendly.com/your-profile" target="_blank" id="booking-link-btn" class="btn btn-success w-100 py-3 font-weight-bold">
-                            立即預約 1-on-1 深度解析
-                        </a>
-                        <small class="text-center d-block text-muted mt-2">点击將跳轉至常態預約排程系統</small>
+        <div class="col-lg-5">
+            <div class="booking-box p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="badge-booking mb-2">🔥 LIMITED SLOTS</div>
+                    <h3 class="box-title mb-3">🔵 2. 深度戰術決策預約</h3>
+                    <p class="booking-desc text-light">
+                        AI 報告能指出波動方向，但複雜的「對手件風險」與「跨範式跑道轉換」需要更精密的動態對沖。
+                    </p>
+                    <p class="booking-desc text-secondary">
+                        在 Soft Launch 期間，我們每日僅開放 <strong>2 組</strong> 尊榮席次，由首席分析師依據 17 個核心知識庫，為您進行面對面的系統性盲點清查。
+                    </p>
+                    
+                    <div class="service-include mb-4 mt-3">
+                        <div class="service-item">✔ 雙引擎排盤極化修正（真太陽時校正）</div>
+                        <div class="service-item">✔ 商業合夥/對手件風險多維矩陣比對</div>
+                        <div class="service-item">✔ 長天期資產水庫防禦邊界全面診斷</div>
                     </div>
                 </div>
-            </div>
 
+                <div class="booking-action-zone mt-4">
+                    <div class="price-tag mb-3">
+                        <span class="text-secondary text-decoration-line-through fs-6">Original: $280</span>
+                        <span class="text-success fs-5 font-monospace ms-2 fw-bold">Soft Launch: $0</span>
+                    </div>
+                    <a href="https://calendly.com/your-profile" target="_blank" id="booking-link-btn" class="btn btn-success w-100 py-3 fw-bold">
+                        立即預約 1-on-1 深度解析
+                    </a>
+                    <small class="text-center d-block text-secondary mt-2">點擊將跳轉至常態預約排程系統</small>
+                </div>
+            </div>
         </div>
 
     </div>
 </div>
+
+<script>
+    document.getElementById('ask-chart-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('submit-btn');
+        const originalBtnText = btn.innerText;
+        btn.innerText = "🚀 雙引擎演算中，請稍候...";
+        btn.disabled = true;
+
+        const date = document.getElementById('date').value;
+        const timeIndex = document.getElementById('timeIndex').value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const question = document.getElementById('question').value;
+
+        try {
+            // 請確保這裡的 API 網址與你伺服器設定的相符
+            const response = await fetch('/api/ask-chart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, timeIndex, gender, question })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('analysis-result-container').classList.remove('d-none');
+                document.getElementById('analysis-text').innerText = data.answer;
+            } else {
+                alert("伺服器回應錯誤: " + data.message);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("網路連線錯誤，請確認伺服器是否正常運作。");
+        } finally {
+            btn.innerText = originalBtnText;
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
