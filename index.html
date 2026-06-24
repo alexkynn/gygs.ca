@@ -46,15 +46,16 @@
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
-        .badge-booking {
+        /* 新增：Email 專屬標籤樣式 */
+        .badge-email {
             display: inline-block;
-            background-color: rgba(244, 63, 94, 0.1);
-            color: #f43f5e;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
             padding: 0.25rem 0.75rem;
             font-size: 0.75rem;
             font-family: monospace;
             border-radius: 4px;
-            border: 1px solid rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .status-card {
@@ -75,14 +76,14 @@
             color: #9ca3af;
         }
 
-        .engine-box, .booking-box {
+        .engine-box, .email-box {
             background: #111827;
             border: 1px solid #1f2937;
             border-radius: 12px;
             transition: all 0.3s ease;
         }
 
-        .engine-box:hover, .booking-box:hover {
+        .engine-box:hover, .email-box:hover {
             border-color: #374151;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
@@ -105,7 +106,7 @@
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
         }
 
-        .booking-desc {
+        .desc-text {
             font-size: 0.9rem;
             line-height: 1.6;
         }
@@ -150,7 +151,7 @@
             <img src="gygs_galaxy_logo.png" alt="gygs.ca Galaxy Logo" class="logo-img img-fluid">
         </div>
         
-        <div class="badge-soft-launch mb-2">⚡ SYSTEM STATUS: SOFT LAUNCH</div>
+        <div class="badge-soft-launch mb-2">⚡ SYSTEM STATUS: ONLINE</div>
         <h1 class="main-title mb-3">gygs.ca 雙引擎數據決策中心</h1>
         <p class="text-secondary">
             融合「紫微斗數微觀資產配置」與「八字五行宏觀週期」，為您的商業、財務與人生跑道提供零幻覺的量化對沖策略。
@@ -172,8 +173,8 @@
         </div>
         <div class="col-md-4">
             <div class="status-card text-center p-3 h-100">
-                <div class="card-num">有限</div>
-                <div class="card-label">Soft Launch 一對一席次</div>
+                <div class="card-num">24/7</div>
+                <div class="card-label">自動化報告派發系統</div>
             </div>
         </div>
     </div>
@@ -240,33 +241,31 @@
         </div>
 
         <div class="col-lg-5">
-            <div class="booking-box p-4 h-100 d-flex flex-column justify-content-between">
+            <div class="email-box p-4 h-100 d-flex flex-column justify-content-between">
                 <div>
-                    <div class="badge-booking mb-2">🔥 LIMITED SLOTS</div>
-                    <h3 class="box-title mb-3">🔵 2. 深度戰術決策預約</h3>
-                    <p class="booking-desc text-light">
-                        AI 報告能指出波動方向，但複雜的「對手件風險」與「跨範式跑道轉換」需要更精密的動態對沖。
-                    </p>
-                    <p class="booking-desc text-secondary">
-                        在 Soft Launch 期間，我們每日僅開放 <strong>2 組</strong> 尊榮席次，由首席分析師依據 17 個核心知識庫，為您進行面對面的系統性盲點清查。
+                    <div class="badge-email mb-2">📩 FULL PDF REPORT</div>
+                    <h3 class="box-title mb-3">🔵 2. 獲取完整分析報告</h3>
+                    <p class="desc-text text-light">
+                        網頁版即時演算僅提供高亮度的核心策略摘要。如需保留由 17 個核心大腦交叉比對的深度演算細節、宮位參數與完整的防禦矩陣，請索取完整報告。
                     </p>
                     
                     <div class="service-include mb-4 mt-3">
-                        <div class="service-item">✔ 雙引擎排盤極化修正（真太陽時校正）</div>
-                        <div class="service-item">✔ 商業合夥/對手件風險多維矩陣比對</div>
-                        <div class="service-item">✔ 長天期資產水庫防禦邊界全面診斷</div>
+                        <div class="service-item">✔ 包含所有宮位與十神細節參數</div>
+                        <div class="service-item">✔ 專屬大數據對沖策略完整建檔</div>
+                        <div class="service-item">✔ 電子檔案方便日後隨時查閱與追蹤</div>
                     </div>
                 </div>
 
-                <div class="booking-action-zone mt-4">
-                    <div class="price-tag mb-3">
-                        <span class="text-secondary text-decoration-line-through fs-6">Original: $280 USD</span>
-                        <span class="text-success fs-5 font-monospace ms-2 fw-bold">Soft Launch: $0 USD</span>
-                    </div>
-                    <a href="https://calendly.com/your-profile" target="_blank" id="booking-link-btn" class="btn btn-success w-100 py-3 fw-bold">
-                        立即預約 1-on-1 深度解析
-                    </a>
-                    <small class="text-center d-block text-secondary mt-2">點擊將跳轉至常態預約排程系統</small>
+                <div class="email-action-zone mt-4">
+                    <form id="email-report-form">
+                        <div class="mb-3">
+                            <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱" required>
+                        </div>
+                        <button type="submit" id="send-email-btn" class="btn btn-success w-100 py-3 fw-bold">
+                            立即發送完整報告至信箱
+                        </button>
+                    </form>
+                    <small class="text-center d-block text-secondary mt-3">我們將嚴格保密您的信箱資訊且絕不發送垃圾郵件。</small>
                 </div>
             </div>
         </div>
@@ -276,7 +275,7 @@
         <div class="col-12">
             <div class="disclaimer-box text-center">
                 <strong>Disclaimer & Limitation of Liability:</strong><br>
-                All information, analysis, algorithms, and strategic concepts provided by gygs.ca—including but not limited to AI-generated reports and 1-on-1 consultation services—are solely for educational, informational, and personal planning purposes. They do not constitute certified financial, investment, legal, accounting, medical, or professional advice. The dual-engine macro/micro framework is a theoretical data model and should not be relied upon as the sole basis for making trading, investment, or life-altering decisions. Users are entirely responsible for their own actions and risk management. The creators, developers, analysts, and operators associated with gygs.ca shall not be held liable for any direct, indirect, incidental, consequential, or financial losses arising from the use or interpretation of this platform. Past historical correlations or algorithm results do not guarantee future performance or specific outcomes.
+                All information, analysis, algorithms, and strategic concepts provided by gygs.ca—including but not limited to AI-generated reports and consultation services—are solely for educational, informational, and personal planning purposes. They do not constitute certified financial, investment, legal, accounting, medical, or professional advice. The dual-engine macro/micro framework is a theoretical data model and should not be relied upon as the sole basis for making trading, investment, or life-altering decisions. Users are entirely responsible for their own actions and risk management. The creators, developers, analysts, and operators associated with gygs.ca shall not be held liable for any direct, indirect, incidental, consequential, or financial losses arising from the use or interpretation of this platform. Past historical correlations or algorithm results do not guarantee future performance or specific outcomes.
             </div>
         </div>
     </div>
@@ -284,6 +283,7 @@
 </div>
 
 <script>
+    // 保留：左側 AI 演算表單的 JavaScript
     document.getElementById('ask-chart-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -319,6 +319,33 @@
             btn.innerText = originalBtnText;
             btn.disabled = false;
         }
+    });
+
+    // 新增：右側 Email 報告發送表單的 JavaScript (防止重整並給予 UI 反饋)
+    document.getElementById('email-report-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('send-email-btn');
+        const originalBtnText = btn.innerText;
+        const emailInput = document.getElementById('userEmail');
+        
+        // 模擬發送狀態
+        btn.innerText = "處理中...";
+        btn.disabled = true;
+
+        // 這裡未來可以串接你實際的 Email API 或 Webhook (如 Zapier, Make)
+        setTimeout(() => {
+            alert(`報告發送請求已送出！\n我們將盡快把完整分析發送至：${emailInput.value}`);
+            btn.innerText = "已發送 ✔";
+            btn.classList.replace('btn-success', 'btn-outline-success');
+            emailInput.value = ""; // 清空欄位
+            
+            // 3秒後按鈕恢復原狀
+            setTimeout(() => {
+                btn.innerText = originalBtnText;
+                btn.disabled = false;
+                btn.classList.replace('btn-outline-success', 'btn-success');
+            }, 3000);
+        }, 800);
     });
 </script>
 
