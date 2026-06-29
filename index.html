@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gygs.ca - 雙引擎數據決策中心</title>
+    <title>gygs.ca - 專屬人生導航與決策指南</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -150,27 +150,28 @@
             <img src="gygs_galaxy_logo.png?v=1.0" alt="gygs.ca Galaxy Logo" class="logo-img img-fluid">
         </div>
         
-        <div class="badge-soft-launch mb-2">⚡ SYSTEM STATUS: ONLINE</div>
-        <h1 class="main-title mb-3">gygs.ca 雙引擎數據決策中心</h1>
+        <div class="badge-soft-launch mb-2">💡 隨時準備與您展開對話</div>
+        <h1 class="main-title mb-3">gygs.ca 人生導航與決策指南</h1>
         <p class="text-secondary">
-            融合「紫微斗數微觀資產配置」與「八字五行宏觀週期」，為您的商業、財務與人生跑道提供零幻覺的量化對沖策略。
+            結合紫微斗數的細膩觀察與八字五行的宏觀智慧，讓我們像朋友一樣坐下來，為您的事業、財務與人生旅程，梳理出清晰、踏實的前進方向。
         </p>
     </header>
 
+    <!-- 👇 獲取完整分析報告區塊 👇 -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="email-box p-4 d-flex flex-column justify-content-between">
                 <div>
-                    <div class="badge-email mb-2">📩 FULL PDF REPORT</div>
-                    <h3 class="box-title mb-3">🔵 獲取完整分析報告</h3>
+                    <div class="badge-email mb-2">📩 YOUR LIFE BLUEPRINT</div>
+                    <h3 class="box-title mb-3">🔵 索取您的專屬人生藍圖</h3>
                     <p class="desc-text text-light">
-                        網頁版即時演算僅提供高亮度的核心策略摘要。如需保留由 17 個核心大腦交叉比對的深度演算細節、宮位參數與完整的防禦矩陣，請索取完整報告。
+                        網頁上的即時對話能為您點出當下最關鍵的方向。如果您希望深入了解各個生活層面、流年起伏，並保留一份完整的規劃建議，歡迎索取專屬的深度解析報告，讓它成為您隨時翻閱的指南針。
                     </p>
                     
                     <div class="service-include mb-4 mt-3">
-                        <div class="service-item">✔ 包含所有宮位與十神細節參數</div>
-                        <div class="service-item">✔ 專屬大數據對沖策略完整建檔</div>
-                        <div class="service-item">✔ 電子檔案方便日後隨時查閱與追蹤</div>
+                        <div class="service-item">✔ 涵蓋生活各個維度與潛能解析</div>
+                        <div class="service-item">✔ 量身打造的具體前進與避險建議</div>
+                        <div class="service-item">✔ 完整電子檔案，陪伴您走過每個關鍵時刻</div>
                     </div>
                 </div>
 
@@ -178,25 +179,26 @@
                     <form id="email-report-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-8">
-                                <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱" autocomplete="email" required>
+                                <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱，讓我們把報告寄給您" autocomplete="email" required>
                             </div>
                             <div class="col-md-4">
                                 <button type="submit" id="send-email-btn" class="btn btn-success w-100 py-3 fw-bold">
-                                    發送報告至信箱
+                                    將專屬藍圖寄給我
                                 </button>
                             </div>
                         </div>
                     </form>
-                    <small class="d-block text-secondary mt-3">我們將嚴格保密您的信箱資訊且絕不發送垃圾郵件。</small>
+                    <small class="d-block text-secondary mt-3">我們將嚴格保密您的信箱資訊，並將您的隱私視為最重要的事情。</small>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 👇 即時人生探索表單區塊 👇 -->
     <div class="row mb-5">
         <div class="col-12">
             <div class="engine-box p-4">
-                <h3 class="box-title mb-4">🟢 即時雙引擎 AI 演算</h3>
+                <h3 class="box-title mb-4">🟢 即時人生探索與對話</h3>
                 
                 <form id="ask-chart-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
                     <div class="row">
@@ -235,7 +237,7 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <div class="form-label text-light">生理性別</div>
+                            <div class="form-label text-light">性別</div>
                             <div class="d-flex gap-3 pt-1">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
@@ -250,22 +252,23 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="question" class="form-label text-light">當前戰略目標與分析訴求</label>
-                        <textarea class="form-control" id="question" rows="4" placeholder="例如：本人目前面臨跑道轉換/資產配置調整，請綜合評估流年微觀風險與大環境十神走向..." required></textarea>
+                        <label for="question" class="form-label text-light">您目前面臨的抉擇，或想探索的生活目標</label>
+                        <textarea class="form-control" id="question" rows="4" placeholder="例如：我最近在考慮轉換跑道，或是重新規劃財務目標，希望能了解接下來一兩年的發展契機與需要注意的地方..." required></textarea>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">啟動雙引擎量化分析</button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">聆聽專屬指引</button>
                 </form>
 
                 <div id="analysis-result-container" class="mt-4 d-none">
                     <hr class="border-secondary">
-                    <h4 class="text-info mb-3">📊 演算法分析報告產出：</h4>
+                    <h4 class="text-info mb-3">🌿 給您的專屬指引：</h4>
                     <div id="analysis-text" class="text-light-50 lh-lg" style="white-space: pre-line;"></div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 完整免責聲明 (保留嚴格的法律宣告以保障您的權益) -->
     <div class="row">
         <div class="col-12">
             <div class="disclaimer-box text-center">
@@ -283,7 +286,8 @@
         
         const btn = document.getElementById('submit-btn');
         const originalBtnText = btn.innerText;
-        btn.innerText = "🚀 雙引擎演算中，請稍候...";
+        // 替換為溫暖的提示文字
+        btn.innerText = "🌿 正在為您梳理思緒，請稍候...";
         btn.disabled = true;
 
         const country = document.getElementById('country').value;
@@ -301,7 +305,7 @@
             });
 
             if (!response.ok) {
-                throw new Error(`伺服器連線異常，狀態碼: ${response.status}`);
+                throw new Error(`連線時遇到了一點小阻礙，狀態碼: ${response.status}`);
             }
 
             const data = await response.json();
@@ -310,11 +314,11 @@
                 document.getElementById('analysis-result-container').classList.remove('d-none');
                 document.getElementById('analysis-text').innerText = data.answer;
             } else {
-                alert("伺服器回應錯誤: " + data.message);
+                alert("伺服器回應訊息: " + data.message);
             }
         } catch (error) {
             console.error("Error Detail:", error);
-            alert("網路連線錯誤！\n這可能是因為 Render 伺服器正在休眠喚醒中，請等待 30 秒後再試一次。");
+            alert("網路似乎暫時斷了線！\n伺服器可能正在深呼吸準備中（休眠喚醒），請給它大約 30 秒後再試一次。");
         } finally {
             btn.innerText = originalBtnText;
             btn.disabled = false;
@@ -327,12 +331,12 @@
         const originalBtnText = btn.innerText;
         const emailInput = document.getElementById('userEmail');
         
-        btn.innerText = "處理中...";
+        btn.innerText = "正在準備...";
         btn.disabled = true;
 
         setTimeout(() => {
-            alert(`報告發送請求已送出！\n我們將盡快把完整分析發送至：${emailInput.value}`);
-            btn.innerText = "已發送 ✔";
+            alert(`您的索取請求已溫暖送出！\n我們會盡快將完整藍圖發送至：${emailInput.value}`);
+            btn.innerText = "已順利發送 ✔";
             btn.classList.replace('btn-success', 'btn-outline-success');
             emailInput.value = "";
             
