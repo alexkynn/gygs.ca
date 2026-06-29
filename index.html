@@ -46,7 +46,6 @@
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
-        /* 新增：Email 專屬標籤樣式 */
         .badge-email {
             display: inline-block;
             background-color: rgba(16, 185, 129, 0.1);
@@ -174,7 +173,7 @@
         <div class="col-md-4">
             <div class="status-card text-center p-3 h-100">
                 <div class="card-num">24/7</div>
-                <div class="card-label">自動化報告派發系統</div>
+                <div class="card-label">自動化地理真太陽時校正</div>
             </div>
         </div>
     </div>
@@ -185,6 +184,17 @@
             <div class="engine-box p-4 h-100">
                 <h3 class="box-title mb-4">🟢 1. 即時雙引擎 AI 演算</h3>
                 <form id="ask-chart-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="country" class="form-label text-light">出生國家 (Country)</label>
+                            <input type="text" class="form-control" id="country" placeholder="例如：Canada" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label text-light">出生城市 (City)</label>
+                            <input type="text" class="form-control" id="city" placeholder="例如：Markham" required>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="date" class="form-label text-light">出生西曆日期</label>
                         <input type="date" class="form-control" id="date" required>
@@ -283,7 +293,6 @@
 </div>
 
 <script>
-    // 保留：左側 AI 演算表單的 JavaScript
     document.getElementById('ask-chart-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -292,6 +301,9 @@
         btn.innerText = "🚀 雙引擎演算中，請稍候...";
         btn.disabled = true;
 
+        // 擷取國家與城市數據
+        const country = document.getElementById('country').value;
+        const city = document.getElementById('city').value;
         const date = document.getElementById('date').value;
         const timeIndex = document.getElementById('timeIndex').value;
         const gender = document.querySelector('input[name="gender"]:checked').value;
@@ -301,7 +313,7 @@
             const response = await fetch('/api/ask-chart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date, timeIndex, gender, question })
+                body: JSON.stringify({ country, city, date, timeIndex, gender, question })
             });
 
             const data = await response.json();
@@ -321,25 +333,21 @@
         }
     });
 
-    // 新增：右側 Email 報告發送表單的 JavaScript (防止重整並給予 UI 反饋)
     document.getElementById('email-report-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('send-email-btn');
         const originalBtnText = btn.innerText;
         const emailInput = document.getElementById('userEmail');
         
-        // 模擬發送狀態
         btn.innerText = "處理中...";
         btn.disabled = true;
 
-        // 這裡未來可以串接你實際的 Email API 或 Webhook (如 Zapier, Make)
         setTimeout(() => {
             alert(`報告發送請求已送出！\n我們將盡快把完整分析發送至：${emailInput.value}`);
             btn.innerText = "已發送 ✔";
             btn.classList.replace('btn-success', 'btn-outline-success');
-            emailInput.value = ""; // 清空欄位
+            emailInput.value = "";
             
-            // 3秒後按鈕恢復原狀
             setTimeout(() => {
                 btn.innerText = originalBtnText;
                 btn.disabled = false;
