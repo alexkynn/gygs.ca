@@ -157,32 +157,46 @@
         </p>
     </header>
 
-    <div class="row g-3 mb-5">
-        <div class="col-md-4">
-            <div class="status-card text-center p-3 h-100">
-                <div class="card-num">17</div>
-                <div class="card-label">核心演算法矩陣已封裝</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="status-card text-center p-3 h-100">
-                <div class="card-num">0%</div>
-                <div class="card-label">宿命論與迷信雜訊</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="status-card text-center p-3 h-100">
-                <div class="card-num">24/7</div>
-                <div class="card-label">自動化地理真太陽時校正</div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="email-box p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="badge-email mb-2">📩 FULL PDF REPORT</div>
+                    <h3 class="box-title mb-3">🔵 獲取完整分析報告</h3>
+                    <p class="desc-text text-light">
+                        網頁版即時演算僅提供高亮度的核心策略摘要。如需保留由 17 個核心大腦交叉比對的深度演算細節、宮位參數與完整的防禦矩陣，請索取完整報告。
+                    </p>
+                    
+                    <div class="service-include mb-4 mt-3">
+                        <div class="service-item">✔ 包含所有宮位與十神細節參數</div>
+                        <div class="service-item">✔ 專屬大數據對沖策略完整建檔</div>
+                        <div class="service-item">✔ 電子檔案方便日後隨時查閱與追蹤</div>
+                    </div>
+                </div>
+
+                <div class="email-action-zone mt-2">
+                    <form id="email-report-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-8">
+                                <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱" autocomplete="email" required>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" id="send-email-btn" class="btn btn-success w-100 py-3 fw-bold">
+                                    發送報告至信箱
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <small class="d-block text-secondary mt-3">我們將嚴格保密您的信箱資訊且絕不發送垃圾郵件。</small>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        
-        <div class="col-lg-7">
-            <div class="engine-box p-4 h-100">
-                <h3 class="box-title mb-4">🟢 1. 即時雙引擎 AI 演算</h3>
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="engine-box p-4">
+                <h3 class="box-title mb-4">🟢 即時雙引擎 AI 演算</h3>
                 
                 <form id="ask-chart-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
                     <div class="row">
@@ -247,36 +261,6 @@
                     <hr class="border-secondary">
                     <h4 class="text-info mb-3">📊 演算法分析報告產出：</h4>
                     <div id="analysis-text" class="text-light-50 lh-lg" style="white-space: pre-line;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-5">
-            <div class="email-box p-4 h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="badge-email mb-2">📩 FULL PDF REPORT</div>
-                    <h3 class="box-title mb-3">🔵 2. 獲取完整分析報告</h3>
-                    <p class="desc-text text-light">
-                        網頁版即時演算僅提供高亮度的核心策略摘要。如需保留由 17 個核心大腦交叉比對的深度演算細節、宮位參數與完整的防禦矩陣，請索取完整報告。
-                    </p>
-                    
-                    <div class="service-include mb-4 mt-3">
-                        <div class="service-item">✔ 包含所有宮位與十神細節參數</div>
-                        <div class="service-item">✔ 專屬大數據對沖策略完整建檔</div>
-                        <div class="service-item">✔ 電子檔案方便日後隨時查閱與追蹤</div>
-                    </div>
-                </div>
-
-                <div class="email-action-zone mt-4">
-                    <form id="email-report-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
-                        <div class="mb-3">
-                            <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱" autocomplete="email" required>
-                        </div>
-                        <button type="submit" id="send-email-btn" class="btn btn-success w-100 py-3 fw-bold">
-                            立即發送完整報告至信箱
-                        </button>
-                    </form>
-                    <small class="text-center d-block text-secondary mt-3">我們將嚴格保密您的信箱資訊且絕不發送垃圾郵件。</small>
                 </div>
             </div>
         </div>
