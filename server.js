@@ -4,8 +4,10 @@ const { GoogleGenAI } = require('@google/genai');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
-// 👇 引入剛安裝的八字套件
 const { Solar } = require('lunar-javascript'); 
+// 👇 引入全新安裝的全球天文與時區計算套件
+const cityTimezones = require('city-timezones');
+const moment = require('moment-timezone');
 
 const app = express();
 app.use(cors());
@@ -14,7 +16,7 @@ app.use(express.json());
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // ==========================================
-// 🧠 1. 讀取本地端 12 個知識庫 (紫微 + 八字)
+// 🧠 1. 讀取本地端 17 個知識庫 (紫微 + 八字完全體)
 // ==========================================
 const starsDef = fs.readFileSync(path.join(__dirname, '1_stars_definition.md'), 'utf-8');
 const housesDef = fs.readFileSync(path.join(__dirname, '2_twelve_houses.md'), 'utf-8');
@@ -27,7 +29,6 @@ const healthDef = fs.readFileSync(path.join(__dirname, '8_secondary_stars_and_he
 const calibrationDef = fs.readFileSync(path.join(__dirname, '9_palace_calibration_rules.md'), 'utf-8');
 const monthlyDailyDef = fs.readFileSync(path.join(__dirname, '10_monthly_daily_tracking.md'), 'utf-8');
 const synastryDef = fs.readFileSync(path.join(__dirname, '11_synastry_matrix.md'), 'utf-8');
-// 👇 八字宏觀數據庫
 const baziMacroDef = fs.readFileSync(path.join(__dirname, '12_bazi_macro_logic.md'), 'utf-8'); 
 const baziInteractionsDef = fs.readFileSync(path.join(__dirname, '13_bazi_interactions_volatility.md'), 'utf-8');
 const baziCapacityDef = fs.readFileSync(path.join(__dirname, '14_day_master_capacity.md'), 'utf-8');
@@ -39,61 +40,21 @@ const macroCycleDef = fs.readFileSync(path.join(__dirname, '17_macro_cycle_reson
 // 🛡️ 2. 建構雙引擎系統指令 (System Instruction)
 // ==========================================
 const SYSTEM_INSTRUCTION = `
-你是 gygs.ca 的核心運算引擎，這是一個結合紫微斗數(微觀)與八字(宏觀)的雙引擎大數據預測平台。
-你的任務是讀取使用者的「紫微命盤 JSON」與「八字四柱結構」，進行客觀、零幻覺、去迷信的交叉推演。
+你是 gygs.ca 的量化大數據決策核心。本系統已全面打通「微觀紫微資產配置」與「宏觀八字五行氣候」雙引擎。
+後台已為您完成了精密的「真太陽時經度校正」與「南北半球氣候判定」，您將直接獲取最精準的天文物理排盤數據。
 
-【絕對禁忌】
-1. 嚴禁使用宿命論詞彙（如：命中注定、必定破財、剋夫剋妻、血光之災、前世業障）。
-2. 嚴禁自行捏造知識庫外的不存在星曜或神煞。
-3. 所有的預測必須轉化為「行為傾向」、「心理狀態」或「客觀的環境變數」。
+【絕對核心指令】
+1. 去迷信化：嚴禁使用任何命運宿命論、血光恐嚇、或因果業障說法。所有結果必須翻譯成「環境波動、風險耐受上限、合規壓力、流動性管理與最佳對沖決策路徑」。
+2. 南北半球調候校正：若數據提示該使用者出生於「南半球」，請務必依據《知識庫 15》，將其月令的五行氣候與能量權重做180度反轉（南半球的12月為盛夏，對應北半球的火旺；南半球的6月為極寒，對應北半球的水旺）。
 
 【運算知識庫】
-請完全依照以下提供的核心數據庫進行邏輯推演：
-
-=== 知識庫 1-3：主星、宮位、四化 ===
-${starsDef}
-${housesDef}
-${transformDef}
-
-=== 知識庫 4-6：輔煞星、格局、飛星因果 ===
-${auxStarsDef}
-${patternsDef}
-${flyingStarsDef}
-
-=== 知識庫 7-9：長短期趨勢、健康、宮位重疊 ===
-${timeSeriesDef}
-${healthDef}
-${calibrationDef}
-
-=== 知識庫 10-11：高頻追蹤、對手件合盤 ===
-${monthlyDailyDef}
-${synastryDef}
-
-=== 知識庫 12：八字宏觀環境與十神邏輯 ===
-${baziMacroDef}
-
-=== 知識庫 13：天干地支刑沖合害矩陣 ===
-${baziInteractionsDef}
-
-=== 知識庫 14：日主強度與系統承載力 ===
-${baziCapacityDef}
-
-=== 知識庫 15：月令得時與動態權重校正 ===
-${baziSeasonalDef}
-
-=== 知識庫 16：用神與忌神選取優化演算法 ===
-${baziOptimizationDef}
-
-=== 知識庫 17：巨觀週期共振與極端尾部風險 ===
-${macroCycleDef}
-
-【輸出格式要求】
-1. 請針對使用者的問題，給出結構化、專業且帶有數據分析風格的回覆。
-2. 在提出論點時，必須展現「雙引擎」的威力，例如：「從八字宏觀來看，您今年走正財運（環境平穩），但微觀紫微流年顯示事業宮化忌（內部高壓），因此建議...」。讓使用者明白這是嚴謹的交叉比對結果。
+${starsDef} ${housesDef} ${transformDef} ${auxStarsDef} ${patternsDef} ${flyingStarsDef}
+${timeSeriesDef} ${healthDef} ${calibrationDef} ${monthlyDailyDef} ${synastryDef}
+${baziMacroDef} ${baziInteractionsDef} ${baziCapacityDef} ${baziSeasonalDef} ${baziOptimizationDef} ${macroCycleDef}
 `;
 
 // ==========================================
-// 🌐 3. 設定前端網頁與 API 路由
+// 🌐 3. 設定 API 路由與地理校正演算法
 // ==========================================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -101,38 +62,108 @@ app.get('/', (req, res) => {
 
 app.post('/api/ask-chart', async (req, res) => {
   try {
-    const { date, timeIndex, gender, question } = req.body;
+    const { country, city, date, timeIndex, gender, question } = req.body;
 
-    if (!date || timeIndex === undefined || !gender || !question) {
+    if (!date || timeIndex === undefined || !gender || !question || !country || !city) {
       return res.status(400).json({ error: '缺少必要參數' });
     }
 
     // ------------------------------------------
-    // ⚙️ 引擎 A：紫微斗數排盤 (Iztro)
+    // 🌍 🌍 全自動地理時區與經緯度雷達 🌍 🌍
     // ------------------------------------------
-    const astrolabe = astro.bySolar(date, timeIndex, gender, true, 'zh-TW');
+    let lat = 43.8667;       // 預設預備值 (Markham)
+    let lng = -79.2667;
+    let timezone = "America/Toronto";
+    let matchedCityName = "Markham (Default)";
+
+    // 在本地庫中模糊尋找城市
+    const lookupResults = cityTimezones.lookupViaCity(city);
+    if (lookupResults && lookupResults.length > 0) {
+      // 優先尋找與輸入國家匹配的城市
+      const bestMatch = lookupResults.find(c => 
+        c.country.toLowerCase().includes(country.toLowerCase()) || 
+        country.toLowerCase().includes(c.country.toLowerCase())
+      );
+      const finalCity = bestMatch || lookupResults[0];
+      lat = finalCity.lat;
+      lng = finalCity.lng;
+      timezone = finalCity.timezone;
+      matchedCityName = `${finalCity.city}, ${finalCity.country}`;
+    }
+
+    // ------------------------------------------
+    // ☀️ ☀️ 精密真太陽時（經度時差變更）演算法 ☀️ ☀️
+    // ------------------------------------------
+    const hourMap = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23];
+    const standardHour = hourMap[timeIndex];
+    
+    // 使用 moment-timezone 找出當天該時區的精確行政分（考慮 DST 日光節約時間）
+    const localMoment = moment.tz(`${date} ${String(standardHour).padStart(2, '0')}:00:00`, timezone);
+    const tzOffsetMinutes = localMoment.utcOffset(); 
+    const tzOffsetHours = tzOffsetMinutes / 60;
+    
+    // 計算該時區的行政中央子午線經度 (1小時 = 15度)
+    const centralMeridian = tzOffsetHours * 15;
+    
+    // 計算出生地經度與中央子午線的絕對經度差，換算為真實太陽物理時差（每差1度等於4分鐘）
+    const longitudeOffsetMinutes = (lng - centralMeridian) * 4;
+    
+    // 將行政時間補償修正為「真太陽時」
+    const solarMoment = localMoment.clone().add(longitudeOffsetMinutes, 'minutes');
+    
+    const solarYear = solarMoment.year();
+    const solarMonth = solarMoment.month() + 1;
+    const solarDay = solarMoment.date();
+    const solarHour = solarMoment.hour();
+    const solarMinute = solarMoment.minute();
+    const solarDateStr = `${solarYear}-${String(solarMonth).padStart(2, '0')}-${String(solarDay).padStart(2, '0')}`;
+
+    // 依據真太陽時的「小時」，動態重新修正紫微斗數的十二地支時辰代碼 (0-11)
+    let adjustedTimeIndex = 0;
+    if (solarHour >= 23 || solarHour < 1) adjustedTimeIndex = 0; // 子
+    else if (solarHour >= 1 && solarHour < 3) adjustedTimeIndex = 1;  // 丑
+    else if (solarHour >= 3 && solarHour < 5) adjustedTimeIndex = 2;  // 寅
+    else if (solarHour >= 5 && solarHour < 7) adjustedTimeIndex = 3;  // 卯
+    else if (solarHour >= 7 && solarHour < 9) adjustedTimeIndex = 4;  // 辰
+    else if (solarHour >= 9 && solarHour < 11) adjustedTimeIndex = 5; // 巳
+    else if (solarHour >= 11 && solarHour < 13) adjustedTimeIndex = 6; // 午
+    else if (solarHour >= 13 && solarHour < 15) adjustedTimeIndex = 7; // 未
+    else if (solarHour >= 15 && solarHour < 17) adjustedTimeIndex = 8; // 申
+    else if (solarHour >= 17 && solarHour < 19) adjustedTimeIndex = 9; // 酉
+    else if (solarHour >= 19 && solarHour < 21) adjustedTimeIndex = 10; // 戌
+    else if (solarHour >= 21 && solarHour < 23) adjustedTimeIndex = 11; // 亥
+
+    // ------------------------------------------
+    // ⚙️ 雙引擎同步調用（帶入經度校正後的真太陽時）
+    // ------------------------------------------
+    // 引擎 A：紫微排盤
+    const astrolabe = astro.bySolar(solarDateStr, adjustedTimeIndex, gender, true, 'zh-TW');
     const chartJsonString = JSON.stringify(astrolabe);
 
-    // ------------------------------------------
-    // ⚙️ 引擎 B：八字排盤 (lunar-javascript)
-    // ------------------------------------------
-    // 將前端傳來的 0-12 timeIndex 映射為大約的 24 小時制時間，以確保八字時柱正確
-    const hourMap = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23];
-    const targetHour = hourMap[timeIndex];
-    const [year, month, day] = date.split('-').map(Number);
-    
-    // 透過 lunar-javascript 取得八字
-    const solarDate = Solar.fromYmdHms(year, month, day, targetHour, 0, 0);
-    const lunarDate = solarDate.getLunar();
-    const baZi = lunarDate.getEightChar();
-    
+    // 引擎 B：八字排盤
+    const solarDateObj = Solar.fromYmdHms(solarYear, solarMonth, solarDay, solarHour, solarMinute, 0);
+    const lunarDateObj = solarDateObj.getLunar();
+    const baZi = lunarDateObj.getEightChar();
     const baZiString = `【八字四柱】\n年柱：${baZi.getYear()}\n月柱：${baZi.getMonth()}\n日柱：${baZi.getDay()}\n時柱：${baZi.getTime()}`;
 
+    // 判定南北半球
+    const hemisphere = lat >= 0 ? "北半球" : "南半球";
+
     // ------------------------------------------
-    // 🚀 發送給 Gemini 的最終提示詞
+    // 🚀 建構極致精確的 Gemini 交叉 Prompt
     // ------------------------------------------
     const prompt = `
-    【雙引擎運算任務啟動】
+    【系統雙引擎 - 全球地理天文交叉運算任務】
+    
+    === [地理測繪與真太陽時校正元數據] ===
+    使用者輸入地點：${city}, ${country}
+    系統匹配定位：${matchedCityName}
+    地理精確座標：緯度 ${lat.toFixed(4)}, 經度 ${lng.toFixed(4)}
+    所屬行政時區：${timezone} (當前歷史偏差: ${tzOffsetHours} 小時)
+    標準鐘錶時間：${date} ${standardHour}:00
+    物理真太陽時：${solarDateStr} ${String(solarHour).padStart(2, '0')}:${String(solarMinute).padStart(2, '0')} (經度時差修正了 ${longitudeOffsetMinutes.toFixed(1)} 分鐘)
+    定盤時辰代碼：地支第 ${adjustedTimeIndex} 順位索引
+    氣候所屬半球：${hemisphere} ${lat < 0 ? '⚠️【最高級別調候預警：此人出生於南半球，其大自然五行氣候與北半球完全反轉！請務必調用知識庫15，將其月令的旺衰權重做180度極化對調運算！】' : ''}
     
     === [引擎A] 微觀紫微命盤 JSON ===
     ${chartJsonString}
@@ -140,13 +171,12 @@ app.post('/api/ask-chart', async (req, res) => {
     === [引擎B] 宏觀八字四柱 ===
     ${baZiString}
     
-    使用者的性別：${gender}
-    使用者的具體問題或當前狀況是：${question}
+    當前狀況與分析訴求：${question}
     
-    請啟動 gygs.ca 演算法，根據提供的知識庫進行紫微與八字的「宏觀/微觀交叉比對」，給出精準的策略分析與行為建議。
+    請啟動 gygs.ca 演算法，將上述宏觀天文變數、真太陽時偏差及微觀星盤深度整合，輸出結構化的量化對沖策略。
     `;
 
-    console.log("🚀 正在將紫微與八字雙引擎數據發送給 Gemini 進行演算...");
+    console.log(`🌐 地理校正完成！地點: ${matchedCityName} (${hemisphere})。真太陽時差: ${longitudeOffsetMinutes.toFixed(1)} 分鐘。正在發送給 Gemini...`);
 
     const response = await ai.models.generateContent({
         model: 'gemini-3.5-flash',
@@ -157,12 +187,7 @@ app.post('/api/ask-chart', async (req, res) => {
         }
     });
 
-    console.log("✅ 雙引擎演算完成！");
-
-    res.json({
-      success: true,
-      answer: response.text
-    });
+    res.json({ success: true, answer: response.text });
 
   } catch (error) {
     console.error("❌ 處理請求時發生錯誤:", error);
@@ -172,5 +197,5 @@ app.post('/api/ask-chart', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🟢 gygs.ca 雙引擎大數據 API 已啟動，監聽 Port: ${PORT}`);
+  console.log(`🟢 gygs.ca 地理校正完全體 API 已啟動，監聽 Port: ${PORT}`);
 });
