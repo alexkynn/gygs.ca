@@ -310,7 +310,8 @@
         const question = document.getElementById('question').value;
 
         try {
-            const response = await fetch('/api/ask-chart', {
+            try {
+            const response = await fetch('https://gygs-ca.onrender.com/api/ask-chart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ country, city, date, timeIndex, gender, question })
