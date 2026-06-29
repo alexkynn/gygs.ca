@@ -13,6 +13,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 👇 新增這段：全域安全標頭與靜態資源快取優化 👇
+app.use((req, res, next) => {
+    // 解決 Security: 增加 x-content-type-options 標頭防範 MIME 嗅探
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    // 解決 Security & Performance: 設定標準快取控制策略
+    res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
+    next();
+});
+// 👆 新增結束 👆
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // ==========================================
