@@ -139,6 +139,12 @@
             margin-top: 2rem;
             line-height: 1.6;
         }
+        
+        /* 針對窄版下拉選單的微調 */
+        .select-compact {
+            padding-left: 0.5rem;
+            padding-right: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -202,21 +208,160 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="country" class="form-label text-light">出生國家 (Country)</label>
-                            <input type="text" class="form-control" id="country" placeholder="例如：Canada" autocomplete="country-name" required>
+                            <select class="form-select" id="country" autocomplete="country-name" required>
+                                <option value="" disabled selected>請選擇出生國家...</option>
+                                <optgroup label="常用地區 (Popular)">
+                                    <option value="Canada">加拿大 (Canada)</option>
+                                    <option value="United States">美國 (United States)</option>
+                                    <option value="Taiwan">台灣 (Taiwan)</option>
+                                    <option value="Hong Kong">香港 (Hong Kong)</option>
+                                    <option value="Macau">澳門 (Macau)</option>
+                                    <option value="China">中國 (China)</option>
+                                    <option value="United Kingdom">英國 (United Kingdom)</option>
+                                    <option value="Australia">澳洲 (Australia)</option>
+                                    <option value="New Zealand">紐西蘭 (New Zealand)</option>
+                                    <option value="Singapore">新加坡 (Singapore)</option>
+                                    <option value="Malaysia">馬來西亞 (Malaysia)</option>
+                                    <option value="Japan">日本 (Japan)</option>
+                                    <option value="South Korea">韓國 (South Korea)</option>
+                                </optgroup>
+                                <optgroup label="亞洲 (Asia)">
+                                    <option value="India">印度 (India)</option>
+                                    <option value="Indonesia">印尼 (Indonesia)</option>
+                                    <option value="Philippines">菲律賓 (Philippines)</option>
+                                    <option value="Thailand">泰國 (Thailand)</option>
+                                    <option value="Vietnam">越南 (Vietnam)</option>
+                                </optgroup>
+                                <optgroup label="歐洲 (Europe)">
+                                    <option value="France">法國 (France)</option>
+                                    <option value="Germany">德國 (Germany)</option>
+                                    <option value="Italy">義大利 (Italy)</option>
+                                    <option value="Netherlands">荷蘭 (Netherlands)</option>
+                                    <option value="Spain">西班牙 (Spain)</option>
+                                    <option value="Sweden">瑞典 (Sweden)</option>
+                                    <option value="Switzerland">瑞士 (Switzerland)</option>
+                                </optgroup>
+                                <optgroup label="美洲 (Americas)">
+                                    <option value="Argentina">阿根廷 (Argentina)</option>
+                                    <option value="Brazil">巴西 (Brazil)</option>
+                                    <option value="Mexico">墨西哥 (Mexico)</option>
+                                </optgroup>
+                                <optgroup label="其他 (Others)">
+                                    <option value="South Africa">南非 (South Africa)</option>
+                                    <option value="Russia">俄羅斯 (Russia)</option>
+                                    <option value="Other">其他 (Other)</option>
+                                </optgroup>
+                            </select>
                         </div>
+                        
                         <div class="col-md-6 mb-3">
                             <label for="city" class="form-label text-light">出生城市 (City)</label>
-                            <input type="text" class="form-control" id="city" placeholder="例如：Markham" autocomplete="address-level2" required>
+                            <select class="form-select" id="city" autocomplete="address-level2" required>
+                                <option value="" disabled selected>請選擇出生城市...</option>
+                                <optgroup label="台灣 (Taiwan)">
+                                    <option value="Taipei">台北 (Taipei)</option>
+                                    <option value="New Taipei">新北 (New Taipei)</option>
+                                    <option value="Taoyuan">桃園 (Taoyuan)</option>
+                                    <option value="Hsinchu">新竹 (Hsinchu)</option>
+                                    <option value="Taichung">台中 (Taichung)</option>
+                                    <option value="Tainan">台南 (Tainan)</option>
+                                    <option value="Kaohsiung">高雄 (Kaohsiung)</option>
+                                </optgroup>
+                                <optgroup label="香港與澳門 (HK & Macau)">
+                                    <option value="Hong Kong">香港 (Hong Kong)</option>
+                                    <option value="Kowloon">九龍 (Kowloon)</option>
+                                    <option value="Macau">澳門 (Macau)</option>
+                                </optgroup>
+                                <optgroup label="加拿大 (Canada)">
+                                    <option value="Toronto">多倫多 (Toronto)</option>
+                                    <option value="Markham">萬錦 (Markham)</option>
+                                    <option value="Richmond Hill">列治文山 (Richmond Hill)</option>
+                                    <option value="Vancouver">溫哥華 (Vancouver)</option>
+                                    <option value="Richmond">列治文 (Richmond)</option>
+                                    <option value="Montreal">蒙特婁 (Montreal)</option>
+                                    <option value="Calgary">卡加利 (Calgary)</option>
+                                    <option value="Edmonton">愛德蒙頓 (Edmonton)</option>
+                                    <option value="Ottawa">渥太華 (Ottawa)</option>
+                                </optgroup>
+                                <optgroup label="美國 (United States)">
+                                    <option value="New York">紐約 (New York)</option>
+                                    <option value="Los Angeles">洛杉磯 (Los Angeles)</option>
+                                    <option value="San Francisco">舊金山 (San Francisco)</option>
+                                    <option value="San Jose">聖荷西 (San Jose)</option>
+                                    <option value="Seattle">西雅圖 (Seattle)</option>
+                                    <option value="Chicago">芝加哥 (Chicago)</option>
+                                    <option value="Boston">波士頓 (Boston)</option>
+                                    <option value="Houston">休士頓 (Houston)</option>
+                                    <option value="Honolulu">檀香山 (Honolulu)</option>
+                                </optgroup>
+                                <optgroup label="中國 (China)">
+                                    <option value="Beijing">北京 (Beijing)</option>
+                                    <option value="Shanghai">上海 (Shanghai)</option>
+                                    <option value="Guangzhou">廣州 (Guangzhou)</option>
+                                    <option value="Shenzhen">深圳 (Shenzhen)</option>
+                                    <option value="Chengdu">成都 (Chengdu)</option>
+                                    <option value="Hangzhou">杭州 (Hangzhou)</option>
+                                    <option value="Chongqing">重慶 (Chongqing)</option>
+                                    <option value="Nanjing">南京 (Nanjing)</option>
+                                </optgroup>
+                                <optgroup label="亞洲大都會 (Asia Hubs)">
+                                    <option value="Tokyo">東京 (Tokyo)</option>
+                                    <option value="Osaka">大阪 (Osaka)</option>
+                                    <option value="Seoul">首爾 (Seoul)</option>
+                                    <option value="Singapore">新加坡 (Singapore)</option>
+                                    <option value="Kuala Lumpur">吉隆坡 (Kuala Lumpur)</option>
+                                    <option value="Bangkok">曼谷 (Bangkok)</option>
+                                    <option value="Manila">馬尼拉 (Manila)</option>
+                                    <option value="Jakarta">雅加達 (Jakarta)</option>
+                                    <option value="Ho Chi Minh City">胡志明市 (Ho Chi Minh City)</option>
+                                    <option value="Mumbai">孟買 (Mumbai)</option>
+                                </optgroup>
+                                <optgroup label="歐洲大都會 (Europe Hubs)">
+                                    <option value="London">倫敦 (London)</option>
+                                    <option value="Paris">巴黎 (Paris)</option>
+                                    <option value="Berlin">柏林 (Berlin)</option>
+                                    <option value="Rome">羅馬 (Rome)</option>
+                                    <option value="Madrid">馬德里 (Madrid)</option>
+                                    <option value="Amsterdam">阿姆斯特丹 (Amsterdam)</option>
+                                </optgroup>
+                                <optgroup label="大洋洲與其他 (Oceania & Others)">
+                                    <option value="Sydney">雪梨 (Sydney)</option>
+                                    <option value="Melbourne">墨爾本 (Melbourne)</option>
+                                    <option value="Brisbane">布里斯本 (Brisbane)</option>
+                                    <option value="Auckland">奧克蘭 (Auckland)</option>
+                                    <option value="Dubai">杜拜 (Dubai)</option>
+                                    <option value="Cape Town">開普敦 (Cape Town)</option>
+                                    <option value="Sao Paulo">聖保羅 (Sao Paulo)</option>
+                                    <option value="Mexico City">墨西哥城 (Mexico City)</option>
+                                </optgroup>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="date" class="form-label text-light">出生西曆日期</label>
-                        <input type="date" class="form-control" id="date" autocomplete="bday" required>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row mb-3">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <label class="form-label text-light">出生西曆日期</label>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <select class="form-select select-compact" id="birthYear" required>
+                                        <option value="" disabled selected>年</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <select class="form-select select-compact" id="birthMonth" required>
+                                        <option value="" disabled selected>月</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <select class="form-select select-compact" id="birthDay" required>
+                                        <option value="" disabled selected>日</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <input type="hidden" id="date">
+                        </div>
+
+                        <div class="col-md-4 mb-3 mb-md-0">
                             <label for="timeIndex" class="form-label text-light">出生時辰</label>
                             <select class="form-select" id="timeIndex" required>
                                 <option value="" disabled selected>請選擇時辰</option>
@@ -234,16 +379,17 @@
                                 <option value="11">亥時 (21:00 - 22:59)</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+
+                        <div class="col-md-3">
                             <div class="form-label text-light">性別</div>
                             <div class="d-flex gap-3 pt-1">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
-                                    <label class="form-check-label text-light" for="gender-male">男 (Male)</label>
+                                    <label class="form-check-label text-light" for="gender-male">男</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female">
-                                    <label class="form-check-label text-light" for="gender-female">女 (Female)</label>
+                                    <label class="form-check-label text-light" for="gender-female">女</label>
                                 </div>
                             </div>
                         </div>
@@ -284,6 +430,74 @@
 </div>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const yearSelect = document.getElementById('birthYear');
+        const monthSelect = document.getElementById('birthMonth');
+        const daySelect = document.getElementById('birthDay');
+        const hiddenDate = document.getElementById('date');
+
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear; i >= 1920; i--) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            yearSelect.appendChild(option);
+        }
+
+        for (let i = 1; i <= 12; i++) {
+            const val = i.toString().padStart(2, '0');
+            const option = document.createElement('option');
+            option.value = val;
+            option.textContent = val;
+            monthSelect.appendChild(option);
+        }
+
+        function updateDays() {
+            const y = parseInt(yearSelect.value);
+            const m = parseInt(monthSelect.value);
+            let daysInMonth = 31;
+
+            if (!isNaN(m)) {
+                if (m === 2) {
+                    daysInMonth = (!isNaN(y) && (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0))) ? 29 : 28;
+                } else if ([4, 6, 9, 11].includes(m)) {
+                    daysInMonth = 30;
+                }
+            }
+
+            const currentDay = daySelect.value;
+            
+            daySelect.innerHTML = '<option value="" disabled selected>日</option>';
+            for (let i = 1; i <= daysInMonth; i++) {
+                const val = i.toString().padStart(2, '0');
+                const option = document.createElement('option');
+                option.value = val;
+                option.textContent = val;
+                daySelect.appendChild(option);
+            }
+
+            if (currentDay && parseInt(currentDay) <= daysInMonth) {
+                daySelect.value = currentDay;
+            }
+
+            syncDate();
+        }
+
+        function syncDate() {
+            if (yearSelect.value && monthSelect.value && daySelect.value) {
+                hiddenDate.value = `${yearSelect.value}-${monthSelect.value}-${daySelect.value}`;
+            } else {
+                hiddenDate.value = "";
+            }
+        }
+
+        yearSelect.addEventListener('change', updateDays);
+        monthSelect.addEventListener('change', updateDays);
+        daySelect.addEventListener('change', syncDate);
+
+        updateDays();
+    });
+
     document.getElementById('ask-chart-form').addEventListener('submit', async function(e) {
         e.preventDefault(); 
         
