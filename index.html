@@ -157,7 +157,6 @@
         </p>
     </header>
 
-    <!-- 👇 獲取完整分析報告區塊 👇 -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="email-box p-4 d-flex flex-column justify-content-between">
@@ -194,7 +193,6 @@
         </div>
     </div>
 
-    <!-- 👇 即時人生探索表單區塊 👇 -->
     <div class="row mb-5">
         <div class="col-12">
             <div class="engine-box p-4">
@@ -252,8 +250,14 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="question" class="form-label text-light">您目前面臨的抉擇，或想探索的生活目標</label>
-                        <textarea class="form-control" id="question" rows="4" placeholder="例如：我最近在考慮轉換跑道，或是重新規劃財務目標，希望能了解接下來一兩年的發展契機與需要注意的地方..." required></textarea>
+                        <label for="question" class="form-label text-light">請選擇您想探索的命盤解析深度</label>
+                        <select class="form-select py-3 bg-dark border-secondary text-light" id="question" required>
+                            <option value="" disabled selected>請選擇您需要的指引項目...</option>
+                            <option value="先天命盤大批">1. 先天命盤大批 (全方位人生藍圖解析)</option>
+                            <option value="10年大運預測小批">2. 10年大運預測小批 (未來十年黃金週期規劃)</option>
+                            <option value="流年命盤運勢">3. 流年命盤運勢 (本年度機遇與風險防範)</option>
+                            <option value="流月命盤運勢">4. 流月命盤運勢 (近期月度吉凶與行動指南)</option>
+                        </select>
                     </div>
 
                     <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">聆聽專屬指引</button>
@@ -268,7 +272,6 @@
         </div>
     </div>
 
-    <!-- 完整免責聲明 (保留嚴格的法律宣告以保障您的權益) -->
     <div class="row">
         <div class="col-12">
             <div class="disclaimer-box text-center">
@@ -286,7 +289,6 @@
         
         const btn = document.getElementById('submit-btn');
         const originalBtnText = btn.innerText;
-        // 替換為溫暖的提示文字
         btn.innerText = "🌿 正在為您梳理思緒，請稍候...";
         btn.disabled = true;
 
