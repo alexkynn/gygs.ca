@@ -180,7 +180,7 @@
                 </div>
 
                 <div class="email-action-zone mt-2">
-                    <form id="email-report-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
+                    <form id="email-report-form" onsubmit="event.preventDefault();" autocomplete="off">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-8">
                                 <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱，讓我們把報告寄給您" autocomplete="email" required>
@@ -203,7 +203,7 @@
             <div class="engine-box p-4">
                 <h3 class="box-title mb-4">🟢 即時人生探索與對話</h3>
                 
-                <form id="ask-chart-form" onsubmit="event.preventDefault(); return false;" autocomplete="off">
+                <form id="ask-chart-form" onsubmit="event.preventDefault();" autocomplete="off">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="country" class="form-label text-light">出生國家 (Country)</label>
@@ -745,27 +745,69 @@
         }
     });
 
-    document.getElementById('email-report-form').addEventListener('submit', function(e) {
+    // 👇 已更新為向後端真實 API 發送 Email 請求 👇
+    document.getElementById('email-report-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('send-email-btn');
         const originalBtnText = btn.innerText;
         const emailInput = document.getElementById('userEmail');
         
-        btn.innerText = "正在準備...";
+        // 抓取命盤需要的所有資料，讓後端可以生成報告並寄送
+        const country = document.getElementById('country').value;
+        const city = document.getElementById('city').value;
+        const date = document.getElementById('date').value;
+        const timeIndex = document.getElementById('timeIndex').value;
+        let gender = "";
+        const genderEl = document.querySelector('input[name="gender"]:checked');
+        if (genderEl) gender = genderEl.value;
+        const question = document.getElementById('question').value;
+
+        if (!date || !timeIndex || !country || !city || !question) {
+            alert("請先在下方「即時人生探索與對話」中填寫完整的出生資料與訴求，我們才能為您量身打造專屬藍圖並寄出喔！");
+            return;
+        }
+
+        btn.innerText = "正在為您生成並寄送報告...";
         btn.disabled = true;
 
-        setTimeout(() => {
-            alert(`您的索取請求已溫暖送出！\n我們會盡快將完整藍圖發送至：${emailInput.value}`);
-            btn.innerText = "已順利發送 ✔";
-            btn.classList.replace('btn-success', 'btn-outline-success');
-            emailInput.value = "";
+        try {
+            // 發送真實的 POST 請求到你的 Render 後端 API
+            const response = await fetch('https://gygs-ca.onrender.com/api/send-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: emailInput.value,
+                    country, city, date, timeIndex, gender, question 
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`伺服器連線異常，狀態碼: ${response.status}`);
+            }
+
+            const data = await response.json();
             
-            setTimeout(() => {
+            if (data.success) {
+                alert(`您的專屬藍圖已成功發送至：${emailInput.value}\n請檢查您的信箱（包含垃圾郵件匣）。`);
+                btn.innerText = "已順利發送 ✔";
+                btn.classList.replace('btn-success', 'btn-outline-success');
+                emailInput.value = "";
+                setTimeout(() => {
+                    btn.innerText = originalBtnText;
+                    btn.disabled = false;
+                    btn.classList.replace('btn-outline-success', 'btn-success');
+                }, 5000);
+            } else {
+                alert("寄送遇到了一點小阻礙: " + data.message);
                 btn.innerText = originalBtnText;
                 btn.disabled = false;
-                btn.classList.replace('btn-outline-success', 'btn-success');
-            }, 3000);
-        }, 800);
+            }
+        } catch (error) {
+            console.error("Error Detail:", error);
+            alert("目前無法連線到寄信伺服器，這可能是網路短暫斷線，請稍後再試一次。");
+            btn.innerText = originalBtnText;
+            btn.disabled = false;
+        }
     });
 </script>
 

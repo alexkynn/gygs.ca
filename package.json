@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "iztro": "^2.5.8",
     "lunar-javascript": "^1.7.7",
-    "moment-timezone": "^0.6.2"
+    "moment-timezone": "^0.6.2",
+    "nodemailer": "^9.0.3"
   }
 }
