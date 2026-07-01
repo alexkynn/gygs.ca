@@ -2,16 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// 引入安全設定模組
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// 初始化 Gemini API (請確保 Render 有設定 GEMINI_API_KEY 環境變數)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 設定 Email 發送器 (請確保 Render 有設定 EMAIL_USER 與 EMAIL_PASS 環境變數)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -23,23 +22,19 @@ const transporter = nodemailer.createTransport({
 app.use(cors());
 app.use(express.json());
 
-// 全域安全標頭與靜態資源快取優化
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
     next();
 });
 
-// 設定靜態檔案資料夾
 app.use(express.static(__dirname));
 
-// 🌟 旗艦版：共用的 Gemini 大腦函數 (全方位先天命盤大批專用) 🌟
+// 🌟 旗艦版：共用的 Gemini 大腦函數 🌟
 async function generateLifeBlueprint(country, city, date, timeIndex, gender, question) {
     
-    // 將性別轉換為中文，利於命理模型解析 (男命/女命)
     const genderZh = gender === 'male' ? '男' : (gender === 'female' ? '女' : gender);
 
-    // 【1】系統級別指令 (System Instructions) - 定義 AI 的角色、性格與底層邏輯
     const systemInstruction = `你是一位頂級的東方命理大師兼首席人生教練（Life Coach）。你精通『紫微斗數』與『四柱八字』，並具備強大的數據分析與心理諮商能力。
     
 【你的底層運算邏輯：紫八合一】
@@ -50,12 +45,32 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 2. 極度具體：報告中遇到事業、婚姻、財富、健康的高峰或低谷，『必須』明確點出具體的「年份」或「歲數區間」（例如：2027至2029年、35歲至40歲）。
 3. 嚴謹詳實：先天命盤大批是一份極其重要的報告，請給出超過 2000 字的深度解析，言之有物，排版清晰（使用適當的標題與條列式）。`;
 
+    // 🔴 關鍵修復：解除 Gemini 命理預測的安全阻擋 🔴
+    const safetySettings = [
+        {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+    ];
+
     const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-pro",
-        systemInstruction: systemInstruction 
+        systemInstruction: systemInstruction,
+        safetySettings: safetySettings // 套用安全設定
     }); 
     
-    // 【2】動態提示詞 (Dynamic Prompt) - 嚴格規範 AI 輸出的 7 大結構
     const prompt = `
 請為以下來訪者撰寫一份最詳細、最準確的【先天命盤大批（全方位人生藍圖解析）】深度報告。
 
@@ -99,12 +114,10 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 請以繁體中文撰寫，語氣充滿智慧且具備溫暖的引導力量，並確保內容極度豐富詳實。
 `;
 
-    // 【3】執行生成
     const result = await model.generateContent(prompt);
     return result.response.text();
 }
 
-// 🟢 網頁即時顯示用的 API (/api/ask-chart)
 app.post('/api/ask-chart', async (req, res) => {
     const { country, city, date, timeIndex, gender, question } = req.body;
 
@@ -117,19 +130,15 @@ app.post('/api/ask-chart', async (req, res) => {
     }
 });
 
-// 🔵 寄送 Email 完整報告用的 API (/api/send-report)
 app.post('/api/send-report', async (req, res) => {
     const { email, country, city, date, timeIndex, gender, question } = req.body;
 
     try {
-        // 1. 呼叫旗艦版共用函數產出內容
         const aiReport = await generateLifeBlueprint(country, city, date, timeIndex, gender, question);
         
-        // 2. 格式化報告 (將換行轉為 <br>，並將 Markdown 粗體 ** 轉為 HTML <strong> 標籤)
         let formattedReport = aiReport.replace(/\n/g, '<br>');
         formattedReport = formattedReport.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-        // 3. 設定 Email 內容與 RWD 自適應精美排版
         const mailOptions = {
             from: `"gygs.ca 人生導航" <${process.env.EMAIL_USER}>`,
             to: email,
@@ -154,9 +163,7 @@ app.post('/api/send-report', async (req, res) => {
             `
         };
 
-        // 4. 執行寄件
         await transporter.sendMail(mailOptions);
-        
         res.json({ success: true, message: "報告已成功寄出！" });
 
     } catch (error) {
@@ -165,7 +172,6 @@ app.post('/api/send-report', async (req, res) => {
     }
 });
 
-// 啟動伺服器
 app.listen(port, () => {
     console.log(`gygs.ca 伺服器已啟動，正在監聽 Port ${port}`);
 });
