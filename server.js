@@ -66,7 +66,7 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
     ];
 
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-pro",
+        model: "gemini-3.1-flash",
         systemInstruction: systemInstruction,
         safetySettings: safetySettings // 套用安全設定
     }); 
