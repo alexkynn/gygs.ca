@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-// 引入安全設定模組
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
 
@@ -45,30 +44,17 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 2. 極度具體：報告中遇到事業、婚姻、財富、健康的高峰或低谷，『必須』明確點出具體的「年份」或「歲數區間」（例如：2027至2029年、35歲至40歲）。
 3. 嚴謹詳實：先天命盤大批是一份極其重要的報告，請給出超過 2000 字的深度解析，言之有物，排版清晰（使用適當的標題與條列式）。`;
 
-    // 🔴 關鍵修復：解除 Gemini 命理預測的安全阻擋 🔴
     const safetySettings = [
-        {
-            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
     ];
 
-const model = genAI.getGenerativeModel({ 
-        model: "gemini-3.5-flash", // Updated to Gemini 3.5 Flash
+    const model = genAI.getGenerativeModel({ 
+        model: "gemini-3.5-flash", // 維持您的設定
         systemInstruction: systemInstruction,
-        safetySettings: safetySettings // 套用安全設定
+        safetySettings: safetySettings
     }); 
     
     const prompt = `
@@ -84,34 +70,14 @@ const model = genAI.getGenerativeModel({
 【報告必須嚴格包含以下完整結構】
 
 一、 紫八合一核心總評
-綜合八字日主格局與紫微命宮主星，精煉出此人一生的核心天賦、性格特質與人生主軸。
-
 二、 十二宮位全景深度解析
-請對紫微斗數的每一個獨立宮位（命宮、兄弟、夫妻、子女、財帛、疾厄、遷移、交友、事業、田宅、福德、父母）進行全面且獨立的分析。必須結合八字喜忌，詳細說明各宮位的潛力、貴人方位與隱憂。
+三、 專屬姻緣與子息報告 (包含感情特質、具體結婚年份區間、生子具體年份)
+四、 事業版圖與高峰預測 (包含適合產業、職場定位、事業黃金高峰具體年份)
+五、 財富軌跡與週期報告 (包含財富格局、賺錢最高峰年份、防守破財低潮年份)
+六、 健康預警系統 (包含弱點器官、高風險健康低谷具體年份、保養建議)
+七、 人生教練的最終指引 (給予3個最落地的人生行動建議)
 
-三、 專屬姻緣與子息報告
-1. 感情特質與正緣樣貌（會被什麼樣的人吸引？伴侶特徵？）。
-2. 姻緣時機：請明確推算並寫出最容易結婚、遇到正緣的「具體年份或歲數區間」。
-3. 子息預測：與子女的緣分深淺，以及最適合生小孩的「具體年份」。
-
-四、 事業版圖與高峰預測
-1. 適合的產業：結合八字喜用神與紫微事業宮，指出最適合從事的具體行業。
-2. 職場定位：適合創業、管理職、還是專業技術人員？
-3. 高峰預測：明確指出事業起飛的「黃金高峰期（具體年份/歲數）」，以及需要保守沉潛的轉折期。
-
-五、 財富軌跡與週期報告
-1. 財富格局分析：屬於正財穩定、偏財暴發、還是創業致富？
-2. 賺錢最高峰：明確指出一生中「賺錢能力達到最高峰的年份或大運區間」。
-3. 財富低潮期：精準指出最容易破財、需要防守的「財富低潮年份」，並給予針對性的理財避險策略。
-
-六、 健康預警系統
-1. 依據八字五行失衡與紫微疾厄宮，點出先天較弱的器官與容易發生的疾病。
-2. 健康低谷預測：精準指出健康需要特別小心、容易出狀況的「高風險具體年份」，並給予具體的日常保養建議。
-
-七、 人生教練的最終指引
-根據上述所有分析，給予 3 個最落地、最具突破性的人生行動建議。
-
-請以繁體中文撰寫，語氣充滿智慧且具備溫暖的引導力量，並確保內容極度豐富詳實。
+請以繁體中文撰寫，確保內容極度豐富詳實，並結合紫微與八字雙系統。
 `;
 
     const result = await model.generateContent(prompt);
@@ -130,13 +96,17 @@ app.post('/api/ask-chart', async (req, res) => {
     }
 });
 
+// 🔵 終極更新：直接接收前端現成的文字，不重複消耗 Token 🔵
 app.post('/api/send-report', async (req, res) => {
-    const { email, country, city, date, timeIndex, gender, question } = req.body;
+    const { email, reportText } = req.body;
+
+    if (!reportText || reportText.trim() === "") {
+        return res.status(400).json({ success: false, message: "未接收到報告內容，請先在網頁上生成報告。" });
+    }
 
     try {
-        const aiReport = await generateLifeBlueprint(country, city, date, timeIndex, gender, question);
-        
-        let formattedReport = aiReport.replace(/\n/g, '<br>');
+        // 直接將前端傳來的文字轉換格式
+        let formattedReport = reportText.replace(/\n/g, '<br>');
         formattedReport = formattedReport.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
         const mailOptions = {
