@@ -745,7 +745,7 @@
         }
     });
 
-    // 👇 終極更新：直接抓取畫面上已經算好的報告內容寄出，不再重新呼叫 AI 👇
+    // 👇 關鍵邏輯：直接將前端的純文字抓取並發送給後端 👇
     document.getElementById('email-report-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('send-email-btn');
@@ -753,12 +753,11 @@
         const emailInput = document.getElementById('userEmail');
         
         // 抓取已經顯示在畫面上的報告內容
-        const analysisTextContainer = document.getElementById('analysis-text');
-        const reportText = analysisTextContainer.innerText;
+        const reportText = document.getElementById('analysis-text').innerText;
 
-        // 檢查是否已經有報告產生
+        // 如果網頁上還沒有生成報告，就擋下來
         if (!reportText || reportText.trim() === "") {
-            alert("請先在下方「即時人生探索與對話」設定您的出生資料，點擊「聆聽專屬指引」生成報告後，才能將專屬藍圖寄出喔！");
+            alert("請先在下方「即時人生探索與對話」設定您的出生資料，並點擊「聆聽專屬指引」生成報告後，才能將專屬藍圖寄出喔！");
             return;
         }
 
@@ -766,13 +765,13 @@
         btn.disabled = true;
 
         try {
-            // 將畫面上現成的報告與 Email 一起送給後端
+            // 直接將 Email 信箱與現成的 reportText 送給後端
             const response = await fetch('https://gygs-ca.onrender.com/api/send-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     email: emailInput.value,
-                    reportText: reportText // 直接傳送文字！
+                    reportText: reportText // 這裡送出的是純文字
                 })
             });
 
