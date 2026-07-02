@@ -10,12 +10,23 @@ const port = process.env.PORT || 3000;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// 🔴 關鍵修復：改用明確的 SMTP 設定，解決 Render 的 ETIMEDOUT 連線超時問題 🔴
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // 使用 SSL 加密連線
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    tls: {
+        // 放寬雲端伺服器的憑證檢查，防止連線被強制阻擋
+        rejectUnauthorized: false 
+    },
+    // 增加連線等待時間，避免稍微延遲就報錯
+    connectionTimeout: 10000, 
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 });
 
 app.use(cors());
@@ -29,7 +40,7 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname));
 
-// 🌟 旗艦版：共用的 Gemini 大腦函數 🌟
+// 🌟 共用的 Gemini 大腦函數 (只負責網頁即時對話生成) 🌟
 async function generateLifeBlueprint(country, city, date, timeIndex, gender, question) {
     
     const genderZh = gender === 'male' ? '男' : (gender === 'female' ? '女' : gender);
@@ -52,9 +63,9 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
     ];
 
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-3.5-flash", // 維持您的設定
+        model: "gemini-3.5-flash", 
         systemInstruction: systemInstruction,
-        safetySettings: safetySettings
+        safetySettings: safetySettings 
     }); 
     
     const prompt = `
@@ -68,16 +79,15 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 - 探索訴求：${question}
 
 【報告必須嚴格包含以下完整結構】
-
 一、 紫八合一核心總評
 二、 十二宮位全景深度解析
-三、 專屬姻緣與子息報告 (包含感情特質、具體結婚年份區間、生子具體年份)
-四、 事業版圖與高峰預測 (包含適合產業、職場定位、事業黃金高峰具體年份)
-五、 財富軌跡與週期報告 (包含財富格局、賺錢最高峰年份、防守破財低潮年份)
-六、 健康預警系統 (包含弱點器官、高風險健康低谷具體年份、保養建議)
-七、 人生教練的最終指引 (給予3個最落地的人生行動建議)
+三、 專屬姻緣與子息報告
+四、 事業版圖與高峰預測
+五、 財富軌跡與週期報告
+六、 健康預警系統
+七、 人生教練的最終指引
 
-請以繁體中文撰寫，確保內容極度豐富詳實，並結合紫微與八字雙系統。
+請以繁體中文撰寫，語氣充滿智慧且具備溫暖的引導力量，並確保內容極度豐富詳實。
 `;
 
     const result = await model.generateContent(prompt);
@@ -96,7 +106,7 @@ app.post('/api/ask-chart', async (req, res) => {
     }
 });
 
-// 🔵 終極更新：直接接收前端現成的文字，不重複消耗 Token 🔵
+// 🔵 直接接收前端現成的報告文字寄送 🔵
 app.post('/api/send-report', async (req, res) => {
     const { email, reportText } = req.body;
 
@@ -105,7 +115,6 @@ app.post('/api/send-report', async (req, res) => {
     }
 
     try {
-        // 直接將前端傳來的文字轉換格式
         let formattedReport = reportText.replace(/\n/g, '<br>');
         formattedReport = formattedReport.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
@@ -138,7 +147,7 @@ app.post('/api/send-report', async (req, res) => {
 
     } catch (error) {
         console.error('Email sending error:', error);
-        res.status(500).json({ success: false, message: "寄送信件時發生伺服器錯誤，請確認您的信箱是否填寫正確。" });
+        res.status(500).json({ success: false, message: "寄送信件時發生伺服器錯誤，這可能是網路短暫斷線，請稍後再試一次。" });
     }
 });
 
