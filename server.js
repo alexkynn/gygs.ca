@@ -5,6 +5,9 @@ const path = require('path');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
 
+// 🟢 引入剛寫好的 RAG AI 命理檢索大腦 (新增)
+const { generateMasterResponse } = require('./ragService');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -106,6 +109,33 @@ app.post('/api/ask-chart', async (req, res) => {
     }
 });
 
+// ==========================================
+// 🟢 新增：RAG 核心 API 路由 (Pinecone + Gemini)
+// ==========================================
+app.post('/api/ask', async (req, res) => {
+    try {
+        const userQuestion = req.body.question;
+        
+        if (!userQuestion) {
+            return res.status(400).json({ 
+                success: false,
+                error: "請提供問題內容 (例如：{ \"question\": \"我今年的流年運勢如何？\" })" 
+            });
+        }
+
+        console.log(`\n💬 收到使用者提問: "${userQuestion}"`);
+        
+        // 將問題交給 RAG 服務處理
+        const answer = await generateMasterResponse(userQuestion);
+        
+        res.json({ success: true, reply: answer });
+
+    } catch (error) {
+        console.error("API 端點執行時發生未預期錯誤:", error);
+        res.status(500).json({ success: false, error: "伺服器內部發生錯誤，請稍後再試。" });
+    }
+});
+
 // 🔵 直接接收前端現成的報告文字寄送 🔵
 app.post('/api/send-report', async (req, res) => {
     const { email, reportText } = req.body;
@@ -153,4 +183,5 @@ app.post('/api/send-report', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`gygs.ca 伺服器已啟動，正在監聽 Port ${port}`);
+    console.log(`🔮 RAG 命理檢索 API 已就緒: POST http://localhost:${port}/api/ask`);
 });
