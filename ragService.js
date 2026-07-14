@@ -50,7 +50,7 @@ async function generateMasterResponse(userQuestion) {
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash', // 您可以依需求切換模型
+            model: 'gemini-3.5-flash', // 您可以依需求切換模型
             contents: finalPrompt,
         });
 
