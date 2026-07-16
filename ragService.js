@@ -1,12 +1,14 @@
 require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
-const { GoogleGenAI } = require('@google/genai');
+// 🟢 修正：使用與 server.js 相同的 @google/generative-ai，確保語法相容
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // 1. 初始化環境
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// 🟢 修正：宣告 genAI 變數，讓下方的模型可以順利呼叫
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function generateEmbeddings(text) {
     // 使用 Gemini 的 embedding 模型
@@ -14,6 +16,7 @@ async function generateEmbeddings(text) {
     const result = await model.embedContent(text);
     return result.embedding.values;
 }
+
 // 加入 mode 參數，預設為 'teaser' (誘餌)
 async function generateMasterResponse(question, mode = 'teaser') {
     try {
