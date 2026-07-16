@@ -173,8 +173,8 @@ app.post('/api/checkout', async (req, res) => {
                         }
                     },
                     relationships: {
-                        store: { data: { type: "stores", id: process.env.LEMON_STORE_ID } },
-                        variant: { data: { type: "variants", id: process.env.LEMON_VARIANT_ID } }
+                        store: { data: { type: "stores", id: process.env.LEMON_STORE_ID.toString() } },
+                        variant: { data: { type: "variants", id: process.env.LEMON_VARIANT_ID.toString() } }
                     }
                 }
             })

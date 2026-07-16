@@ -601,13 +601,15 @@
 
                     <div class="mb-4">
                         <label for="question" class="form-label text-light">請選擇您想探索的命盤解析深度</label>
-                        <select class="form-select py-3 bg-dark border-secondary text-light" id="question" required>
-                            <option value="" disabled selected>請選擇您需要的指引項目...</option>
-                            <option value="先天命盤大批">1. 先天命盤大批 (全方位人生藍圖解析)</option>
-                            <option value="10年大運預測小批">2. 10年大運預測小批 (未來十年黃金週期規劃)</option>
-                            <option value="流年命盤運勢">3. 流年命盤運勢 (本年度機遇與風險防範)</option>
-                            <option value="流月命盤運勢">4. 流月命盤運勢 (近期月度吉凶與行動指南)</option>
-                        </select>
+                        <!-- 預設的命理問題清單 -->
+			<select id="question" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;">
+    				<option value="" disabled selected>請選擇您最想解答的問題...</option>
+ 				<option value="請告訴我明年的事業發展與潛在轉機？">事業：請告訴我明年的事業發展與潛在轉機？</option>
+  				<option value="我的正緣桃花大概何時會出現？">姻緣：我的正緣桃花大概何時會出現？</option>
+  				<option value="我近期的財運走向，適合投資嗎？">財富：我近期的財運走向，適合投資嗎？</option>
+  				<option value="我適合自己創業，還是安穩當上班族？">人生：我適合自己創業，還是安穩當上班族？</option>
+   				<option value="請幫我注意近期健康上有哪些隱患？">健康：請幫我注意近期健康上有哪些隱患？</option>
+			</select>
                     </div>
 
                     <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">聆聽專屬指引</button>
@@ -737,12 +739,14 @@
         const question = document.getElementById('question').value;
 
         try {
-            const response = await fetch('https://gygs-ca.onrender.com/api/ask-chart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ country, city, date, timeIndex, gender, question })
-            });
-
+const response = await fetch('/api/ask', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        // 確保這裡抓到的是選單的 value
+        question: document.getElementById('question').value
+    })
+});
             if (!response.ok) {
                 throw new Error(`連線時遇到了一點小阻礙，狀態碼: ${response.status}`);
             }
