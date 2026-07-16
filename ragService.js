@@ -1,23 +1,30 @@
 require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
-// 🟢 修正：使用與 server.js 相同的 @google/generative-ai，確保語法相容
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// 🟢 修正：使用 Google 最新的官方 SDK，這才是能讀懂 text-embedding-004 的正確套件
+const { GoogleGenAI } = require('@google/genai');
 
 // 1. 初始化環境
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
 
-// 🟢 修正：宣告 genAI 變數，讓下方的模型可以順利呼叫
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// 🟢 宣告新版 SDK 的 instance
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// ==========================================
+// 🔍 模型 1：專責將文字轉為向量
+// ==========================================
 async function generateEmbeddings(text) {
-    // 使用 Gemini 的 embedding 模型
-    const model = genAI.getGenerativeModel({ model: "embedding-001" });
-    const result = await model.embedContent(text);
-    return result.embedding.values;
+    // 這裡使用最新版支援的 text-embedding-004
+    const response = await ai.models.embedContent({
+        model: 'text-embedding-004',
+        contents: text,
+    });
+    return response.embeddings[0].values;
 }
 
-// 加入 mode 參數，預設為 'teaser' (誘餌)
+// ==========================================
+// ✍️ 模型 2：您的 Gemini 3.5 Flash 命理大師
+// ==========================================
 async function generateMasterResponse(question, mode = 'teaser') {
     try {
         console.log(`[1/3] 正在將使用者問題轉換為向量 (模式: ${mode})...`);
@@ -34,11 +41,9 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         console.log("[3/3] 正在呼叫 Gemini 生成最終命理報告...");
         
-        // 🟢 雙軌提示詞系統
         let prompt = "";
         
         if (mode === 'teaser') {
-            // 免費誘餌模式：只給 50 字，勾起好奇心
             prompt = `
             你是一位精通《滴天髓》與《三命通會》的命理大師。
             請根據以下古籍文獻，回答使用者的問題。
@@ -55,7 +60,6 @@ async function generateMasterResponse(question, mode = 'teaser') {
             使用者問題：${question}
             `;
         } else {
-            // 付費解鎖模式：產出 2000 字深度解析
             prompt = `
             你是一位精通《滴天髓》與《三命通會》的頂尖命理大師。
             請根據以下古籍文獻，為使用者進行深度、詳盡的命盤與流年解析。
@@ -73,10 +77,13 @@ async function generateMasterResponse(question, mode = 'teaser') {
             `;
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
-        const result = await model.generateContent(prompt);
+        // 🟢 這裡絕對保留您指定的 Gemini 3.5 Flash，並使用新版 SDK 語法！
+        const result = await ai.models.generateContent({
+            model: 'gemini-3.5-flash',
+            contents: prompt,
+        });
         
-        return result.response.text();
+        return result.text;
     } catch (error) {
         console.error("RAG 處理過程中發生錯誤:", error);
         throw error;
