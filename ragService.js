@@ -12,8 +12,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function generateEmbeddings(text) {
     // 使用 Gemini 的 embedding 模型
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
-    const result = await model.embedContent(text);
+    const embeddingmodel = genAI.getGenerativeModel({ model: "text-embedding-001" });
+    const result = await embeddingmodel.embedContent(text);
     return result.embedding.values;
 }
 
