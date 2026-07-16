@@ -8,6 +8,12 @@ const index = pc.Index("gygs-knowledge");
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+async function generateEmbeddings(text) {
+    // 使用 Gemini 的 embedding 模型
+    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const result = await model.embedContent(text);
+    return result.embedding.values;
+}
 // 加入 mode 參數，預設為 'teaser' (誘餌)
 async function generateMasterResponse(question, mode = 'teaser') {
     try {
