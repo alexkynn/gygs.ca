@@ -856,7 +856,7 @@ const response = await fetch('/api/ask', {
 
         try {
             // 呼叫我們在 server.js 寫好的 /api/checkout 端點
-            const response = await fetch('https://gygs-ca.onrender.com/api/checkout', {
+            const response = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

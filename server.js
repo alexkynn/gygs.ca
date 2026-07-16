@@ -135,7 +135,7 @@ app.post('/api/ask', async (req, res) => {
         // 將問題交給 RAG 服務處理
         const answer = await generateMasterResponse(userQuestion, 'teaser');
         
-        res.json({ success: true, reply: answer });
+        res.json({ success: true, answer: answer });
 
     } catch (error) {
         console.error("API 端點執行時發生未預期錯誤:", error);
