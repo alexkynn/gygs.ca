@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
+const crypto = require('crypto'); // 🟢 新增：用來驗證 Lemon Squeezy 的安全簽章
 
 // 🟢 引入剛寫好的 RAG AI 命理檢索大腦 (新增)
 const { generateMasterResponse } = require('./ragService');
@@ -33,7 +34,13 @@ const transporter = nodemailer.createTransport({
 });
 
 app.use(cors());
-app.use(express.json());
+// 🟢 替換原有的 app.use(express.json());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        // 保留原始的 Buffer 資料，這是驗證 Lemon Squeezy 簽章的關鍵
+        req.rawBody = buf;
+    }
+}));
 
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -136,48 +143,123 @@ app.post('/api/ask', async (req, res) => {
     }
 });
 
-// 🔵 直接接收前端現成的報告文字寄送 🔵
-app.post('/api/send-report', async (req, res) => {
-    const { email, reportText } = req.body;
-
-    if (!reportText || reportText.trim() === "") {
-        return res.status(400).json({ success: false, message: "未接收到報告內容，請先在網頁上生成報告。" });
-    }
-
+// ==========================================
+// 🟢 新增 1：產生 Lemon Squeezy 動態結帳連結
+// ==========================================
+app.post('/api/checkout', async (req, res) => {
     try {
-        let formattedReport = reportText.replace(/\n/g, '<br>');
-        formattedReport = formattedReport.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        const { email, question, birthData } = req.body;
 
-        const mailOptions = {
-            from: `"gygs.ca 人生導航" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: '【gygs.ca】您的先天命盤大批（全方位人生藍圖解析）',
-            html: `
-                <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
-                    <h2 style="color: #38bdf8; text-align: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">先天命盤大批<br><span style="font-size: 16px; color: #64748b;">全方位人生藍圖解析</span></h2>
-                    
-                    <p style="font-size: 16px;">親愛的朋友，您好：</p>
-                    <p style="font-size: 16px;">感謝您使用 <strong>gygs.ca</strong>。根據您提供的出生資訊，我們為您結合「紫微斗數」與「四柱八字」雙引擎系統，進行了最高規格的精密運算。</p>
-                    <p style="font-size: 16px;">以下為您量身打造的全景人生報告，涵蓋了十二宮位、姻緣、事業、財富與健康預測，請耐心閱讀：</p>
-                    
-                    <div style="background-color: #f8fafc; padding: 30px; border-radius: 12px; margin: 30px 0; border: 1px solid #e2e8f0; color: #1e293b; font-size: 15px; text-align: justify;">
-                        ${formattedReport}
-                    </div>
-                    
-                    <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-                        願這份藍圖能為您的下一步提供清晰的視野與前進的力量。<br><br>
-                        <strong>gygs.ca 團隊 敬上</strong>
-                    </p>
-                </div>
-            `
-        };
+        const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/vnd.api+json',
+                'Content-Type': 'application/vnd.api+json',
+                'Authorization': `Bearer ${process.env.LEMON_API_KEY}`
+            },
+            body: JSON.stringify({
+                data: {
+                    type: "checkouts",
+                    attributes: {
+                        checkout_data: {
+                            email: email,
+                            custom: {
+                                user_question: question,
+                                user_birth: birthData 
+                            }
+                        },
+                        product_options: {
+                            enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)]
+                        }
+                    },
+                    relationships: {
+                        store: { data: { type: "stores", id: process.env.LEMON_STORE_ID } },
+                        variant: { data: { type: "variants", id: process.env.LEMON_VARIANT_ID } }
+                    }
+                }
+            })
+        });
 
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true, message: "報告已成功寄出！" });
+        const data = await response.json();
+        
+        if (data.errors) {
+            console.error("Lemon Squeezy API 錯誤:", data.errors);
+            return res.status(500).json({ success: false, message: "無法建立結帳連結" });
+        }
+
+        res.json({ success: true, checkoutUrl: data.data.attributes.url });
 
     } catch (error) {
-        console.error('Email sending error:', error);
-        res.status(500).json({ success: false, message: "寄送信件時發生伺服器錯誤，這可能是網路短暫斷線，請稍後再試一次。" });
+        console.error("建立結帳連結失敗:", error);
+        res.status(500).json({ success: false, message: "伺服器錯誤" });
+    }
+});
+
+// ==========================================
+// 🟢 新增 2：Lemon Squeezy Webhook (含您原本的精美 Email 版型)
+// ==========================================
+app.post('/api/webhook/lemon', async (req, res) => {
+    const signature = req.get('X-Signature');
+    const secret = process.env.LEMON_WEBHOOK_SECRET;
+
+    try {
+        const hmac = crypto.createHmac('sha256', secret);
+        const digest = Buffer.from(hmac.update(req.rawBody).digest('hex'), 'utf8');
+        const checksum = Buffer.from(signature || '', 'utf8');
+
+        if (checksum.length !== digest.length || !crypto.timingSafeEqual(digest, checksum)) {
+            console.log("❌ Webhook 簽章驗證失敗！");
+            return res.status(403).send('Invalid signature');
+        }
+
+        const payload = req.body;
+        const eventName = payload.meta.event_name;
+
+        if (eventName === 'order_created') {
+            const customerEmail = payload.data.attributes.user_email;
+            const customData = payload.data.attributes.custom_data || {};
+            const userQuestion = customData.user_question;
+
+            console.log(`✅ 收到付款！即將開始為 ${customerEmail} 撰寫報告...`);
+            res.status(200).send('Webhook received');
+
+            // 呼叫大腦生成 2000 字大批 ('full' 模式)
+            generateMasterResponse(userQuestion, 'full').then(async (reportContent) => {
+                let formattedReport = reportContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                const mailOptions = {
+                    from: `"gygs.ca 人生導航" <${process.env.EMAIL_USER}>`,
+                    to: customerEmail,
+                    subject: '【gygs.ca】您的付費專屬命理解析報告已完成',
+                    html: `
+                        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+                            <h2 style="color: #38bdf8; text-align: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">先天命盤大批<br><span style="font-size: 16px; color: #64748b;">深度流年專屬藍圖解析</span></h2>
+                            
+                            <p style="font-size: 16px;">親愛的朋友，您好：</p>
+                            <p style="font-size: 16px;">感謝您的付費解鎖。根據您的提問與命盤，大師已為您完成深度推演：</p>
+                            
+                            <div style="background-color: #f8fafc; padding: 30px; border-radius: 12px; margin: 30px 0; border: 1px solid #e2e8f0; color: #1e293b; font-size: 15px; text-align: justify;">
+                                ${formattedReport}
+                            </div>
+                            
+                            <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                                願這份藍圖能為您的下一步提供清晰的視野與前進的力量。<br><br>
+                                <strong>gygs.ca 團隊 敬上</strong>
+                            </p>
+                        </div>
+                    `
+                };
+                await transporter.sendMail(mailOptions);
+                console.log(`📩 報告已成功寄送給：${customerEmail}`);
+            }).catch(err => console.error("背景生成或寄信失敗:", err));
+
+        } else {
+            res.status(200).send('Event ignored');
+        }
+
+    } catch (error) {
+        console.error("Webhook 處理失敗:", error);
+        res.status(500).send('Webhook error');
     }
 });
 
