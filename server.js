@@ -133,7 +133,7 @@ app.post('/api/ask', async (req, res) => {
         console.log(`\n💬 收到使用者提問: "${userQuestion}"`);
         
         // 將問題交給 RAG 服務處理
-        const answer = await generateMasterResponse(userQuestion);
+        const answer = await generateMasterResponse(userQuestion, 'teaser');
         
         res.json({ success: true, reply: answer });
 
