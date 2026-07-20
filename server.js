@@ -14,9 +14,9 @@ const port = process.env.PORT || 3000;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 🔴 關鍵修復：改用明確的 SMTP 設定，解決 Render 的 ETIMEDOUT 連線超時問題 🔴
+// 🔴 改用 IONOS 專屬 SMTP 伺服器 🔴
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: 'smtp.ionos.com',
     port: 465,
     secure: true, // 使用 SSL 加密連線
     auth: {
