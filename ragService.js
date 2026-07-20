@@ -16,6 +16,8 @@ async function generateEmbeddings(text) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                // 🟢 關鍵：Google 規定 body 裡必須明確加上這一行宣告 model
+                model: "models/text-embedding-004", 
                 content: { parts: [{ text: text }] }
             })
         });

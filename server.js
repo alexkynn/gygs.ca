@@ -223,11 +223,11 @@ app.post('/api/webhook/lemon', async (req, res) => {
         if (eventName === 'order_created') {
             const customerEmail = payload.data.attributes.user_email;
             
-            // 🟢 嚴格抓取 custom_data
-            const customData = payload.data.attributes.custom_data || {};
+            // ✅ 正確的抓法：Lemon Squeezy 其實把資料藏在 meta 裡面
+            const customData = payload.meta.custom_data || payload.data.attributes?.custom_data || {};
             const userQuestion = customData.user_question || "未提供具體提問";
             const userBirth = customData.user_birth || "未提供生辰資料";
-
+            
             console.log(`✅ 收到付款！準備為 ${customerEmail} 撰寫報告...`);
             console.log(`🔍 擷取到的命盤資料: ${userBirth}`); // 這裡會印在終端機讓您確認！
             console.log(`🔍 擷取到的客戶提問: ${userQuestion}`);
