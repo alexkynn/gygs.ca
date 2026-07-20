@@ -222,9 +222,13 @@ app.post('/api/webhook/lemon', async (req, res) => {
 
         if (eventName === 'order_created') {
             const customerEmail = payload.data.attributes.user_email;
+// 🟢 關鍵修復：正確抓取訂單中夾帶的自訂資料 (命盤與問題)
             const customData = payload.data.attributes.custom_data || {};
-            const userQuestion = customData.user_question;
+            const userQuestion = customData.user_question || "請為我進行全方位命理分析";
+            const userBirth = customData.user_birth || "未提供生辰資料";
 
+            // 🟢 將命盤與問題結合成一段完整的指令，送給大師
+            const finalPromptForAI = `【來訪者命盤資料】：${userBirth}\n【來訪者提問】：${userQuestion}`;
             console.log(`✅ 收到付款！即將開始為 ${customerEmail} 撰寫報告...`);
             res.status(200).send('Webhook received');
 
