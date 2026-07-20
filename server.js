@@ -14,6 +14,11 @@ const port = process.env.PORT || 3000;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// 👇 請加入這三行來檢查 Node.js 到底有沒有讀到密碼
+console.log("【發信系統檢查】信箱帳號抓取結果：", process.env.EMAIL_USER);
+console.log("【發信系統檢查】信箱密碼抓取結果：", process.env.EMAIL_PASS ? "有抓到密碼 (長度: " + process.env.EMAIL_PASS.length + ")" : "空值 (undefined)");
+// 👆 ==========================================
+
 // 🔴 改用 IONOS 專屬 SMTP 伺服器 🔴
 const transporter = nodemailer.createTransport({
     host: 'smtp.ionos.com',
