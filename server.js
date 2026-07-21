@@ -173,6 +173,10 @@ app.post('/api/checkout', async (req, res) => {
                                 user_birth: birthData 
                             }
                         },
+// 🟢 修正 1：告訴 Lemon Squeezy 結帳後跳回您的網站
+                        checkout_options: {
+                            redirect_url: "https://gygs.ca" 
+                        },
                         product_options: {
                             enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)]
                         }
@@ -223,21 +227,25 @@ app.post('/api/webhook/lemon', async (req, res) => {
         if (eventName === 'order_created') {
             const customerEmail = payload.data.attributes.user_email;
             
-            // ✅ 正確的抓法：Lemon Squeezy 其實把資料藏在 meta 裡面
+// 🟢 嚴格抓取 custom_data
             const customData = payload.meta.custom_data || payload.data.attributes?.custom_data || {};
             const userQuestion = customData.user_question || "未提供具體提問";
-            const userBirth = customData.user_birth || "未提供生辰資料";
-            
+            let userBirth = customData.user_birth || "未提供生辰資料";
+
+            // 🟢 修正 2：把前端傳來的「時辰:4, 性別:female」翻譯成命理師看得懂的中文
+            userBirth = userBirth.replace('性別:female', '性別：女命（坤造）')
+                                 .replace('性別:male', '性別：男命（乾造）')
+                                 .replace('時辰:0', '時辰：子時').replace('時辰:1', '時辰：丑時')
+                                 .replace('時辰:2', '時辰：寅時').replace('時辰:3', '時辰：卯時')
+                                 .replace('時辰:4', '時辰：辰時').replace('時辰:5', '時辰：巳時')
+                                 .replace('時辰:6', '時辰：午時').replace('時辰:7', '時辰：未時')
+                                 .replace('時辰:8', '時辰：申時').replace('時辰:9', '時辰：酉時')
+                                 .replace('時辰:10', '時辰：戌時').replace('時辰:11', '時辰：亥時');
+
             console.log(`✅ 收到付款！準備為 ${customerEmail} 撰寫報告...`);
-            console.log(`🔍 擷取到的命盤資料: ${userBirth}`); // 這裡會印在終端機讓您確認！
-            console.log(`🔍 擷取到的客戶提問: ${userQuestion}`);
+            console.log(`🔍 翻譯後的命盤資料: ${userBirth}`); 
 
-            // 如果沒有抓到資料，提早介入警告，避免浪費 token
-            if (userBirth === "未提供生辰資料" || userBirth.includes("undefined")) {
-                 console.log("⚠️ 警告：沒有接收到正確的命盤資料，可能是舊訂單或前端傳遞失敗！");
-            }
-
-            const finalPromptForAI = `【來訪者命盤資料】：${userBirth}\n【來訪者提問】：${userQuestion}`;
+            const finalPromptForAI = `【來訪者真實命盤資料】：${userBirth}\n【來訪者提問】：${userQuestion}`;
             res.status(200).send('Webhook received');
 
             // 呼叫大腦生成 2000 字大批 ('full' 模式)
