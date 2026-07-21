@@ -173,10 +173,13 @@ app.post('/api/checkout', async (req, res) => {
                                 user_birth: birthData 
                             }
                         },
-// 🟢 修正 1：告訴 Lemon Squeezy 結帳後跳回您的網站
-                        checkout_options: {
-                            redirect_url: "https://gygs.ca" 
-                        },
+                        // 🟢 修正 1：告訴 Lemon Squeezy 結帳後跳回您的網站
+                        // ✅ 正確寫法：包在方括號 [] 裡面變成陣列
+                        checkout_options: [
+                            {
+                                redirect_url: "https://gygs.ca"
+                            }
+                        ],
                         product_options: {
                             enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)]
                         }
