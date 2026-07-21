@@ -173,15 +173,13 @@ app.post('/api/checkout', async (req, res) => {
                                 user_birth: birthData 
                             }
                         },
-                        // 🟢 修正 1：告訴 Lemon Squeezy 結帳後跳回您的網站
-                        // ✅ 正確寫法：包在方括號 [] 裡面變成陣列
-                        checkout_options: [
-                            {
-                                redirect_url: "https://gygs.ca"
-                            }
-                        ],
+                        // 🟢 修正：徹底刪除會報錯的 checkout_options
+                        // 把所有跳轉設定全部集中到 product_options 裡面
                         product_options: {
-                            enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)]
+                            enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)],
+                            redirect_url: "https://gygs.ca",       // 付款完成後的自動跳轉網址
+                            receipt_link_url: "https://gygs.ca",   // 收據頁面上的按鈕連結
+                            receipt_button_text: "返回 gygs.ca 首頁" // 自訂收據頁面上的按鈕文字
                         }
                     },
                     relationships: {
