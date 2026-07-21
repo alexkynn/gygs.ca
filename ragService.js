@@ -63,10 +63,15 @@ async function generateMasterResponse(question, mode = 'teaser') {
         let prompt = "";
         
         if (mode === 'teaser') {
+            // 🔴 Teaser 升級：加入真太陽時誤差提醒
             prompt = `
             你是一位精通《滴天髓》、《三命通會》與《紫微斗數全書》的頂尖命理大師。
             請針對使用者的問題，給出 50 到 80 字之間的精簡回答。
-            只給出核心結論或關鍵暗示，語氣要專業神秘。
+            
+            【寫作守則】：
+            1. 前半段給出命理核心結論或關鍵暗示，語氣要專業神秘。
+            2. 後半段務必加上這句專業提醒：「因出生地經緯度差異，真太陽時可能有15-20分鐘誤差。請於解鎖前務必確認時辰無誤，以免排盤失準。」
+            
             使用者提問：${question}
             `;
         } else {
@@ -86,7 +91,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
             【嚴格寫作守則】：
             1. 報告開頭第一段，請精確讀取 <ClientData> 內的西曆出生日期與性別，並以「親愛的緣主，以下是您提供的命理資訊：」起頭，完整列出。
             2. 請自行在心中將其西曆日期轉換為正確的八字與紫微命盤，並為其解析。
-            3. 【核心學理要求】：你的每一次分析，必須同時融合《滴天髓》、《三命通會》（八字）與《紫微斗數全書》（紫微）這三本古籍的理論進行交叉交叉分析，缺一不可。請在文中自然地引述這三本書的觀點。
+            3. 【核心學理要求】：你的每一次分析，必須同時融合《滴天髓》、《三命通會》（八字）與《紫微斗數全書》（紫微）這三本古籍的理論進行交叉分析，缺一不可。請在文中自然地引述這三本書的觀點。
             4. 給出具體的流年轉機與行動建議。
             
             ${contexts ? `【Pinecone 檢索到的古籍文獻參考】：\n${contexts}\n` : ''}
@@ -97,7 +102,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
             `;
         }
 
-        // ✅ 使用最新的 gemini-3.5-flash
+        // ✅ 使用您確認可用的 gemini-3.5-flash
         const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
         const result = await model.generateContent(prompt);
         
