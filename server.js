@@ -4,9 +4,9 @@ const cors = require('cors');
 const path = require('path');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
-const crypto = require('crypto'); // 🟢 新增：用來驗證 Lemon Squeezy 的安全簽章
+const crypto = require('crypto'); // 🟢 用來驗證 Lemon Squeezy 的安全簽章
 
-// 🟢 引入剛寫好的 RAG AI 命理檢索大腦 (新增)
+// 🟢 引入剛寫好的 RAG AI 命理檢索大腦
 const { generateMasterResponse } = require('./ragService');
 
 const app = express();
@@ -14,12 +14,12 @@ const port = process.env.PORT || 3000;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 👇 請加入這三行來檢查 Node.js 到底有沒有讀到密碼
+// 👇 發信系統檢查
 console.log("【發信系統檢查】信箱帳號抓取結果：", process.env.EMAIL_USER);
 console.log("【發信系統檢查】信箱密碼抓取結果：", process.env.EMAIL_PASS ? "有抓到密碼 (長度: " + process.env.EMAIL_PASS.length + ")" : "空值 (undefined)");
 // 👆 ==========================================
 
-// 🔴 改用 IONOS 專屬 SMTP 伺服器 🔴
+// 🔴 IONOS 專屬 SMTP 伺服器
 const transporter = nodemailer.createTransport({
     host: 'smtp.ionos.com',
     port: 465,
@@ -39,10 +39,10 @@ const transporter = nodemailer.createTransport({
 });
 
 app.use(cors());
-// 🟢 替換原有的 app.use(express.json());
+
+// 🟢 保留原始的 Buffer 資料，這是驗證 Lemon Squeezy 簽章的關鍵
 app.use(express.json({
     verify: (req, res, buf) => {
-        // 保留原始的 Buffer 資料，這是驗證 Lemon Squeezy 簽章的關鍵
         req.rawBody = buf;
     }
 }));
@@ -122,7 +122,7 @@ app.post('/api/ask-chart', async (req, res) => {
 });
 
 // ==========================================
-// 🟢 新增：RAG 核心 API 路由 (Pinecone + Gemini)
+// 🟢 RAG 核心 API 路由 (Pinecone + Gemini)
 // ==========================================
 app.post('/api/ask', async (req, res) => {
     try {
@@ -149,7 +149,7 @@ app.post('/api/ask', async (req, res) => {
 });
 
 // ==========================================
-// 🟢 新增 1：產生 Lemon Squeezy 動態結帳連結
+// 🟢 產生 Lemon Squeezy 動態結帳連結
 // ==========================================
 app.post('/api/checkout', async (req, res) => {
     try {
@@ -173,8 +173,7 @@ app.post('/api/checkout', async (req, res) => {
                                 user_birth: birthData 
                             }
                         },
-                        // 🟢 修正：徹底刪除會報錯的 checkout_options
-                        // 把所有跳轉設定全部集中到 product_options 裡面
+                        // 🟢 修正：徹底解決 422 錯誤，將所有跳轉網址設定全部集中在 product_options 裡
                         product_options: {
                             enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)],
                             redirect_url: "https://gygs.ca",       // 付款完成後的自動跳轉網址
@@ -193,7 +192,7 @@ app.post('/api/checkout', async (req, res) => {
         const data = await response.json();
         
         if (data.errors) {
-            console.error("Lemon Squeezy API 錯誤:", data.errors);
+            console.error("Lemon Squeezy API 錯誤:", JSON.stringify(data.errors, null, 2));
             return res.status(500).json({ success: false, message: "無法建立結帳連結" });
         }
 
@@ -206,7 +205,7 @@ app.post('/api/checkout', async (req, res) => {
 });
 
 // ==========================================
-// 🟢 新增 2：Lemon Squeezy Webhook (含您原本的精美 Email 版型)
+// 🟢 Lemon Squeezy Webhook (含翻譯大師語言與精美 Email 版型)
 // ==========================================
 app.post('/api/webhook/lemon', async (req, res) => {
     const signature = req.get('X-Signature');
@@ -228,12 +227,12 @@ app.post('/api/webhook/lemon', async (req, res) => {
         if (eventName === 'order_created') {
             const customerEmail = payload.data.attributes.user_email;
             
-// 🟢 嚴格抓取 custom_data
+            // 🟢 嚴格抓取 custom_data：Lemon Squeezy 把自訂資料放在 meta 裡
             const customData = payload.meta.custom_data || payload.data.attributes?.custom_data || {};
             const userQuestion = customData.user_question || "未提供具體提問";
             let userBirth = customData.user_birth || "未提供生辰資料";
 
-            // 🟢 修正 2：把前端傳來的「時辰:4, 性別:female」翻譯成命理師看得懂的中文
+            // 🟢 把前端傳來的「時辰:4, 性別:female」完美翻譯成命理師看得懂的中文，杜絕大師產生幻覺
             userBirth = userBirth.replace('性別:female', '性別：女命（坤造）')
                                  .replace('性別:male', '性別：男命（乾造）')
                                  .replace('時辰:0', '時辰：子時').replace('時辰:1', '時辰：丑時')
@@ -250,7 +249,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
             res.status(200).send('Webhook received');
 
             // 呼叫大腦生成 2000 字大批 ('full' 模式)
-            generateMasterResponse(userQuestion, 'full').then(async (reportContent) => {
+            generateMasterResponse(finalPromptForAI, 'full').then(async (reportContent) => {
                 let formattedReport = reportContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
                 const mailOptions = {

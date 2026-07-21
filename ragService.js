@@ -6,26 +6,24 @@ const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 🔴 修正 3：移除 body 裡面多餘的 model 屬性，徹底消滅 404
+// 🔴 終極修復 1：使用官方 SDK，並加入自動降級機制，徹底消滅 404
 async function generateEmbeddings(text) {
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${process.env.GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                content: { parts: [{ text: text }] }
-            })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error?.message || "向量 API 拒絕連線");
-        }
-        return data.embedding.values;
+        // 首選最新模型
+        const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+        const result = await embeddingModel.embedContent(text);
+        return result.embedding.values;
     } catch (error) {
-        console.log("⚠️ 向量轉換失敗，細節:", error.message);
-        return null; 
+        console.log("⚠️ text-embedding-004 不適用，自動切換至備用模型 embedding-001...");
+        try {
+            // 備用舊版模型
+            const fallbackModel = genAI.getGenerativeModel({ model: "embedding-001" });
+            const result = await fallbackModel.embedContent(text);
+            return result.embedding.values;
+        } catch (fallbackError) {
+            console.log("⚠️ 向量轉換模型目前均不可用，系統將自動啟動「無古籍純淨推演模式」。");
+            return null; // 優雅降級，不影響最終報告生成
+        }
     }
 }
 
@@ -66,25 +64,29 @@ async function generateMasterResponse(question, mode = 'teaser') {
             使用者問題：${question}
             `;
         } else {
-            // 🔴 修正 4：下達死命令，嚴格綁死性別與出生日期
+            // 🔴 終極修復 2：使用 XML 標籤強制綁定客戶資料，根治「待補」的幻覺
             prompt = `
             你是一位精通《滴天髓》與《三命通會》的頂尖命理大師。
             
-            【絕對禁止事項（違反將導致嚴重錯誤）】：
-            1. 絕對不可捏造或更改來訪者的性別與出生日期。
-            2. 絕對不可把女命寫成乾造（男命）。
-            3. 時空基準：今天的真實日期是「${currentDateStr}」，所有的推演必須以此為出發點。
+            【最高優先級指令】：
+            請你務必、絕對要先讀取最下方 <ClientData> 標籤內的【來訪者真實命盤資料】。
+            絕對不可說客戶未提供資料，絕對不可捏造出生日期，絕對不可把女命（坤造）寫成男命。
             
-            請根據以下古籍文獻，為使用者進行約 2000 字的命盤與流年解析。
+            【時空基準】：
+            今天的真實日期是「${currentDateStr}」，所有的流年歲運推演必須以此日期為出發點。
+            
+            請為使用者進行約 2000 字的深度命盤與 ${today.getFullYear()} 年流年解析。
             
             【嚴格寫作守則】：
-            1. 報告開頭第一段，必須精確讀取下方的【來訪者真實命盤資料】，並以「親愛的緣主，以下是您提供的命理資訊：」起頭，完整列出其西曆出生日期、性別與提問。
+            1. 報告開頭第一段，請精確讀取 <ClientData> 內的西曆出生日期與性別，並以「親愛的緣主，以下是您提供的命理資訊：」起頭，完整列出。
             2. 請自行在心中將其西曆日期轉換為正確的八字，並為其解析。
-            3. 給出具體的「${today.getFullYear()}年流年運勢」與「行動建議」。
+            3. 給出具體的流年轉機與行動建議。
             
             ${contexts ? `【古籍文獻參考】：\n${contexts}\n` : ''}
             
+            <ClientData>
             ${question}
+            </ClientData>
             `;
         }
 
