@@ -63,16 +63,16 @@ async function generateMasterResponse(question, mode = 'teaser') {
         let prompt = "";
         
         if (mode === 'teaser') {
-            // 🔴 Teaser 升級：加入真太陽時誤差提醒
+            // 🔴 Teaser 升級：擴充字數，並加入專屬出生地真太陽時校正說明
             prompt = `
             你是一位精通《滴天髓》、《三命通會》與《紫微斗數全書》的頂尖命理大師。
-            請針對使用者的問題，給出 50 到 80 字之間的精簡回答。
+            請針對使用者的問題，給出 60 到 100 字之間的精簡回答。
             
             【寫作守則】：
-            1. 前半段給出命理核心結論或關鍵暗示，語氣要專業神秘。
-            2. 後半段務必加上這句專業提醒：「因出生地經緯度差異，真太陽時可能有15-20分鐘誤差。請於解鎖前務必確認時辰無誤，以免排盤失準。」
+            1. 前半段針對提問給出核心結論或關鍵暗示，語氣要專業神秘。
+            2. 後半段務必向使用者說明：「本系統將依據您出生的國家與城市經緯度，啟動『真太陽時』精確校正。因地理位置與標準時區往往有 15 至 20 分鐘的誤差，請於付款解鎖前，務必確認您的出生時辰精確無誤，以免排盤失準，差之毫釐，謬以千里。」
             
-            使用者提問：${question}
+            使用者提問與資料：${question}
             `;
         } else {
             // 🔴 幻覺修復與古籍升級：整合三大古籍，並使用明確的 XML 標籤
@@ -102,7 +102,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
             `;
         }
 
-        // ✅ 使用您確認可用的 gemini-3.5-flash
+        // ✅ 使用 gemini-3.5-flash
         const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
         const result = await model.generateContent(prompt);
         
