@@ -148,30 +148,12 @@ ${palacesString}
     }
 }
 
-// 🟢 雙重容錯向量轉換 (解決 404 問題)
+// 🟢 向量模型生成區
 async function generateEmbeddings(text) {
     try {
-        const payload = JSON.stringify({ content: { parts: [{ text: text }] } });
-        
-        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${process.env.GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload
-        });
-
-        // 如果 text-embedding-004 失敗，降級使用 embedding-001
-        if (!response.ok) {
-            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=${process.env.GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: payload
-            });
-        }
-
-        if (!response.ok) throw new Error("API 拒絕連線 (模型版本不支援)");
-        
-        const data = await response.json();
-        return data.embedding.values;
+        const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+        const result = await embeddingModel.embedContent(text);
+        return result.embedding.values;
     } catch (error) {
         console.log("⚠️ 向量轉換失敗 (已啟動無向量降級模式):", error.message);
         return null; 
@@ -233,6 +215,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
+        // 🟢 保持使用您指定的 gemini-3.5-flash
         console.log(`[4/4] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
         const prompt = `
@@ -240,7 +223,8 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
 【零幻覺嚴格協議 (Zero-Hallucination Protocol)】：
 1. 命盤絕對忠誠：下方 <FactData> 區塊內的資料是由精密引擎算出的「絕對事實」。你必須 100% 讀取 <FactData> 進行分析，絕不允許竄改八字干支！
-2. 【排版最高禁令】：絕不允許使用 LaTeX、MathJax、\`$$\` 或 \`\\begin{array}\` 等數學表格排版。呈現命盤時，請「只使用」最單純的 Markdown 列表 (例如：- 年柱：...)，嚴禁輸出任何 HTML 或 LaTeX 標籤，否則系統會崩潰！
+2. 古籍絕對嚴謹：論述必須基於正統學理與下方【Pinecone 檢索古籍文獻】。
+3. 【排版最高禁令】：絕不允許使用 LaTeX、MathJax 或任何數學表格排版。呈現命盤時，請「只使用」最單純的 Markdown 列表 (例如：- 年柱：...)，嚴禁輸出任何 HTML 或 LaTeX 標籤，否則系統會崩潰！
 
 ${ragFocusText}
 
