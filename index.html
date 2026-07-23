@@ -378,6 +378,7 @@
         const daySelect = document.getElementById('birthDay');
         const hiddenDate = document.getElementById('date');
 
+        // 🟢 允許選取到未來 2 年 (支援擇日產子/胎兒潛能預測)
         const currentYear = new Date().getFullYear();
         for (let i = currentYear + 2; i >= 1920; i--) {
             const option = document.createElement('option');
@@ -438,6 +439,38 @@
         daySelect.addEventListener('change', syncDate);
 
         updateDays();
+
+        // 🟢 【新增】結帳成功後的還原邏輯
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('status') === 'success') {
+            const savedState = sessionStorage.getItem('gygs_state');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                
+                // 1. 顯示原本的 AI 分析預告
+                document.getElementById('analysis-result-container').classList.remove('d-none');
+                document.getElementById('analysis-text').innerHTML = state.teaserHtml;
+                
+                // 2. 將付費區塊替換為精美的成功提示
+                const unlockSection = document.getElementById('unlock-section');
+                unlockSection.innerHTML = `
+                    <h5 class="text-success mb-3" style="font-weight: 800;">✅ 付款成功！大師正在為您撰寫報告</h5>
+                    <p class="text-light mb-1">您的專屬 3000 字戰略藍圖正在由 AI 宗師進行五庫全書運算。</p>
+                    <p class="text-secondary small">約 1~2 分鐘內將寄送至您的信箱：<strong>${state.email}</strong><br>（若未收到，請檢查垃圾郵件匣）</p>
+                `;
+                
+                // 3. 清除 URL 參數，讓網址列變回乾淨的 https://gygs.ca
+                window.history.replaceState(null, null, window.location.pathname);
+                
+                // 4. 用完即丟，清除暫存
+                sessionStorage.removeItem('gygs_state');
+                
+                // 5. 畫面自動滾動到結果區塊
+                setTimeout(() => {
+                    document.getElementById('analysis-result-container').scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        }
     });
 
     document.getElementById('ask-chart-form').addEventListener('submit', async function(e) {
@@ -529,6 +562,14 @@
             const data = await response.json();
             
             if (data.success && data.checkoutUrl) {
+                // 🟢 【新增】在跳轉前，把現在的預告結果和表單狀態存起來
+                const currentState = {
+                    teaserHtml: document.getElementById('analysis-text').innerHTML,
+                    email: emailInput
+                };
+                sessionStorage.setItem('gygs_state', JSON.stringify(currentState));
+
+                // 跳轉到 Lemon Squeezy
                 window.location.href = data.checkoutUrl;
             } else {
                 alert("建立結帳通道時遇到阻礙：" + data.message);
