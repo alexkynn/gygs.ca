@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gygs.ca - 專屬人生導航與決策指南</title>
+    <title>gygs.ca - 專屬人生導航與五庫全書決策指南</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -35,44 +35,22 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .badge-soft-launch {
+        .badge-soft-launch, .badge-email {
             display: inline-block;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border-radius: 4px;
+        }
+        .badge-soft-launch {
             background-color: rgba(56, 189, 248, 0.1);
             color: #38bdf8;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-            font-family: monospace;
-            border-radius: 4px;
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
-
         .badge-email {
-            display: inline-block;
             background-color: rgba(16, 185, 129, 0.1);
             color: #10b981;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-            font-family: monospace;
-            border-radius: 4px;
             border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .status-card {
-            background: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 8px;
-        }
-        
-        .card-num {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #f3f4f6;
-            font-family: monospace;
-        }
-        
-        .card-label {
-            font-size: 0.75rem;
-            color: #9ca3af;
         }
 
         .engine-box, .email-box {
@@ -99,52 +77,51 @@
             transition: opacity 0.2s;
             color: white;
         }
-        
         .btn-glow:hover {
             opacity: 0.9;
             box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
         }
 
-        .desc-text {
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .service-item {
-            font-size: 0.85rem;
-            color: #cbd5e1;
-            margin-bottom: 0.5rem;
-        }
+        .desc-text { font-size: 0.9rem; line-height: 1.6; }
+        .service-item { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem; }
 
         .form-control, .form-select {
             background-color: #1f2937;
             border-color: #374151;
             color: #f3f4f6;
         }
-        
         .form-control:focus, .form-select:focus {
             background-color: #1f2937;
             border-color: #38bdf8;
             color: #f3f4f6;
             box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
         }
+        
+        optgroup {
+            color: #38bdf8;
+            font-weight: bold;
+            font-style: normal;
+            background-color: #111827;
+        }
+        option {
+            color: #e2e8f0;
+            background-color: #1f2937;
+            padding: 5px 0;
+        }
 
         .disclaimer-box {
-            font-size: 0.75rem;
-            color: #6b7280;
+            font-size: 0.75rem; color: #6b7280;
             background-color: #111827;
             border: 1px solid #1f2937;
             border-radius: 8px;
-            padding: 1.25rem;
-            margin-top: 2rem;
+            padding: 1.25rem; margin-top: 2rem;
             line-height: 1.6;
         }
-        
-        .select-compact {
-            padding-left: 0.5rem;
-            padding-right: 1.5rem;
-        }
+        .select-compact { padding-left: 0.5rem; padding-right: 1.5rem; }
     </style>
+    
+    <!-- 🟢 引入全球真太陽時資料庫 -->
+    <script src="locations.js"></script>
 </head>
 <body>
 
@@ -154,11 +131,10 @@
         <div class="mb-4">
             <img src="gygs_galaxy_logo.png?v=1.0" alt="gygs.ca Galaxy Logo" class="logo-img img-fluid">
         </div>
-        
-        <div class="badge-soft-launch mb-2">💡 隨時準備與您展開對話</div>
-        <h1 class="main-title mb-3">gygs.ca 人生導航與決策指南</h1>
+        <div class="badge-soft-launch mb-2">💡 五庫全書 AI 宗師引擎已連線</div>
+        <h1 class="main-title mb-3">gygs.ca 命理大數據戰略指南</h1>
         <p class="text-secondary">
-            結合紫微斗數的細膩觀察與八字五行的宏觀智慧，讓我們像朋友一樣坐下來，為您的事業、財務與人生旅程，梳理出清晰、踏實的前進方向。
+            結合《紫微斗數全書》、《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》的宏觀智慧，<br>為您的事業、財務與人生旅程，梳理出最清晰、權威的前進方向。
         </p>
     </header>
 
@@ -166,16 +142,15 @@
         <div class="col-12">
             <div class="email-box p-4 d-flex flex-column justify-content-between">
                 <div>
-                    <div class="badge-email mb-2">📩 YOUR LIFE BLUEPRINT</div>
-                    <h3 class="box-title mb-3">🔵 索取您的專屬人生藍圖</h3>
+                    <div class="badge-email mb-2">📩 VIP EXCLUSIVE BLUEPRINT</div>
+                    <h3 class="box-title mb-3">🔵 索取 3000 字專屬人生戰略藍圖</h3>
                     <p class="desc-text text-light">
-                        網頁上的即時對話能為您點出當下最關鍵的方向。如果您希望深入了解各個生活層面、流年起伏，並保留一份完整的規劃建議，歡迎索取專屬的深度解析報告，讓它成為您隨時翻閱的指南針。
+                        網頁上的即時對話能為您點出當下最關鍵的先天樞紐。如果您希望深入了解流年起伏、五行調候與事業天花板，並保留一份完整的規劃建議，歡迎索取專屬的五大古籍合參深度報告，讓它成為您隨時翻閱的指南針。
                     </p>
-                    
                     <div class="service-include mb-4 mt-3">
-                        <div class="service-item">✔ 涵蓋生活各個維度與潛能解析</div>
-                        <div class="service-item">✔ 量身打造的具體前進與避險建議</div>
-                        <div class="service-item">✔ 完整電子檔案，陪伴您走過每個關鍵時刻</div>
+                        <div class="service-item">✔ 涵蓋《滴天髓》等五大古籍 AI 交叉比對解析</div>
+                        <div class="service-item">✔ 真太陽時精密校正，量身打造的避險與進攻戰略</div>
+                        <div class="service-item">✔ 3000字完整電子檔案，陪伴您走過每個黃金轉折點</div>
                     </div>
                 </div>
 
@@ -186,9 +161,7 @@
                                 <input type="email" class="form-control py-3 bg-dark border-secondary text-light" id="userEmail" placeholder="輸入您的 Email 信箱，讓我們把報告寄給您" autocomplete="email" required>
                             </div>
                             <div class="col-md-4">
-                                <button type="submit" id="send-email-btn" class="btn btn-success w-100 py-3 fw-bold">
-                                    將專屬藍圖寄給我
-                                </button>
+                                <button type="submit" id="send-email-btn" class="btn btn-success w-100 py-3 fw-bold">將專屬藍圖寄給我</button>
                             </div>
                         </div>
                     </form>
@@ -201,343 +174,24 @@
     <div class="row mb-5">
         <div class="col-12">
             <div class="engine-box p-4">
-                <h3 class="box-title mb-4">🟢 即時人生探索與對話</h3>
+                <h3 class="box-title mb-4">🟢 啟動命運檢索與對話</h3>
                 
                 <form id="ask-chart-form" onsubmit="event.preventDefault();" autocomplete="off">
                     <div class="row">
+                        <!-- 🟢 國家與城市下拉選單 -->
                         <div class="col-md-6 mb-3">
                             <label for="country" class="form-label text-light">出生國家 (Country)</label>
                             <select class="form-select" id="country" autocomplete="country-name" required>
                                 <option value="" disabled selected>請選擇出生國家...</option>
-                                
-                                <optgroup label="常用地區 (Popular)">
-                                    <option value="Australia">澳洲 (Australia)</option>
-                                    <option value="Canada">加拿大 (Canada)</option>
-                                    <option value="China">中國 (China)</option>
-                                    <option value="Hong Kong">香港 (Hong Kong)</option>
-                                    <option value="Japan">日本 (Japan)</option>
-                                    <option value="Macau">澳門 (Macau)</option>
-                                    <option value="Malaysia">馬來西亞 (Malaysia)</option>
-                                    <option value="New Zealand">紐西蘭 (New Zealand)</option>
-                                    <option value="Singapore">新加坡 (Singapore)</option>
-                                    <option value="South Korea">韓國 (South Korea)</option>
-                                    <option value="Taiwan">台灣 (Taiwan)</option>
-                                    <option value="United Kingdom">英國 (United Kingdom)</option>
-                                    <option value="United States">美國 (United States)</option>
-                                </optgroup>
-
-                                <optgroup label="非洲 (Africa)">
-                                    <option value="Algeria">阿爾及利亞 (Algeria)</option>
-                                    <option value="Angola">安哥拉 (Angola)</option>
-                                    <option value="Cameroon">喀麥隆 (Cameroon)</option>
-                                    <option value="Egypt">埃及 (Egypt)</option>
-                                    <option value="Ethiopia">衣索比亞 (Ethiopia)</option>
-                                    <option value="Ghana">迦納 (Ghana)</option>
-                                    <option value="Ivory Coast">象牙海岸 (Ivory Coast)</option>
-                                    <option value="Kenya">肯亞 (Kenya)</option>
-                                    <option value="Madagascar">馬達加斯加 (Madagascar)</option>
-                                    <option value="Morocco">摩洛哥 (Morocco)</option>
-                                    <option value="Mozambique">莫三比克 (Mozambique)</option>
-                                    <option value="Nigeria">奈及利亞 (Nigeria)</option>
-                                    <option value="Senegal">塞內加爾 (Senegal)</option>
-                                    <option value="South Africa">南非 (South Africa)</option>
-                                    <option value="Sudan">蘇丹 (Sudan)</option>
-                                    <option value="Tanzania">坦尚尼亞 (Tanzania)</option>
-                                    <option value="Tunisia">突尼西亞 (Tunisia)</option>
-                                    <option value="Uganda">烏干達 (Uganda)</option>
-                                    <option value="Zambia">尚比亞 (Zambia)</option>
-                                    <option value="Zimbabwe">辛巴威 (Zimbabwe)</option>
-                                </optgroup>
-
-                                <optgroup label="美洲 (Americas)">
-                                    <option value="Argentina">阿根廷 (Argentina)</option>
-                                    <option value="Bolivia">玻利維亞 (Bolivia)</option>
-                                    <option value="Brazil">巴西 (Brazil)</option>
-                                    <option value="Chile">智利 (Chile)</option>
-                                    <option value="Colombia">哥倫比亞 (Colombia)</option>
-                                    <option value="Costa Rica">哥斯大黎加 (Costa Rica)</option>
-                                    <option value="Cuba">古巴 (Cuba)</option>
-                                    <option value="Dominican Republic">多明尼加 (Dominican Republic)</option>
-                                    <option value="Ecuador">厄瓜多 (Ecuador)</option>
-                                    <option value="El Salvador">薩爾瓦多 (El Salvador)</option>
-                                    <option value="Guatemala">瓜地馬拉 (Guatemala)</option>
-                                    <option value="Honduras">宏都拉斯 (Honduras)</option>
-                                    <option value="Jamaica">牙買加 (Jamaica)</option>
-                                    <option value="Mexico">墨西哥 (Mexico)</option>
-                                    <option value="Nicaragua">尼加拉瓜 (Nicaragua)</option>
-                                    <option value="Panama">巴拿馬 (Panama)</option>
-                                    <option value="Paraguay">巴拉圭 (Paraguay)</option>
-                                    <option value="Peru">秘魯 (Peru)</option>
-                                    <option value="Uruguay">烏拉圭 (Uruguay)</option>
-                                    <option value="Venezuela">委內瑞拉 (Venezuela)</option>
-                                </optgroup>
-
-                                <optgroup label="亞洲 (Asia)">
-                                    <option value="Afghanistan">阿富汗 (Afghanistan)</option>
-                                    <option value="Bahrain">巴林 (Bahrain)</option>
-                                    <option value="Bangladesh">孟加拉 (Bangladesh)</option>
-                                    <option value="Cambodia">柬埔寨 (Cambodia)</option>
-                                    <option value="India">印度 (India)</option>
-                                    <option value="Indonesia">印尼 (Indonesia)</option>
-                                    <option value="Iran">伊朗 (Iran)</option>
-                                    <option value="Iraq">伊拉克 (Iraq)</option>
-                                    <option value="Israel">以色列 (Israel)</option>
-                                    <option value="Jordan">約旦 (Jordan)</option>
-                                    <option value="Kazakhstan">哈薩克 (Kazakhstan)</option>
-                                    <option value="Kuwait">科威特 (Kuwait)</option>
-                                    <option value="Lebanon">黎巴嫩 (Lebanon)</option>
-                                    <option value="Myanmar">緬甸 (Myanmar)</option>
-                                    <option value="Nepal">尼泊爾 (Nepal)</option>
-                                    <option value="Oman">阿曼 (Oman)</option>
-                                    <option value="Pakistan">巴基斯坦 (Pakistan)</option>
-                                    <option value="Philippines">菲律賓 (Philippines)</option>
-                                    <option value="Qatar">卡達 (Qatar)</option>
-                                    <option value="Saudi Arabia">沙烏地阿拉伯 (Saudi Arabia)</option>
-                                    <option value="Sri Lanka">斯里蘭卡 (Sri Lanka)</option>
-                                    <option value="Syria">敘利亞 (Syria)</option>
-                                    <option value="Thailand">泰國 (Thailand)</option>
-                                    <option value="Turkey">土耳其 (Turkey)</option>
-                                    <option value="United Arab Emirates">阿拉伯聯合大公國 (United Arab Emirates)</option>
-                                    <option value="Uzbekistan">烏茲別克 (Uzbekistan)</option>
-                                    <option value="Vietnam">越南 (Vietnam)</option>
-                                    <option value="Yemen">葉門 (Yemen)</option>
-                                </optgroup>
-
-                                <optgroup label="歐洲 (Europe)">
-                                    <option value="Austria">奧地利 (Austria)</option>
-                                    <option value="Belarus">白俄羅斯 (Belarus)</option>
-                                    <option value="Belgium">比利時 (Belgium)</option>
-                                    <option value="Bulgaria">保加利亞 (Bulgaria)</option>
-                                    <option value="Croatia">克羅埃西亞 (Croatia)</option>
-                                    <option value="Czech Republic">捷克 (Czech Republic)</option>
-                                    <option value="Denmark">丹麥 (Denmark)</option>
-                                    <option value="Finland">芬蘭 (Finland)</option>
-                                    <option value="France">法國 (France)</option>
-                                    <option value="Germany">德國 (Germany)</option>
-                                    <option value="Greece">希臘 (Greece)</option>
-                                    <option value="Hungary">匈牙利 (Hungary)</option>
-                                    <option value="Ireland">愛爾蘭 (Ireland)</option>
-                                    <option value="Italy">義大利 (Italy)</option>
-                                    <option value="Netherlands">荷蘭 (Netherlands)</option>
-                                    <option value="Norway">挪威 (Norway)</option>
-                                    <option value="Poland">波蘭 (Poland)</option>
-                                    <option value="Portugal">葡萄牙 (Portugal)</option>
-                                    <option value="Romania">羅馬尼亞 (Romania)</option>
-                                    <option value="Russia">俄羅斯 (Russia)</option>
-                                    <option value="Serbia">塞爾維亞 (Serbia)</option>
-                                    <option value="Slovakia">斯洛伐克 (Slovakia)</option>
-                                    <option value="Spain">西班牙 (Spain)</option>
-                                    <option value="Sweden">瑞典 (Sweden)</option>
-                                    <option value="Switzerland">瑞士 (Switzerland)</option>
-                                    <option value="Ukraine">烏克蘭 (Ukraine)</option>
-                                </optgroup>
-
-                                <optgroup label="大洋洲 (Oceania)">
-                                    <option value="Fiji">斐濟 (Fiji)</option>
-                                    <option value="Papua New Guinea">巴布亞紐幾內亞 (Papua New Guinea)</option>
-                                    <option value="Samoa">薩摩亞 (Samoa)</option>
-                                    <option value="Solomon Islands">索羅門群島 (Solomon Islands)</option>
-                                    <option value="Vanuatu">萬那杜 (Vanuatu)</option>
-                                </optgroup>
+                                <!-- 國家選項將由 locations.js 自動填入 -->
                             </select>
                         </div>
                         
                         <div class="col-md-6 mb-3">
                             <label for="city" class="form-label text-light">出生城市 (City)</label>
                             <select class="form-select" id="city" autocomplete="address-level2" required>
-                                <option value="" disabled selected>請選擇出生城市...</option>
-                                
-                                <optgroup label="Argentina (阿根廷)">
-                                    <option value="Buenos Aires">布宜諾斯艾利斯 (Buenos Aires)</option>
-                                </optgroup>
-
-                                <optgroup label="Australia (澳洲)">
-                                    <option value="Adelaide">阿德雷德 (Adelaide)</option>
-                                    <option value="Brisbane">布里斯本 (Brisbane)</option>
-                                    <option value="Melbourne">墨爾本 (Melbourne)</option>
-                                    <option value="Perth">伯斯 (Perth)</option>
-                                    <option value="Sydney">雪梨 (Sydney)</option>
-                                </optgroup>
-
-                                <optgroup label="Brazil (巴西)">
-                                    <option value="Rio de Janeiro">里約熱內盧 (Rio de Janeiro)</option>
-                                    <option value="Sao Paulo">聖保羅 (Sao Paulo)</option>
-                                </optgroup>
-
-                                <optgroup label="Canada (加拿大)">
-                                    <option value="Calgary">卡加利 (Calgary)</option>
-                                    <option value="Edmonton">愛德蒙頓 (Edmonton)</option>
-                                    <option value="Halifax">哈利法克斯 (Halifax)</option>
-                                    <option value="Markham">萬錦 (Markham)</option>
-                                    <option value="Montreal">蒙特婁 (Montreal)</option>
-                                    <option value="Ottawa">渥太華 (Ottawa)</option>
-                                    <option value="Richmond">列治文 (Richmond)</option>
-                                    <option value="Richmond Hill">列治文山 (Richmond Hill)</option>
-                                    <option value="Toronto">多倫多 (Toronto)</option>
-                                    <option value="Vancouver">溫哥華 (Vancouver)</option>
-                                    <option value="Victoria">維多利亞 (Victoria)</option>
-                                    <option value="Winnipeg">溫尼伯 (Winnipeg)</option>
-                                </optgroup>
-
-                                <optgroup label="China (中國)">
-                                    <option value="Beijing">北京 (Beijing)</option>
-                                    <option value="Chengdu">成都 (Chengdu)</option>
-                                    <option value="Chongqing">重慶 (Chongqing)</option>
-                                    <option value="Guangzhou">廣州 (Guangzhou)</option>
-                                    <option value="Hangzhou">杭州 (Hangzhou)</option>
-                                    <option value="Hong Kong">香港 (Hong Kong)</option>
-                                    <option value="Macau">澳門 (Macau)</option>
-                                    <option value="Nanjing">南京 (Nanjing)</option>
-                                    <option value="Shanghai">上海 (Shanghai)</option>
-                                    <option value="Shenzhen">深圳 (Shenzhen)</option>
-                                    <option value="Wuhan">武漢 (Wuhan)</option>
-                                    <option value="Xi'an">西安 (Xi'an)</option>
-                                </optgroup>
-
-                                <optgroup label="France (法國)">
-                                    <option value="Bordeaux">波爾多 (Bordeaux)</option>
-                                    <option value="Lyon">里昂 (Lyon)</option>
-                                    <option value="Marseille">馬賽 (Marseille)</option>
-                                    <option value="Nice">尼斯 (Nice)</option>
-                                    <option value="Paris">巴黎 (Paris)</option>
-                                </optgroup>
-
-                                <optgroup label="Germany (德國)">
-                                    <option value="Berlin">柏林 (Berlin)</option>
-                                    <option value="Cologne">科隆 (Cologne)</option>
-                                    <option value="Frankfurt">法蘭克福 (Frankfurt)</option>
-                                    <option value="Hamburg">漢堡 (Hamburg)</option>
-                                    <option value="Munich">慕尼黑 (Munich)</option>
-                                </optgroup>
-
-                                <optgroup label="India (印度)">
-                                    <option value="Bangalore">班加羅爾 (Bangalore)</option>
-                                    <option value="Chennai">清奈 (Chennai)</option>
-                                    <option value="Delhi">德里 (Delhi)</option>
-                                    <option value="Hyderabad">海德拉巴 (Hyderabad)</option>
-                                    <option value="Kolkata">加爾各答 (Kolkata)</option>
-                                    <option value="Mumbai">孟買 (Mumbai)</option>
-                                </optgroup>
-
-                                <optgroup label="Indonesia (印尼)">
-                                    <option value="Bandung">萬隆 (Bandung)</option>
-                                    <option value="Jakarta">雅加達 (Jakarta)</option>
-                                    <option value="Surabaya">泗水 (Surabaya)</option>
-                                </optgroup>
-
-                                <optgroup label="Italy (義大利)">
-                                    <option value="Milan">米蘭 (Milan)</option>
-                                    <option value="Naples">那不勒斯 (Naples)</option>
-                                    <option value="Rome">羅馬 (Rome)</option>
-                                </optgroup>
-
-                                <optgroup label="Japan (日本)">
-                                    <option value="Fukuoka">福岡 (Fukuoka)</option>
-                                    <option value="Kobe">神戶 (Kobe)</option>
-                                    <option value="Kyoto">京都 (Kyoto)</option>
-                                    <option value="Nagoya">名古屋 (Nagoya)</option>
-                                    <option value="Osaka">大阪 (Osaka)</option>
-                                    <option value="Sapporo">札幌 (Sapporo)</option>
-                                    <option value="Tokyo">東京 (Tokyo)</option>
-                                </optgroup>
-
-                                <optgroup label="Malaysia (馬來西亞)">
-                                    <option value="George Town">喬治市 (George Town)</option>
-                                    <option value="Johor Bahru">新山 (Johor Bahru)</option>
-                                    <option value="Kuala Lumpur">吉隆坡 (Kuala Lumpur)</option>
-                                    <option value="Malacca">馬六甲 (Malacca)</option>
-                                    <option value="Penang">檳城 (Penang)</option>
-                                </optgroup>
-
-                                <optgroup label="Mexico (墨西哥)">
-                                    <option value="Guadalajara">瓜達拉哈拉 (Guadalajara)</option>
-                                    <option value="Mexico City">墨西哥城 (Mexico City)</option>
-                                    <option value="Monterrey">蒙特雷 (Monterrey)</option>
-                                </optgroup>
-
-                                <optgroup label="Netherlands (荷蘭)">
-                                    <option value="Amsterdam">阿姆斯特丹 (Amsterdam)</option>
-                                    <option value="Rotterdam">鹿特丹 (Rotterdam)</option>
-                                    <option value="The Hague">海牙 (The Hague)</option>
-                                </optgroup>
-
-                                <optgroup label="New Zealand (紐西蘭)">
-                                    <option value="Auckland">奧克蘭 (Auckland)</option>
-                                    <option value="Christchurch">基督城 (Christchurch)</option>
-                                    <option value="Wellington">威靈頓 (Wellington)</option>
-                                </optgroup>
-
-                                <optgroup label="Philippines (菲律賓)">
-                                    <option value="Cebu">宿霧 (Cebu)</option>
-                                    <option value="Davao">達沃 (Davao)</option>
-                                    <option value="Manila">馬尼拉 (Manila)</option>
-                                </optgroup>
-
-                                <optgroup label="Singapore (新加坡)">
-                                    <option value="Singapore">新加坡 (Singapore)</option>
-                                </optgroup>
-
-                                <optgroup label="South Africa (南非)">
-                                    <option value="Cape Town">開普敦 (Cape Town)</option>
-                                    <option value="Durban">德班 (Durban)</option>
-                                    <option value="Johannesburg">約翰尼斯堡 (Johannesburg)</option>
-                                </optgroup>
-
-                                <optgroup label="South Korea (韓國)">
-                                    <option value="Busan">釜山 (Busan)</option>
-                                    <option value="Daegu">大邱 (Daegu)</option>
-                                    <option value="Incheon">仁川 (Incheon)</option>
-                                    <option value="Seoul">首爾 (Seoul)</option>
-                                </optgroup>
-
-                                <optgroup label="Taiwan (台灣)">
-                                    <option value="Hsinchu">新竹 (Hsinchu)</option>
-                                    <option value="Kaohsiung">高雄 (Kaohsiung)</option>
-                                    <option value="New Taipei">新北 (New Taipei)</option>
-                                    <option value="Taichung">台中 (Taichung)</option>
-                                    <option value="Tainan">台南 (Tainan)</option>
-                                    <option value="Taipei">台北 (Taipei)</option>
-                                    <option value="Taoyuan">桃園 (Taoyuan)</option>
-                                </optgroup>
-
-                                <optgroup label="Thailand (泰國)">
-                                    <option value="Bangkok">曼谷 (Bangkok)</option>
-                                    <option value="Chiang Mai">清邁 (Chiang Mai)</option>
-                                    <option value="Phuket">普吉島 (Phuket)</option>
-                                </optgroup>
-
-                                <optgroup label="United Arab Emirates (阿拉伯聯合大公國)">
-                                    <option value="Abu Dhabi">阿布達比 (Abu Dhabi)</option>
-                                    <option value="Dubai">杜拜 (Dubai)</option>
-                                </optgroup>
-
-                                <optgroup label="United Kingdom (英國)">
-                                    <option value="Birmingham">伯明罕 (Birmingham)</option>
-                                    <option value="Edinburgh">愛丁堡 (Edinburgh)</option>
-                                    <option value="Glasgow">格拉斯哥 (Glasgow)</option>
-                                    <option value="London">倫敦 (London)</option>
-                                    <option value="Manchester">曼徹斯特 (Manchester)</option>
-                                </optgroup>
-
-                                <optgroup label="United States (美國)">
-                                    <option value="Boston">波士頓 (Boston)</option>
-                                    <option value="Chicago">芝加哥 (Chicago)</option>
-                                    <option value="Honolulu">檀香山 (Honolulu)</option>
-                                    <option value="Houston">休士頓 (Houston)</option>
-                                    <option value="Los Angeles">洛杉磯 (Los Angeles)</option>
-                                    <option value="Miami">邁阿密 (Miami)</option>
-                                    <option value="New York">紐約 (New York)</option>
-                                    <option value="San Francisco">舊金山 (San Francisco)</option>
-                                    <option value="San Jose">聖荷西 (San Jose)</option>
-                                    <option value="Seattle">西雅圖 (Seattle)</option>
-                                    <option value="Washington D.C.">華盛頓哥倫比亞特區 (Washington D.C.)</option>
-                                </optgroup>
-
-                                <optgroup label="Vietnam (越南)">
-                                    <option value="Da Nang">峴港 (Da Nang)</option>
-                                    <option value="Hanoi">河內 (Hanoi)</option>
-                                    <option value="Ho Chi Minh City">胡志明市 (Ho Chi Minh City)</option>
-                                </optgroup>
+                                <option value="" disabled selected>請先選擇國家...</option>
+                                <!-- 城市選項將由 locations.js 自動填入 -->
                             </select>
                         </div>
                     </div>
@@ -599,44 +253,78 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label for="question" class="form-label text-light">請選擇您想探索的命盤解析深度</label>
-                        <!-- 預設的命理問題清單 -->
-			<select id="question" required style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;">
-    				<option value="" disabled selected>請選擇您最想解答的問題...</option>
- 				<option value="請告訴我明年的事業發展與潛在轉機？">事業：請告訴我明年的事業發展與潛在轉機？</option>
-  				<option value="我的正緣桃花大概何時會出現？">姻緣：我的正緣桃花大概何時會出現？</option>
-  				<option value="我近期的財運走向，適合投資嗎？">財富：我近期的財運走向，適合投資嗎？</option>
-  				<option value="我適合自己創業，還是安穩當上班族？">人生：我適合自己創業，還是安穩當上班族？</option>
-   				<option value="請幫我注意近期健康上有哪些隱患？">健康：請幫我注意近期健康上有哪些隱患？</option>
-			</select>
+                    <!-- 🟢 25 大熱門命理問題選單 -->
+                    <div class="mb-4 mt-4">
+                        <label for="question" class="form-label text-light">🎯 請選擇您最想探索的人生課題</label>
+                        <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;">
+                            <option value="" disabled selected>請下拉選擇您當前最大的疑惑...</option>
+                            
+                            <optgroup label="💼 類別一：事業發展 (Career & Business)">
+                                <option value="我未來的事業天花板在哪裡？適合創業還是留任大廠/公職發展？">Q1: 我未來的事業天花板在哪裡？適合創業還是留任體制？</option>
+                                <option value="明後年是否有跳槽轉職、升遷或創業的黃金轉折點？">Q2: 明後年是否有跳槽轉職、升遷或創業的黃金轉折點？</option>
+                                <option value="職場上如何防範小人背叛、合夥糾紛與官非口舌？">Q3: 職場上如何防範小人背叛、合夥糾紛與官非口舌？</option>
+                                <option value="我的八字與紫微格局最適合從事什麼行業才能事半功倍？">Q4: 我的命格最適合從事什麼行業才能事半功倍？</option>
+                                <option value="當前事業遇到瓶頸與焦慮，該如何突破並找到第二曲線（副業）？">Q5: 事業遇到瓶頸，該如何突破並找到第二收入曲線？</option>
+                            </optgroup>
+
+                            <optgroup label="💰 類別二：財富資產 (Wealth & Financial)">
+                                <option value="我一生中的財富格局上限如何？屬於正財穩健型還是偏財爆發型？">Q6: 我的財富上限如何？屬於正財穩健型還是偏財爆發型？</option>
+                                <option value="我何時能迎來資產暴漲或創業橫發的黃金機遇期？">Q7: 我何時能迎來資產暴漲或橫發的黃金機遇期？</option>
+                                <option value="命盤中的財庫狀況如何？如何防範漏財、投資暴敗與資金鏈斷裂？">Q8: 我的財庫狀況如何？如何防範漏財與投資暴敗？</option>
+                                <option value="我適合投資不動產、股票基金還是合夥經商？">Q9: 我適合投資不動產、股票基金還是合夥經商？</option>
+                                <option value="近期是否有破財風險或債務危機？該如何佈局與防守？">Q10: 近期是否有破財風險？該如何佈局與防守？</option>
+                            </optgroup>
+
+                            <optgroup label="❤️ 類別三：姻緣情感 (Romance & Relationships)">
+                                <option value="我的正緣何時出現？伴侶的外貌特質、性格與經濟背景如何？">Q11: 我的正緣何時出現？伴侶的性格與背景特質如何？</option>
+                                <option value="我未來的婚姻品質如何？如何化解感情中的溝通障礙與生離孤克？">Q12: 我的婚姻品質如何？如何化解感情中的溝通障礙？</option>
+                                <option value="目前這段感情/婚姻是正緣還是劫緣？是否值得繼續堅持？">Q13: 目前這段感情是正緣還是劫緣？值得繼續堅持嗎？</option>
+                                <option value="命盤中是否有桃花煞、第三者介入或二次婚姻的隱憂？如何趨吉避凶？">Q14: 命盤是否有桃花煞或第三者隱憂？如何趨吉避凶？</option>
+                                <option value="我的子息緣分與晚輩/下屬關係如何？如何培養和睦的家族氣場？">Q15: 我的子息緣分與晚輩下屬關係如何？</option>
+                            </optgroup>
+
+                            <optgroup label="🌿 類別四：健康身心 (Health & Vitality)">
+                                <option value="我的先天體質弱點在哪裡？未來需特別防範哪些五行疾病或器官病變？">Q16: 我的先天體質弱點在哪？需防範哪些五行疾病？</option>
+                                <option value="近年（或流年）是否有突發性意外血光、手術或精神重壓風險？">Q17: 近年是否有突發性意外血光或手術風險？</option>
+                                <option value="如何透過命理調候（寒暖燥濕）與日常生活方式來改善慢性健康問題？">Q18: 如何透過命理調候與日常作息改善慢性健康問題？</option>
+                                <option value="長期精神焦慮、失眠與內耗的根源是什麼？如何從心理與命理上調適？">Q19: 精神焦慮與內耗的根源為何？如何從命理上調適？</option>
+                                <option value="家中長輩或至親的健康氣數如何？流年該如何進行危機預警？">Q20: 家中長輩的健康氣數如何？流年該如何預警？</option>
+                            </optgroup>
+
+                            <optgroup label="🧭 類別五：命格運勢與重大抉擇 (Life Blueprint)">
+                                <option value="我的一生大運走勢如何？高峰期與低谷期分別在哪些歲數區間？">Q21: 我的一生大運走勢如何？高峰與低谷在哪些歲數？</option>
+                                <option value="我目前面臨重大人生抉擇（如移民、買房、轉行），哪條路才是順應天時？">Q22: 面臨重大人生抉擇(移民/轉行等)，該如何順應天時？</option>
+                                <option value="命盤中有哪些特殊大格（如三奇加會、火貪暴發）或破格？">Q23: 命盤中有哪些特殊大格或需要注意的破格？</option>
+                                <option value="我該如何找到自己的人生使命（Ikigai）並發揮先天最大的潛能？">Q24: 我該如何找到人生使命並發揮先天最大潛能？</option>
+                                <option value="今年的流年運勢總體如何？有哪些關鍵月份與必須注意的風險？">Q25: 今年的流年運勢總體如何？有哪些關鍵轉折月份？</option>
+                            </optgroup>
+                        </select>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-2 btn-glow">聆聽專屬指引</button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-3 mt-2 btn-glow fw-bold fs-6">生成初步命格診斷</button>
                 </form>
 
-                <!-- 🟢 替換後的結果與付費解鎖區塊 -->
                 <div id="analysis-result-container" class="mt-4 d-none">
-                    <hr class="border-secondary">
-                    <h4 class="text-info mb-3">🌿 核心命理解析 (摘要)：</h4>
-                    <div id="analysis-text" class="text-light-50 lh-lg mb-4" style="white-space: pre-line;">
+                    <hr class="border-secondary mb-4">
+                    <h4 class="text-info mb-3">📜 古籍溯源與先天定盤 (摘要)：</h4>
+                    <div id="analysis-text" class="text-light-50 lh-lg mb-4 p-3 rounded" style="background-color: #1f2937; border-left: 4px solid #38bdf8; font-size: 1.05rem;">
                         <!-- AI 短篇結論會顯示在這裡 -->
                     </div>
 
                     <!-- 🔒 付費解鎖區塊 -->
-                    <div id="unlock-section" class="p-4 rounded text-center mt-2" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);">
-                        <h5 class="text-white mb-2">🔓 解鎖並寄送 2000 字完整流年大批報告</h5>
-                        <p class="text-secondary small mb-4">大師將針對您的命盤與提問，調閱《滴天髓》與《三命通會》進行深度推演，並為您梳理出具體的前進與避險建議。</p>
+                    <div id="unlock-section" class="p-4 rounded text-center mt-3" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);">
+                        <h5 class="text-white mb-2">🔓 立即解鎖 3000 字五庫全書大批報告</h5>
+                        <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》進行五書合參深度推演，為您的專屬問題提供極度精密的避險與進攻戰略。</p>
                         
                         <div class="mb-3 text-start">
-                            <label for="checkout-email" class="form-label text-light small">請輸入接收報告的 Email 信箱：</label>
-                            <input type="email" id="checkout-email" class="form-control py-2 bg-dark border-secondary text-light" placeholder="your@email.com" required>
+                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱：</label>
+                            <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
                         </div>
 
-                        <button id="checkout-btn" class="btn btn-glow w-100 py-3 fw-bold fs-5" type="button">
-                            💳 支付 $4.99 解鎖專屬藍圖
+                        <button id="checkout-btn" class="btn btn-glow w-100 py-3 fw-bold fs-5 mt-2" type="button">
+                            💳 支付 $4.99 取得完整戰略藍圖
                         </button>
-                        <div class="text-muted small mt-2">支援 Apple Pay, Google Pay 與全球信用卡 (由安全金流機構處理)</div>
+                        <div class="text-muted small mt-3">支援 Apple Pay, Google Pay 與全球信用卡 (由 Lemon Squeezy 安全處理)</div>
                     </div>
                 </div>
             </div>
@@ -656,6 +344,35 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // 🟢 動態渲染國家與城市下拉選單 (抓取 locations.js 的資料)
+        const countrySelect = document.getElementById('country');
+        const citySelect = document.getElementById('city');
+
+        if (typeof locationsData !== 'undefined') {
+            for (let country in locationsData) {
+                let opt = document.createElement('option');
+                opt.value = country;
+                opt.textContent = country;
+                countrySelect.appendChild(opt);
+            }
+
+            countrySelect.addEventListener('change', function() {
+                citySelect.innerHTML = '<option value="" disabled selected>請選擇出生城市...</option>';
+                const cities = locationsData[this.value];
+                if (cities) {
+                    cities.forEach(city => {
+                        let opt = document.createElement('option');
+                        opt.value = city.name;
+                        opt.textContent = city.name;
+                        citySelect.appendChild(opt);
+                    });
+                }
+            });
+        } else {
+            console.error("無法載入 locations.js，請確認檔案位置正確。");
+        }
+
+        // 年月日邏輯
         const yearSelect = document.getElementById('birthYear');
         const monthSelect = document.getElementById('birthMonth');
         const daySelect = document.getElementById('birthDay');
@@ -728,111 +445,57 @@
         
         const btn = document.getElementById('submit-btn');
         const originalBtnText = btn.innerText;
-        btn.innerText = "🌿 正在為您梳理思緒，請稍候...";
+        btn.innerText = "🔮 正在提取五大古籍演算法，請稍候...";
         btn.disabled = true;
 
         const country = document.getElementById('country').value;
         const city = document.getElementById('city').value;
         const date = document.getElementById('date').value;
         const timeIndex = document.getElementById('timeIndex').value;
+        
+        const timeMap = {
+            "0": "子時", "1": "丑時", "2": "寅時", "3": "卯時",
+            "4": "辰時", "5": "巳時", "6": "午時", "7": "未時",
+            "8": "申時", "9": "酉時", "10": "戌時", "11": "亥時"
+        };
+        const timeLabel = timeMap[timeIndex];
+        
         const gender = document.querySelector('input[name="gender"]:checked').value;
-        const question = document.getElementById('question').value;
+        const genderLabel = gender === 'female' ? "女命（坤造）" : "男命（乾造）";
+        
+        const questionText = document.getElementById('question').value;
+
+        // 🟢 將完整且精確的資料打包送給後端 Teaser 模式 (精準對齊 Regex)
+        const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}\n【來訪者提問】：${questionText}`;
 
         try {
-const response = await fetch('/api/ask', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        // 確保這裡抓到的是選單的 value
-        question: document.getElementById('question').value
-    })
-});
-            if (!response.ok) {
-                throw new Error(`連線時遇到了一點小阻礙，狀態碼: ${response.status}`);
-            }
+            const response = await fetch('/api/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: formattedQuestion })
+            });
+            if (!response.ok) throw new Error(`連線時遇到了一點小阻礙，狀態碼: ${response.status}`);
 
             const data = await response.json();
             
             if (data.success) {
                 document.getElementById('analysis-result-container').classList.remove('d-none');
-                document.getElementById('analysis-text').innerText = data.answer;
+                document.getElementById('analysis-text').innerHTML = data.answer.replace(/\n/g, '<br>');
             } else {
                 alert("伺服器回應訊息: " + data.message);
             }
         } catch (error) {
             console.error("Error Detail:", error);
-            alert("網路似乎暫時斷了線！\n伺服器可能正在深呼吸準備中（休眠喚醒），請給它大約 30 秒後再試一次。");
+            alert("網路似乎暫時斷了線！請稍後再試一次。");
         } finally {
             btn.innerText = originalBtnText;
             btn.disabled = false;
         }
     });
 
-    // 👇 關鍵邏輯：直接將前端的純文字抓取並發送給後端 👇
-    document.getElementById('email-report-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('send-email-btn');
-        const originalBtnText = btn.innerText;
-        const emailInput = document.getElementById('userEmail');
-        
-        // 抓取已經顯示在畫面上的報告內容
-        const reportText = document.getElementById('analysis-text').innerText;
-
-        // 如果網頁上還沒有生成報告，就擋下來
-        if (!reportText || reportText.trim() === "") {
-            alert("請先在下方「即時人生探索與對話」設定您的出生資料，並點擊「聆聽專屬指引」生成報告後，才能將專屬藍圖寄出喔！");
-            return;
-        }
-
-        btn.innerText = "正在為您寄送報告...";
-        btn.disabled = true;
-
-        try {
-            // 直接將 Email 信箱與現成的 reportText 送給後端
-            const response = await fetch('https://gygs-ca.onrender.com/api/send-report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email: emailInput.value,
-                    reportText: reportText // 這裡送出的是純文字
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`伺服器連線異常，狀態碼: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.success) {
-                alert(`您的專屬藍圖已成功發送至：${emailInput.value}\n請檢查您的信箱（包含垃圾郵件匣）。`);
-                btn.innerText = "已順利發送 ✔";
-                btn.classList.replace('btn-success', 'btn-outline-success');
-                emailInput.value = "";
-                setTimeout(() => {
-                    btn.innerText = originalBtnText;
-                    btn.disabled = false;
-                    btn.classList.replace('btn-outline-success', 'btn-success');
-                }, 3000);
-            } else {
-                alert("寄送遇到了一點小阻礙: " + data.message);
-                btn.innerText = originalBtnText;
-                btn.disabled = false;
-            }
-        } catch (error) {
-            console.error("Error Detail:", error);
-            alert("目前無法連線到寄信伺服器，這可能是網路短暫斷線，請稍後再試一次。");
-            btn.innerText = originalBtnText;
-            btn.disabled = false;
-        }
-    });
-    // ==========================================
-    // 🟢 新增：呼叫 Lemon Squeezy 結帳通道邏輯
-    // ==========================================
     document.getElementById('checkout-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('checkout-email').value.trim();
         
-        // 檢查使用者有沒有填寫 Email (因為我們要靠 Email 寄報告給他)
         if (!emailInput || !emailInput.includes('@')) {
             alert("請輸入正確的 Email 信箱，這樣大師才能把完整報告寄給您喔！");
             return;
@@ -843,7 +506,6 @@ const response = await fetch('/api/ask', {
         btn.innerHTML = "🔄 正在為您建立安全結帳通道...";
         btn.disabled = true;
 
-        // 收集使用者當初填寫的命盤資料與問題，準備一起塞進訂單裡
         const country = document.getElementById('country').value;
         const city = document.getElementById('city').value;
         const date = document.getElementById('date').value;
@@ -851,11 +513,9 @@ const response = await fetch('/api/ask', {
         const gender = document.querySelector('input[name="gender"]:checked').value;
         const question = document.getElementById('question').value;
         
-        // 將這些資料打包成一個字串
         const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}`;
 
         try {
-            // 呼叫我們在 server.js 寫好的 /api/checkout 端點
             const response = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -869,7 +529,6 @@ const response = await fetch('/api/ask', {
             const data = await response.json();
             
             if (data.success && data.checkoutUrl) {
-                // 成功拿到結帳網址！直接把瀏覽器畫面跳轉到付款頁面
                 window.location.href = data.checkoutUrl;
             } else {
                 alert("建立結帳通道時遇到阻礙：" + data.message);
