@@ -379,7 +379,7 @@
         const hiddenDate = document.getElementById('date');
 
         const currentYear = new Date().getFullYear();
-        for (let i = currentYear; i >= 1920; i--) {
+        for (let i = currentYear + 2; i >= 1920; i--) {
             const option = document.createElement('option');
             option.value = i;
             option.textContent = i;

@@ -93,7 +93,20 @@ const categoryHooks = {
     "健康": "回歸五行旺衰，流年煞星的遊走往往在特定月份衝擊您本命的脆弱樞紐。隱患在爆發前早已留下伏筆，系統將透過古籍病理大數據，為您梳理出近期的健康與氣血預警。"
 };
 
-const southernHemisphereCountries = ["Australia", "New Zealand", "Brazil", "Argentina", "Chile", "South Africa", "Peru"];
+// 🟢 已更新為與 locations.js 相同的雙語格式
+const southernHemisphereCountries = [
+    "澳洲 (Australia)", 
+    "紐西蘭 (New Zealand)", 
+    "巴西 (Brazil)", 
+    "阿根廷 (Argentina)", 
+    "智利 (Chile)", 
+    "南非 (South Africa)", 
+    "秘魯 (Peru)",
+    "玻利維亞 (Bolivia)",
+    "厄瓜多 (Ecuador)",
+    "巴拉圭 (Paraguay)",
+    "烏拉圭 (Uruguay)"
+];
 
 /**
  * 核心引擎：動態編織百萬種獨一無二的 Teaser
