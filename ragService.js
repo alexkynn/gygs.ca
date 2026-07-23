@@ -6,9 +6,9 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Solar } = require('lunar-javascript');
 const { astro } = require('iztro');
 
-// 🟢 引入兩大核心：全球真太陽時資料庫 + 25大問題矩陣引擎
+// 🟢 引入兩大核心：全球真太陽時資料庫 + Teaser 引擎
 const locationsData = require('./locations.js');
-const { generateUniqueTeaser, analyzeQuestion } = require('./teaserLibrary.js');
+const { generateUniqueTeaser } = require('./teaserLibrary.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
@@ -68,6 +68,21 @@ function extractUserData(question) {
     };
 }
 
+// 🟢 判斷提問類別，給予 AI 專屬的 RAG 深度分析指令
+function getRagFocus(questionStr) {
+    if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽") || questionStr.includes("行業") || questionStr.includes("天花板") || questionStr.includes("瓶頸")) {
+        return "【專屬分析重點】：著重評估八字格局與紫微官祿宮。比較「體制內」與「創業」的成就上限。精準點出近 1~3 年事業轉折與跳槽時機，並給出職場防小人與最契合天賦的行業方向。";
+    } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("破產") || questionStr.includes("資金")) {
+        return "【專屬分析重點】：結合財星格局與紫微財帛宮、田宅宮。定調其為「累積型正財」或「爆發型偏財」。精準指出資產暴漲或破財危機的黃金機遇期與高危月份，並給出適合的投資佈局。";
+    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("伴侶") || questionStr.includes("感情") || questionStr.includes("婚姻")) {
+        return "【專屬分析重點】：分析夫妻宮主星與桃花星。精準描繪未來伴侶特質、紅鸞星動的具體年份。評估感情障礙根源，並針對桃花煞、第三者介入或劫緣提供趨吉避凶的情感防線與抉擇指引。";
+    } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("血光") || questionStr.includes("疾病") || questionStr.includes("長輩")) {
+        return "【專屬分析重點】：結合八字五行偏枯與紫微疾厄宮，點出先天體質弱點（如心血管、消化等）。梳理近年的意外血光或手術風險高危月份。並從五行調候給出改善慢性病與精神內耗的具體指南。";
+    } else {
+        return "【專屬分析重點】：梳理十年大限起伏軌跡，畫出未來黃金爆發期與低谷期。面對人生重大抉擇（如轉行/買房/移民），給出利弊對比。並驗證命盤特殊大格，梳理今年關鍵轉折月份與風險。";
+    }
+}
+
 // 🟢 產生絕對正確的命盤資料 (Fact Data)
 const shiToIndex = { "子": 0, "丑": 1, "寅": 2, "卯": 3, "辰": 4, "巳": 5, "午": 6, "未": 7, "申": 8, "酉": 9, "戌": 10, "亥": 11 };
 
@@ -87,7 +102,9 @@ function generateExactChartText(userData) {
         const exactHour = hourMapping[timeIndex];
         const solarWithTime = Solar.fromYmdHms(parseInt(userData.year), parseInt(userData.month), parseInt(userData.day), exactHour, 0, 0);
         const baziWithTime = solarWithTime.getLunar().getEightChar();
-        const zodiacSign = solarWithTime.getConstellation() + "座"; // 取得西洋星座
+        
+        // 修正：使用 getXingZuo() 獲取西洋星座
+        const zodiacSign = solarWithTime.getXingZuo() + "座"; 
 
         const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
 
@@ -128,7 +145,8 @@ ${palacesString}
 
 async function generateEmbeddings(text) {
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${process.env.GEMINI_API_KEY}`, {
+        // 修正：將 v1 改為 v1beta，以支援 text-embedding-004 模型
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${process.env.GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -197,9 +215,10 @@ async function generateMasterResponse(question, mode = 'teaser') {
             }).join('\n\n');
         }
 
-        const matchedQuestionData = analyzeQuestion(userData.actualQuestion);
+        // 修正：直接在內部呼叫 getRagFocus 獲取專屬指令
+        const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        console.log(`[4/4] 呼叫 Gemini 3.5 Flash 生成深度報告 (載入指令: ${matchedQuestionData.id})...`);
+        console.log(`[4/4] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
         const prompt = `
 你是一位匯通中西、精通五大命理古籍（《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》）的宗師級 AI 命理戰略家與首席人生教練。
@@ -210,7 +229,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
 【時空基準】：今天是「${currentDateStr}」，所有的推演以此為基準點。
 
-${matchedQuestionData.ragFocus}
+${ragFocusText}
 
 請為使用者撰寫一份「字數達 3000 字以上」，極度精密、資訊密度極高、超越以往的「五大古籍合參・流年大批戰略報告」。
 報告必須具備以下【史詩級學理結構】（請嚴格使用 Markdown 標題，排版力求精美易讀）：
@@ -232,7 +251,7 @@ ${matchedQuestionData.ragFocus}
 
 ## 伍、紫八合一：未來 10 年運勢曲線圖與大勢推演
 （針對客戶的提問給出流年/流月現象預測。
- **特別要求**：請使用 Markdown 與符號（如 █ ▓ ░ 等）繪製出一個【未來 10 年運勢起伏曲線圖】，並輔以精要的趨勢解說，讓客戶一眼看懂未來十年的黃金期與低谷期。）
+ **特別要求**：請使用 Markdown 與文字符號繪製出一個【未來 10 年運勢起伏曲線圖】，並輔以精要的趨勢解說，讓客戶一眼看懂未來十年的黃金期與低谷期。）
 
 ## 陸、大師戰略級行動指南
 （將古文的凶煞轉化為現代的危機處理。給出極度務實、可操作的避險防守與進攻策略。）
