@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai"); // 🟢 引入安全機制套件
 
 // 🟢 引入兩大數學曆法排盤引擎 (徹底消滅 AI 幻覺)
 const { Solar } = require('lunar-javascript');
@@ -126,7 +126,7 @@ function generateExactChartText(userData, currentDateStr) {
         }
 
         return `
-[基本資訊 (請務必將此區塊完整列於報告開頭)]
+[基本資訊]
 - 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
 - 出生公曆：${userData.year}年${userData.month}月${userData.day}日
 - 出生農曆：${lunarDateStr}
@@ -134,9 +134,9 @@ function generateExactChartText(userData, currentDateStr) {
 - 性別：${userData.gender === '男' ? '乾造 (男命)' : '坤造 (女命)'}
 - 當前時空基準：${currentDateStr}
 
-[系統底層四柱八字與基本資訊]
+[系統底層四柱八字]
 - 西洋星座：${zodiacSign}
-- 八字干支 (絕不可竄改，請直接照抄)：${baziString}
+- 八字干支：${baziString}
 
 [系統底層紫微斗數]
 - 五行局：${wuxingClass}
@@ -152,10 +152,10 @@ ${palacesString}
     }
 }
 
-// 🟢 修復：改用官方 SDK 呼叫向量模型，徹底解決 v1beta 網址報錯問題
+// 🟢 修復：退回最穩定、全球通用的 embedding-001 向量模型，徹底解決 404 問題
 async function generateEmbeddings(text) {
     try {
-        const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+        const embeddingModel = genAI.getGenerativeModel({ model: "embedding-001" });
         const result = await embeddingModel.embedContent(text);
         return result.embedding.values;
     } catch (error) {
@@ -196,7 +196,6 @@ async function generateMasterResponse(question, mode = 'teaser') {
             return teaserResponse + timeWarning;
         }
 
-        // 🔴 模式二：Full 深度大批模式 (五書合參 RAG 檢索 + 零幻覺 Fact Data 注入)
         console.log("[1/4] 正在透過 iztro 與 lunar-javascript 計算絕對命盤...");
         const exactChartData = generateExactChartText(userData, currentDateStr);
 
@@ -215,7 +214,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
                 return `[文獻 ${i+1}] 來源：${tags}\n【大師解析】：${match.metadata.interpretation || match.metadata.classic_text || '無'}`;
             }).join('\n\n');
         } else {
-            console.log("[3/4] 向量檢索略過 (轉換失敗)");
+            console.log("[3/4] 向量檢索略過 (轉換失敗，將使用基礎大腦進行分析)");
         }
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
@@ -226,16 +225,17 @@ async function generateMasterResponse(question, mode = 'teaser') {
 你是一位匯通中西、精通五大命理古籍（《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》）的宗師級 AI 命理戰略家與首席人生教練。
 
 【零幻覺嚴格協議 (Zero-Hallucination Protocol)】：
-1. 命盤絕對忠誠：下方 <FactData> 區塊內提供的資料是由精密引擎算出的「絕對事實」。你「嚴禁」自己推演八字或猜測星曜位置，必須 100% 讀取 <FactData> 的資料，尤其是日柱與時柱，絕對不允許竄改！
+1. 命盤絕對忠誠：下方 <FactData> 區塊內的資料是由精密引擎算出的「絕對事實」。你「嚴禁」自己推演八字或猜測星曜位置，必須 100% 讀取 <FactData> 進行分析。
 2. 古籍絕對嚴謹：論述必須基於正統學理與下方【Pinecone 檢索古籍文獻】。
 
 ${ragFocusText}
 
-請為使用者撰寫一份「字數達 3000 字以上」，極度精密、資訊密度極高、超越以往的「五大古籍合參・流年大批戰略報告」。
+請為使用者撰寫一份「字數達 3000 字以上」，極度精密、超越以往的「五大古籍合參・流年大批戰略報告」。
+【強制指令】：請務必完整寫完所有章節，絕不允許中途截斷停筆！
 報告必須具備以下【史詩級學理結構】（請嚴格使用 Markdown 標題，排版力求精美易讀）：
 
 ## 壹、基本資訊與先天定盤
-（必須 100% 複製 <FactData> 中的 [基本資訊]，包含出生地、公曆、農曆、時辰、性別、當前時空基準。接著列出八字干支、西洋星座、紫微五行局、命主與身主。定調其一生格局的高低、核心天賦與潛在業力。）
+（必須 100% 完整條列 <FactData> 中的 [基本資訊]，包含出生地、公曆、農曆、時辰、當前時空基準。接著列出八字干支、西洋星座、紫微五行局、命主與身主。定調其一生格局的高低與核心天賦。）
 
 ## 貳、八字格局與專屬開運密碼
 （依據 <FactData> 提供的八字定出格局，深度分析五行喜忌用神。
@@ -248,14 +248,14 @@ ${ragFocusText}
 （依據 <FactData> 剖析命宮、身宮及三方四正。嚴謹鑑定是否構成紫微斗數的【特別格局】並解析。）
 
 ## 伍、紫八合一：未來 10 年運勢曲線圖與大勢推演
-（請針對未來 10 年的運勢進行預測。**特別要求**：請務必使用以下的純文字長條圖格式繪製，絕不可中斷，必須完整寫滿 10 年：
-範例格式：
-2026年 (丙午) | ████████░░ (80分) - [此處填寫約20字的運勢簡評]
-2027年 (丁未) | ██████░░░░ (60分) - [此處填寫約20字的運勢簡評]
-...以此類推至第 10 年。畫完曲線圖後，再進行大勢文字推演。）
+（【強制要求】：請務必使用純文字長條圖格式繪製未來10年運勢，絕不可漏掉任何一年！
+格式範例：
+2026年 (丙午) | ████████░░ (80分) - [此處填寫約20字的簡評]
+2027年 (丁未) | ██████░░░░ (60分) - [此處填寫約20字的簡評]
+...請依此格式連續寫滿 10 年！畫完後，進行大勢文字推演。）
 
 ## 陸、大師戰略級行動指南
-（將古文的凶煞轉化為現代的危機處理。給出極度務實、可操作的避險防守與進攻策略。）
+（給出極度務實、可操作的避險防守與進攻策略。這是最後一段，寫完才算完成報告。）
 
 【Pinecone 檢索之五大古籍文獻參考】：
 ${contexts}
@@ -269,8 +269,18 @@ ${exactChartData}
 </FactData>
         `;
 
+        // 🟢 修復：加入安全設定 (Safety Settings) 並全面設為 BLOCK_NONE
+        // 這是解決報告「寫到一半斷尾」的最關鍵修復！
+        const safetySettings = [
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        ];
+
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
+            safetySettings: safetySettings, // 解除所有安全審查限制
             generationConfig: {
                 temperature: 0.4, 
                 maxOutputTokens: 8192 
