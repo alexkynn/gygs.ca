@@ -6,7 +6,7 @@ const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@googl
 const nodemailer = require('nodemailer');
 const crypto = require('crypto'); // 🟢 用來驗證 Lemon Squeezy 的安全簽章
 
-// 🟢 引入剛寫好的 RAG AI 命理檢索大腦
+// 🟢 引入 RAG AI 命理檢索大腦
 const { generateMasterResponse } = require('./ragService');
 
 const app = express();
@@ -17,22 +17,17 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // 👇 發信系統檢查
 console.log("【發信系統檢查】信箱帳號抓取結果：", process.env.EMAIL_USER);
 console.log("【發信系統檢查】信箱密碼抓取結果：", process.env.EMAIL_PASS ? "有抓到密碼 (長度: " + process.env.EMAIL_PASS.length + ")" : "空值 (undefined)");
-// 👆 ==========================================
 
 // 🔴 IONOS 專屬 SMTP 伺服器
 const transporter = nodemailer.createTransport({
     host: 'smtp.ionos.com',
     port: 465,
-    secure: true, // 使用 SSL 加密連線
+    secure: true, 
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    tls: {
-        // 放寬雲端伺服器的憑證檢查，防止連線被強制阻擋
-        rejectUnauthorized: false 
-    },
-    // 增加連線等待時間，避免稍微延遲就報錯
+    tls: { rejectUnauthorized: false },
     connectionTimeout: 10000, 
     greetingTimeout: 10000,
     socketTimeout: 10000
@@ -55,20 +50,18 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname));
 
-// 🌟 共用的 Gemini 大腦函數 (只負責網頁即時對話生成) 🌟
+// 🌟 共用的 Gemini 大腦函數 (只負責網頁即時對話生成)
 async function generateLifeBlueprint(country, city, date, timeIndex, gender, question) {
-    
     const genderZh = gender === 'male' ? '男' : (gender === 'female' ? '女' : gender);
-
-    const systemInstruction = `你是一位頂級的東方命理大師兼首席人生教練（Life Coach）。你精通『紫微斗數』與『四柱八字』，並具備強大的數據分析與心理諮商能力。
+    const systemInstruction = `你是一位頂級的東方命理大師兼首席人生教練。精通『紫微斗數』與『四柱八字』。
     
 【你的底層運算邏輯：紫八合一】
-你必須將八字五行（日主、格局、喜忌神）與紫微斗數（十二宮位、四化、星曜）完美混合計算。以八字看先天稟賦與大運氣勢，以紫微看具體事件與人生軌跡。若來訪者在南半球，需自動進行節氣調候校正。
+將八字五行與紫微斗數完美混合計算。若來訪者在南半球，需自動進行節氣調候校正。
 
 【你的表達守則】
-1. 溫暖、專業、賦能：拒絕宿命論。吉星是順流，凶星是逆境中的功課。
-2. 極度具體：報告中遇到事業、婚姻、財富、健康的高峰或低谷，『必須』明確點出具體的「年份」或「歲數區間」（例如：2027至2029年、35歲至40歲）。
-3. 嚴謹詳實：先天命盤大批是一份極其重要的報告，請給出超過 2000 字的深度解析，言之有物，排版清晰（使用適當的標題與條列式）。`;
+1. 溫暖、專業、賦能：拒絕宿命論。
+2. 極度具體：遇到高峰或低谷，『必須』明確點出具體的「年份」或「歲數區間」。
+3. 嚴謹詳實：請給出超過 3000 字的深度解析，排版清晰。`;
 
     const safetySettings = [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -83,27 +76,21 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
         safetySettings: safetySettings 
     }); 
     
-    const prompt = `
-請為以下來訪者撰寫一份最詳細、最準確的【先天命盤大批（全方位人生藍圖解析）】深度報告。
+    const prompt = `請為以下來訪者撰寫【先天命盤大批（全方位人生藍圖解析）】。
+出生地：${country} ${city}（請自動進行真太陽時校正）
+出生日期：${date}
+時辰索引：${timeIndex} (0=子時, 1=丑時...11=亥時)
+性別：${genderZh}
+探索訴求：${question}
 
-【來訪者精確資料】
-- 出生地：${country} ${city}（請自動進行真太陽時校正）
-- 出生日期：${date}
-- 時辰索引：${timeIndex} (0=子時, 1=丑時...11=亥時)
-- 性別：${genderZh}
-- 探索訴求：${question}
-
-【報告必須嚴格包含以下完整結構】
+結構要求：
 一、 紫八合一核心總評
 二、 十二宮位全景深度解析
 三、 專屬姻緣與子息報告
 四、 事業版圖與高峰預測
 五、 財富軌跡與週期報告
 六、 健康預警系統
-七、 人生教練的最終指引
-
-請以繁體中文撰寫，語氣充滿智慧且具備溫暖的引導力量，並確保內容極度豐富詳實。
-`;
+七、 人生教練的最終指引`;
 
     const result = await model.generateContent(prompt);
     return result.response.text();
@@ -111,7 +98,6 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 
 app.post('/api/ask-chart', async (req, res) => {
     const { country, city, date, timeIndex, gender, question } = req.body;
-
     try {
         const answer = await generateLifeBlueprint(country, city, date, timeIndex, gender, question);
         res.json({ success: true, answer: answer });
@@ -127,21 +113,12 @@ app.post('/api/ask-chart', async (req, res) => {
 app.post('/api/ask', async (req, res) => {
     try {
         const userQuestion = req.body.question;
-        
         if (!userQuestion) {
-            return res.status(400).json({ 
-                success: false,
-                error: "請提供問題內容 (例如：{ \"question\": \"我今年的流年運勢如何？\" })" 
-            });
+            return res.status(400).json({ success: false, error: "請提供問題內容" });
         }
-
         console.log(`\n💬 收到使用者提問: "${userQuestion}"`);
-        
-        // 將問題交給 RAG 服務處理
         const answer = await generateMasterResponse(userQuestion, 'teaser');
-        
         res.json({ success: true, answer: answer });
-
     } catch (error) {
         console.error("API 端點執行時發生未預期錯誤:", error);
         res.status(500).json({ success: false, error: "伺服器內部發生錯誤，請稍後再試。" });
@@ -154,7 +131,6 @@ app.post('/api/ask', async (req, res) => {
 app.post('/api/checkout', async (req, res) => {
     try {
         const { email, question, birthData } = req.body;
-
         const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
             method: 'POST',
             headers: {
@@ -166,19 +142,12 @@ app.post('/api/checkout', async (req, res) => {
                 data: {
                     type: "checkouts",
                     attributes: {
-                        checkout_data: {
-                            email: email,
-                            custom: {
-                                user_question: question,
-                                user_birth: birthData 
-                            }
-                        },
-                        // 🟢 修正：徹底解決 422 錯誤，將所有跳轉網址設定全部集中在 product_options 裡
+                        checkout_data: { email: email, custom: { user_question: question, user_birth: birthData } },
                         product_options: {
                             enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)],
-                            redirect_url: "https://gygs.ca",       // 付款完成後的自動跳轉網址
-                            receipt_link_url: "https://gygs.ca",   // 收據頁面上的按鈕連結
-                            receipt_button_text: "返回 gygs.ca 首頁" // 自訂收據頁面上的按鈕文字
+                            redirect_url: "https://gygs.ca/?status=success",       // 🟢 加上 ?status=success 參數，以便前端辨識並保留畫面
+                            receipt_link_url: "https://gygs.ca",   
+                            receipt_button_text: "返回 gygs.ca 首頁" 
                         }
                     },
                     relationships: {
@@ -190,14 +159,11 @@ app.post('/api/checkout', async (req, res) => {
         });
 
         const data = await response.json();
-        
         if (data.errors) {
             console.error("Lemon Squeezy API 錯誤:", JSON.stringify(data.errors, null, 2));
             return res.status(500).json({ success: false, message: "無法建立結帳連結" });
         }
-
         res.json({ success: true, checkoutUrl: data.data.attributes.url });
-
     } catch (error) {
         console.error("建立結帳連結失敗:", error);
         res.status(500).json({ success: false, message: "伺服器錯誤" });
@@ -205,7 +171,7 @@ app.post('/api/checkout', async (req, res) => {
 });
 
 // ==========================================
-// 🟢 Lemon Squeezy Webhook (含翻譯大師語言與精美 Email 版型)
+// 🟢 Lemon Squeezy Webhook (含翻譯大師語言與五庫全書 Email 版型)
 // ==========================================
 app.post('/api/webhook/lemon', async (req, res) => {
     const signature = req.get('X-Signature');
@@ -227,12 +193,10 @@ app.post('/api/webhook/lemon', async (req, res) => {
         if (eventName === 'order_created') {
             const customerEmail = payload.data.attributes.user_email;
             
-            // 🟢 嚴格抓取 custom_data：Lemon Squeezy 把自訂資料放在 meta 裡
             const customData = payload.meta.custom_data || payload.data.attributes?.custom_data || {};
             const userQuestion = customData.user_question || "未提供具體提問";
             let userBirth = customData.user_birth || "未提供生辰資料";
 
-            // 🟢 把前端傳來的「時辰:4, 性別:female」完美翻譯成命理師看得懂的中文，杜絕大師產生幻覺
             userBirth = userBirth.replace('性別:female', '性別：女命（坤造）')
                                  .replace('性別:male', '性別：男命（乾造）')
                                  .replace('時辰:0', '時辰：子時').replace('時辰:1', '時辰：丑時')
@@ -248,27 +212,30 @@ app.post('/api/webhook/lemon', async (req, res) => {
             const finalPromptForAI = `【來訪者真實命盤資料】：${userBirth}\n【來訪者提問】：${userQuestion}`;
             res.status(200).send('Webhook received');
 
-            // 呼叫大腦生成 2000 字大批 ('full' 模式)
+            // 呼叫大腦生成 3000 字大批 ('full' 模式)
             generateMasterResponse(finalPromptForAI, 'full').then(async (reportContent) => {
                 let formattedReport = reportContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
                 const mailOptions = {
                     from: `"gygs.ca 人生導航" <${process.env.EMAIL_USER}>`,
                     to: customerEmail,
-                    subject: '【gygs.ca】您的付費專屬命理解析報告已完成',
+                    subject: '【gygs.ca】五庫全書・專屬命理戰略解析報告已完成',
                     html: `
-                        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
-                            <h2 style="color: #38bdf8; text-align: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">先天命盤大批<br><span style="font-size: 16px; color: #64748b;">深度流年專屬藍圖解析</span></h2>
+                        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 750px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+                            <div style="text-align: center; border-bottom: 2px solid #8e44ad; padding-bottom: 15px;">
+                                <h2 style="color: #8e44ad; margin: 0; font-size: 24px;">先天命盤大批・流年專屬藍圖</h2>
+                                <p style="font-size: 14px; color: #64748b; margin-top: 5px;">融合《滴天髓》・《三命通會》・《子平真詮》・《窮通寶鑑》・《紫微斗數全書》</p>
+                            </div>
                             
-                            <p style="font-size: 16px;">親愛的朋友，您好：</p>
-                            <p style="font-size: 16px;">感謝您的付費解鎖。根據您的提問與命盤，大師已為您完成深度推演：</p>
+                            <p style="font-size: 16px; margin-top: 20px;">親愛的朋友，您好：</p>
+                            <p style="font-size: 16px;">感謝您的付費解鎖。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖：</p>
                             
                             <div style="background-color: #f8fafc; padding: 30px; border-radius: 12px; margin: 30px 0; border: 1px solid #e2e8f0; color: #1e293b; font-size: 15px; text-align: justify;">
                                 ${formattedReport}
                             </div>
                             
                             <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
-                                願這份藍圖能為您的下一步提供清晰的視野與前進的力量。<br><br>
+                                願這份集結古人智慧的藍圖，能為您的下一步提供清晰的視野與無懼的力量。<br><br>
                                 <strong>gygs.ca 團隊 敬上</strong>
                             </p>
                         </div>

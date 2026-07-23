@@ -53,7 +53,6 @@ function extractUserData(question) {
     const dateMatch = question.match(/日期[:：]?(\d{4})-(\d{2})-(\d{2})/);
     const genderMatch = question.match(/性別[:：]?(男|女)/);
     
-    // 擷取真實問題字串 (過濾掉前面的命盤資料)
     const questionTextMatch = question.match(/提問:(.*)/) || question.match(/【來訪者提問】：(.*)/);
     const actualQuestion = questionTextMatch ? questionTextMatch[1].trim() : question;
 
@@ -83,21 +82,24 @@ function generateExactChartText(userData) {
         // 1. 呼叫 iztro 引擎產生精準紫微斗數星盤
         const astrolabe = astro.bySolar(dateStr, timeIndex, gender, true, 'zh-CN');
         
-        // 2. 呼叫 lunar-javascript 產生精準四柱八字
-        // 將時辰索引轉換為約略的小時，確保時柱精準
+        // 2. 呼叫 lunar-javascript 產生精準四柱八字與星座
         const hourMapping = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
         const exactHour = hourMapping[timeIndex];
         const solarWithTime = Solar.fromYmdHms(parseInt(userData.year), parseInt(userData.month), parseInt(userData.day), exactHour, 0, 0);
         const baziWithTime = solarWithTime.getLunar().getEightChar();
+        const zodiacSign = solarWithTime.getConstellation() + "座"; // 取得西洋星座
 
         const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
 
-        // 3. 整理紫微十二宮位星曜
+        // 3. 整理紫微資訊 (五行局、命主、身主、宮位星曜)
+        const wuxingClass = astrolabe.fiveElementsClass || '未知';
+        const soulRuler = astrolabe.soul || '未知';
+        const bodyRuler = astrolabe.body || '未知';
+
         let palacesString = "";
         if (astrolabe && astrolabe.palaces) {
             astrolabe.palaces.forEach(p => {
                 let stars = [];
-                // 抓取主星並標註四化
                 if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
                 if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
                 if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
@@ -106,11 +108,14 @@ function generateExactChartText(userData) {
         }
 
         return `
-[系統底層四柱八字]
-${baziString}
+[系統底層四柱八字與基本資訊]
+- 西洋星座：${zodiacSign}
+- 八字干支：${baziString}
 
 [系統底層紫微斗數]
-- 五行局：${astrolabe.fiveElementsClass || '未知'}
+- 五行局：${wuxingClass}
+- 命主：${soulRuler}
+- 身主：${bodyRuler}
 - 命宮主星位置：命宮在${astrolabe.earthlyBranchOfSoulPalace || '未知'}，身宮在${astrolabe.earthlyBranchOfBodyPalace || '未知'}
 - 十二宮位星曜詳細分佈：
 ${palacesString}
@@ -149,18 +154,12 @@ async function generateMasterResponse(question, mode = 'teaser') {
         const currentDateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
 
-        // 🟢 模式一：Teaser 誘餌模式 (0 Token)
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
             
             let teaserResponse = generateUniqueTeaser(
-                userData.year, 
-                userData.month, 
-                userData.day, 
-                userData.shi, 
-                userData.gender, 
-                userData.country, 
-                userData.actualQuestion
+                userData.year, userData.month, userData.day, userData.shi, 
+                userData.gender, userData.country, userData.actualQuestion
             );
             
             let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>`;
@@ -185,7 +184,6 @@ async function generateMasterResponse(question, mode = 'teaser') {
         console.log("[2/4] 正在轉換向量 (五大古籍深度檢索模式)...");
         let contexts = "";
         
-        // 增強向量查詢字串，確保五書文獻均衡召回
         const enhanceQuery = `${userData.actualQuestion} 八字格局 調候用神 紫微斗數 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
         
@@ -207,35 +205,39 @@ async function generateMasterResponse(question, mode = 'teaser') {
 你是一位匯通中西、精通五大命理古籍（《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》）的宗師級 AI 命理戰略家與首席人生教練。
 
 【零幻覺嚴格協議 (Zero-Hallucination Protocol)】：
-1. 命盤絕對忠誠：下方 <FactData> 區塊內提供的「四柱八字」與「紫微十二宮位星曜」，是由精密天文曆法引擎所算出的「絕對事實」。你「嚴禁」自己推演八字或猜測星曜位置，必須 100% 直接讀取並引用 <FactData> 內的資料進行分析。
-2. 古籍絕對嚴謹：你的論述必須基於正統命理學理與下方提供的【Pinecone 檢索古籍文獻】，絕不可捏造不存在的古籍經文。
+1. 命盤絕對忠誠：下方 <FactData> 區塊內提供的「四柱八字、星座、五行局、命/身主」與「紫微星曜」，是由精密引擎算出的「絕對事實」。你「嚴禁」自己推演八字或猜測星曜位置，必須 100% 讀取 <FactData> 的資料進行分析。
+2. 古籍絕對嚴謹：論述必須基於正統學理與下方【Pinecone 檢索古籍文獻】，絕不可捏造經文。
 
-【時空基準】：今天是「${currentDateStr}」，所有的流年歲運推演必須以此日期為基準點。
+【時空基準】：今天是「${currentDateStr}」，所有的推演以此為基準點。
 
 ${matchedQuestionData.ragFocus}
 
 請為使用者撰寫一份「字數達 3000 字以上」，極度精密、資訊密度極高、超越以往的「五大古籍合參・流年大批戰略報告」。
-報告必須具備以下【史詩級學理結構】（請嚴格使用 Markdown 標題）：
+報告必須具備以下【史詩級學理結構】（請嚴格使用 Markdown 標題，排版力求精美易讀）：
 
-## 壹、先天命格總論與真太陽時定盤
-（重述客戶的精確出生資料，並列出從 <FactData> 讀取到的八字與紫微命宮主星。定調其一生格局的高低、核心天賦與潛在業力。）
+## 壹、先天定盤與命格總論
+（列出從 <FactData> 讀取到的八字、西洋星座、紫微五行局、命主與身主。定調其一生格局的高低、核心天賦與潛在業力。）
 
-## 貳、八字格局與用神剖析（融合《子平真詮》與《滴天髓》）
-（依據 <FactData> 提供的八字，精準定出八字格局。深度分析日主的五行氣勢、強弱、喜忌用神，並說明五行生剋制化的實戰影響。）
+## 貳、八字格局與專屬開運密碼
+（依據 <FactData> 提供的八字定出格局，深度分析五行喜忌用神。
+ **特別要求**：請明確給出專屬於該命主的【吉利數字】、【吉利方位】與【吉利顏色】。）
 
-## 參、調候樞紐與神煞玄機（融合《窮通寶鑑》與《三命通會》）
-（嚴格依據其出生季節，運用《窮通寶鑑》點出調候用神。輔以《三命通會》的重要神煞，揭示命局中的暗藏玄機與性格盲點。）
+## 參、四柱神煞詳解與調候樞紐
+（運用《窮通寶鑑》點出調候用神。
+ **特別要求**：根據 <FactData> 的八字干支，嚴謹推算並詳加解釋其「年柱、月柱、日柱、時柱」上的關鍵神煞（如天乙貴人、文昌、驛馬、羊刃、華蓋等）對性格與命運的影響。）
 
-## 肆、紫微斗數全景深度解析（融合《紫微斗數全書》）
-（完全依據 <FactData> 提供的紫微命盤，深入剖析其紫微命宮、身宮的主星特質，以及三方四正的吉凶煞星交會情況，點出事業天花板與人際財富模式。）
+## 肆、紫微斗數全景與特殊格局鑑定
+（依據 <FactData> 剖析命宮、身宮及三方四正。
+ **特別要求**：請嚴謹鑑定該命盤是否構成紫微斗數的【特別格局】（如機月同梁、巨日同宮、殺破狼、石中隱玉等），若有，請特別點出並解析其爆發力與危機。）
 
-## 伍、紫八交叉驗證與今年大勢推演
-（這是一份報告的靈魂！必須指出八字的「流年大運干支」與紫微的「流年命宮、流年四化」是如何在今年產生共振的。針對客戶的具體提問，給出明確的「月份轉折點」與現象預測。）
+## 伍、紫八合一：未來 10 年運勢曲線圖與大勢推演
+（針對客戶的提問給出流年/流月現象預測。
+ **特別要求**：請使用 Markdown 與符號（如 █ ▓ ░ 等）繪製出一個【未來 10 年運勢起伏曲線圖】，並輔以精要的趨勢解說，讓客戶一眼看懂未來十年的黃金期與低谷期。）
 
 ## 陸、大師戰略級行動指南
-（將古文的凶煞轉化為現代的危機處理。給出極度務實、可操作的避險防守與進攻策略，拒絕空泛套話。）
+（將古文的凶煞轉化為現代的危機處理。給出極度務實、可操作的避險防守與進攻策略。）
 
-【Pinecone 檢索之五大古籍文獻參考 (請務必在報告中自然融合並引用這些文獻的智慧)】：
+【Pinecone 檢索之五大古籍文獻參考】：
 ${contexts}
 
 <ClientData>
