@@ -86,7 +86,7 @@ function getRagFocus(questionStr) {
 // 🟢 產生絕對正確的命盤資料 (Fact Data)
 const shiToIndex = { "子": 0, "丑": 1, "寅": 2, "卯": 3, "辰": 4, "巳": 5, "午": 6, "未": 7, "申": 8, "酉": 9, "戌": 10, "亥": 11 };
 
-function generateExactChartText(userData) {
+function generateExactChartText(userData, currentDateStr) {
     try {
         if (!userData.year || !userData.month || !userData.day) return "【提示：無法獲取完整日期】";
 
@@ -97,13 +97,14 @@ function generateExactChartText(userData) {
         // 1. 呼叫 iztro 引擎產生精準紫微斗數星盤
         const astrolabe = astro.bySolar(dateStr, timeIndex, gender, true, 'zh-CN');
         
-        // 2. 呼叫 lunar-javascript 產生精準四柱八字與星座
+        // 2. 呼叫 lunar-javascript 產生精準農曆、四柱八字與星座
         const hourMapping = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
         const exactHour = hourMapping[timeIndex];
         const solarWithTime = Solar.fromYmdHms(parseInt(userData.year), parseInt(userData.month), parseInt(userData.day), exactHour, 0, 0);
-        const baziWithTime = solarWithTime.getLunar().getEightChar();
+        const lunar = solarWithTime.getLunar();
         
-        // 修正：使用 getXingZuo() 獲取西洋星座
+        const lunarDateStr = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}日`;
+        const baziWithTime = lunar.getEightChar();
         const zodiacSign = solarWithTime.getXingZuo() + "座"; 
 
         const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
@@ -125,9 +126,17 @@ function generateExactChartText(userData) {
         }
 
         return `
+[基本資訊 (請務必將此區塊完整列於報告開頭)]
+- 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
+- 出生公曆：${userData.year}年${userData.month}月${userData.day}日
+- 出生農曆：${lunarDateStr}
+- 出生時辰：${userData.shi} (${exactHour}:00 - ${exactHour+1}:59)
+- 性別：${userData.gender === '男' ? '乾造 (男命)' : '坤造 (女命)'}
+- 當前時空基準：${currentDateStr}
+
 [系統底層四柱八字與基本資訊]
 - 西洋星座：${zodiacSign}
-- 八字干支：${baziString}
+- 八字干支 (絕不可竄改，請直接照抄)：${baziString}
 
 [系統底層紫微斗數]
 - 五行局：${wuxingClass}
@@ -139,24 +148,16 @@ ${palacesString}
 `;
     } catch (e) {
         console.error("排盤引擎發生錯誤:", e);
-        return "【系統提示：排盤引擎計算發生異常，請 AI 依據使用者提供的生辰自行推演八字與命盤】";
+        return "【系統提示：排盤引擎計算發生異常】";
     }
 }
 
+// 🟢 修復：改用官方 SDK 呼叫向量模型，徹底解決 v1beta 網址報錯問題
 async function generateEmbeddings(text) {
     try {
-        // 修正：將 v1 改為 v1beta，以支援 text-embedding-004 模型
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${process.env.GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: "models/text-embedding-004", 
-                content: { parts: [{ text: text }] }
-            })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "向量 API 拒絕連線");
-        return data.embedding.values;
+        const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+        const result = await embeddingModel.embedContent(text);
+        return result.embedding.values;
     } catch (error) {
         console.log("⚠️ 向量轉換失敗:", error.message);
         return null; 
@@ -197,7 +198,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         // 🔴 模式二：Full 深度大批模式 (五書合參 RAG 檢索 + 零幻覺 Fact Data 注入)
         console.log("[1/4] 正在透過 iztro 與 lunar-javascript 計算絕對命盤...");
-        const exactChartData = generateExactChartText(userData);
+        const exactChartData = generateExactChartText(userData, currentDateStr);
 
         console.log("[2/4] 正在轉換向量 (五大古籍深度檢索模式)...");
         let contexts = "";
@@ -213,9 +214,10 @@ async function generateMasterResponse(question, mode = 'teaser') {
                 const tags = Array.isArray(match.metadata.tags) ? match.metadata.tags.join(', ') : match.metadata.tags;
                 return `[文獻 ${i+1}] 來源：${tags}\n【大師解析】：${match.metadata.interpretation || match.metadata.classic_text || '無'}`;
             }).join('\n\n');
+        } else {
+            console.log("[3/4] 向量檢索略過 (轉換失敗)");
         }
 
-        // 修正：直接在內部呼叫 getRagFocus 獲取專屬指令
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
         console.log(`[4/4] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
@@ -224,34 +226,33 @@ async function generateMasterResponse(question, mode = 'teaser') {
 你是一位匯通中西、精通五大命理古籍（《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》）的宗師級 AI 命理戰略家與首席人生教練。
 
 【零幻覺嚴格協議 (Zero-Hallucination Protocol)】：
-1. 命盤絕對忠誠：下方 <FactData> 區塊內提供的「四柱八字、星座、五行局、命/身主」與「紫微星曜」，是由精密引擎算出的「絕對事實」。你「嚴禁」自己推演八字或猜測星曜位置，必須 100% 讀取 <FactData> 的資料進行分析。
-2. 古籍絕對嚴謹：論述必須基於正統學理與下方【Pinecone 檢索古籍文獻】，絕不可捏造經文。
-
-【時空基準】：今天是「${currentDateStr}」，所有的推演以此為基準點。
+1. 命盤絕對忠誠：下方 <FactData> 區塊內提供的資料是由精密引擎算出的「絕對事實」。你「嚴禁」自己推演八字或猜測星曜位置，必須 100% 讀取 <FactData> 的資料，尤其是日柱與時柱，絕對不允許竄改！
+2. 古籍絕對嚴謹：論述必須基於正統學理與下方【Pinecone 檢索古籍文獻】。
 
 ${ragFocusText}
 
 請為使用者撰寫一份「字數達 3000 字以上」，極度精密、資訊密度極高、超越以往的「五大古籍合參・流年大批戰略報告」。
 報告必須具備以下【史詩級學理結構】（請嚴格使用 Markdown 標題，排版力求精美易讀）：
 
-## 壹、先天定盤與命格總論
-（列出從 <FactData> 讀取到的八字、西洋星座、紫微五行局、命主與身主。定調其一生格局的高低、核心天賦與潛在業力。）
+## 壹、基本資訊與先天定盤
+（必須 100% 複製 <FactData> 中的 [基本資訊]，包含出生地、公曆、農曆、時辰、性別、當前時空基準。接著列出八字干支、西洋星座、紫微五行局、命主與身主。定調其一生格局的高低、核心天賦與潛在業力。）
 
 ## 貳、八字格局與專屬開運密碼
 （依據 <FactData> 提供的八字定出格局，深度分析五行喜忌用神。
  **特別要求**：請明確給出專屬於該命主的【吉利數字】、【吉利方位】與【吉利顏色】。）
 
 ## 參、四柱神煞詳解與調候樞紐
-（運用《窮通寶鑑》點出調候用神。
- **特別要求**：根據 <FactData> 的八字干支，嚴謹推算並詳加解釋其「年柱、月柱、日柱、時柱」上的關鍵神煞（如天乙貴人、文昌、驛馬、羊刃、華蓋等）對性格與命運的影響。）
+（運用《窮通寶鑑》點出調候用神。根據 <FactData> 詳加解釋「年柱、月柱、日柱、時柱」上的關鍵神煞對命運的影響。）
 
 ## 肆、紫微斗數全景與特殊格局鑑定
-（依據 <FactData> 剖析命宮、身宮及三方四正。
- **特別要求**：請嚴謹鑑定該命盤是否構成紫微斗數的【特別格局】（如機月同梁、巨日同宮、殺破狼、石中隱玉等），若有，請特別點出並解析其爆發力與危機。）
+（依據 <FactData> 剖析命宮、身宮及三方四正。嚴謹鑑定是否構成紫微斗數的【特別格局】並解析。）
 
 ## 伍、紫八合一：未來 10 年運勢曲線圖與大勢推演
-（針對客戶的提問給出流年/流月現象預測。
- **特別要求**：請使用 Markdown 與文字符號繪製出一個【未來 10 年運勢起伏曲線圖】，並輔以精要的趨勢解說，讓客戶一眼看懂未來十年的黃金期與低谷期。）
+（請針對未來 10 年的運勢進行預測。**特別要求**：請務必使用以下的純文字長條圖格式繪製，絕不可中斷，必須完整寫滿 10 年：
+範例格式：
+2026年 (丙午) | ████████░░ (80分) - [此處填寫約20字的運勢簡評]
+2027年 (丁未) | ██████░░░░ (60分) - [此處填寫約20字的運勢簡評]
+...以此類推至第 10 年。畫完曲線圖後，再進行大勢文字推演。）
 
 ## 陸、大師戰略級行動指南
 （將古文的凶煞轉化為現代的危機處理。給出極度務實、可操作的避險防守與進攻策略。）
