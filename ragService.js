@@ -2,7 +2,7 @@ require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
-// 🟢 引入兩大數學曆法排盤引擎 (徹底消滅 AI 幻覺)
+// 🟢 引入兩大數學曆法排盤引擎
 const { Solar } = require('lunar-javascript');
 const { astro } = require('iztro');
 const locationsData = require('./locations.js');
@@ -66,6 +66,25 @@ function extractUserData(question) {
     };
 }
 
+// 🟢 內建五行屬性轉換矩陣 (徹底解決 library 報錯)
+function getGanZhiWuXing(gz) {
+    const gan = { "甲":"木", "乙":"木", "丙":"火", "丁":"火", "戊":"土", "己":"土", "庚":"金", "辛":"金", "壬":"水", "癸":"水" };
+    const zhi = { "子":"水", "丑":"土", "寅":"木", "卯":"木", "辰":"土", "巳":"火", "午":"火", "未":"土", "申":"金", "酉":"金", "戌":"土", "亥":"水" };
+    if(!gz || gz.length < 2) return "未知";
+    return (gan[gz[0]]||"") + (zhi[gz[1]]||"");
+}
+
+// 🟢 內建袁天罡稱骨完整矩陣 (徹底解決無法取得與報錯)
+function calculateBoneWeight(yearIndex, month, day, shiZhi) {
+    const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
+    const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
+    const dayW = [0, 5,10,8,15,16,15,8,16,8,16,9,17,8,17,10,8,9,18,5,15,10,9,8,9,15,18,7,8,16,6];
+    const shiW = { "子":16, "丑":6, "寅":7, "卯":10, "辰":9, "巳":16, "午":10, "未":8, "申":8, "酉":9, "戌":6, "亥":6 };
+    
+    let total = yearW[yearIndex] + monthW[month] + dayW[day] + (shiW[shiZhi] || 0);
+    return Math.floor(total / 10) + "兩" + (total % 10) + "錢";
+}
+
 function getRagFocus(questionStr) {
     if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽")) {
         return "【專屬分析重點】：評估事業格局與成就上限。精準點出事業轉折時機，並給出職場防小人與最契合的天賦行業方向。";
@@ -99,29 +118,21 @@ function generateExactChartText(userData, currentDateStr) {
         const lunarDateStr = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}日`;
         const baziWithTime = lunar.getEightChar();
         const zodiacSign = solarWithTime.getXingZuo() + "座"; 
-        const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
+        
+        const yGz = baziWithTime.getYear();
+        const mGz = baziWithTime.getMonth();
+        const dGz = baziWithTime.getDay();
+        const tGz = baziWithTime.getTime();
+        const baziString = `年柱：${yGz}，月柱：${mGz}，日柱：${dGz}，時柱：${tGz}`;
 
-        // 🟢 修復：改由 baziWithTime (EightChar) 抓取稱骨與五行屬性，避免 TypeError
-        let weightStr = "系統運算中";
-        let wuxingStr = "運算中";
-        try {
-            if (typeof baziWithTime.getYearWuXing === 'function') {
-                wuxingStr = `年柱[${baziWithTime.getYearWuXing()}] 月柱[${baziWithTime.getMonthWuXing()}] 日柱[${baziWithTime.getDayWuXing()}] 時柱[${baziWithTime.getTimeWuXing()}]`;
-            }
-            if (typeof baziWithTime.getWeight === 'function') {
-                const w = baziWithTime.getWeight();
-                // lunar-javascript 的 getWeight() 回傳整數代表「錢」的總和 (例：42 = 4兩2錢)
-                if (typeof w === 'number') {
-                    weightStr = Math.floor(w / 10) + "兩" + (w % 10) + "錢";
-                } else {
-                    weightStr = w.toString();
-                }
-            } else {
-                weightStr = "無法取得資料";
-            }
-        } catch (e) {
-            console.error("五行或稱骨抓取失敗:", e);
-        }
+        // 🟢 調用內建安全矩陣，保證 100% 抓取成功
+        const wuxingStr = `年柱[${getGanZhiWuXing(yGz)}] 月柱[${getGanZhiWuXing(mGz)}] 日柱[${getGanZhiWuXing(dGz)}] 時柱[${getGanZhiWuXing(tGz)}]`;
+        
+        const lunarMonth = lunar.getMonth();
+        const lunarDay = lunar.getDay();
+        const yearIndex = lunar.getYearGanZhiExact ? lunar.getYear() : (lunar.getYear() - 1984) % 60;
+        const normalizedYearIndex = yearIndex < 0 ? yearIndex + 60 : yearIndex; 
+        const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunarMonth), lunarDay, userData.shi.charAt(0));
 
         let palacesString = "";
         if (astrolabe && astrolabe.palaces) {
@@ -223,15 +234,15 @@ async function generateMasterResponse(question, mode = 'teaser') {
         const prompt = `
 你是一位精通命理的 AI 戰略家。
 
-【絕對一致性與防幻覺最高指令】（違反將導致系統崩潰，請 100% 遵守）：
-1. 運勢評分與推演 100% 鎖死：為達到每次生成結果完全一致，請嚴格依據大運流年五行與本命喜忌進行機械化對應。遇喜用神之年固定給 85-95 分，忌神年固定給 50-65 分。每年評語格式必須絕對統一為：「年份 | ██████░░░░ (分數) - [運勢關鍵字] 具體事件預測」。絕對禁止隨機更動評語與分數邏輯！
-2. 神煞與星曜 100% 防幻覺：紫微斗數「絕對不允許」出現 <FactData> 中未列出的星曜，嚴禁自行塞入陰煞、解神等任何未在列表中出現的輔星。四柱神煞僅允許依據排盤學理推導最基礎且必定的幾項（如：戊戌必見魁罡），嚴禁憑空捏造或隨機替換！
-3. 調候邏輯 100% 統一：在第三部分調候分析中，必須將原局五行狀態與缺失用神融合為單一結論。統一得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」，絕不允許產生前後矛盾、或每次不同的調候結論。
+【絕對一致性與防幻覺最高指令】（必須嚴格遵守，以防報告斷尾）：
+1. 運勢評分與推演 100% 鎖死：請嚴格依據大運流年五行與本命喜忌進行對應。遇喜用神之年固定給 85-95 分，忌神年固定給 50-65 分。每年評語格式必須統一為：「年份 | ██████░░░░ (分數) - [運勢關鍵字] 具體事件預測」。
+2. 神煞與星曜 100% 防幻覺：紫微斗數「絕對不允許」出現 <FactData> 中未列出的星曜。四柱神煞僅允許依據排盤學理推導最基礎且必定的幾項，嚴禁憑空捏造！
+3. 調候邏輯 100% 統一：在調候分析中，必須將原局五行狀態與缺失用神融合。得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」。
 4. 宮位 100% 完整保留：第肆部分的紫微斗數解析，必須「逐一且完整」地列出「財帛宮」、「官祿宮」、「遷移宮」、「夫妻宮」，缺一不可！
 5. 排版禁令：呈現內容時只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
 
 【零幻覺協議】：
-下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
+下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字、宮位位置、稱骨重量與五行屬性！
 
 ${ragFocusText}
 
@@ -294,11 +305,10 @@ ${contexts}
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
             safetySettings: safetySettings,
-            // 🟢 強制鎖死輸出的一致性，將隨機性降至絕對最低，確保每次報告論述與評分高度統一
+            // 🟢 調回 0.3 溫度，防止生成時發生迴圈斷尾，同時保持高穩定性
             generationConfig: {
-                temperature: 0.0,
-                topK: 1,
-                topP: 0.1,
+                temperature: 0.3,
+                topP: 0.8,
                 maxOutputTokens: 8192
             }
         });
