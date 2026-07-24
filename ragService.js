@@ -70,15 +70,15 @@ function extractUserData(question) {
 
 function getRagFocus(questionStr) {
     if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽") || questionStr.includes("行業") || questionStr.includes("天花板") || questionStr.includes("瓶頸")) {
-        return "【專屬分析重點】：著重評估八字格局與紫微官祿宮。比較「體制內」與「創業」的成就上限。精準點出近 1~3 年事業轉折與跳槽時機，並給出職場防小人與最契合天賦的行業方向。";
+        return "【專屬分析重點】：著重評估八字格局與紫微官祿宮。比較「體制內」與「創業」的成就上限。精準點出事業轉折時機，並給出職場防小人與最契合的天賦行業方向。";
     } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("破產") || questionStr.includes("資金")) {
-        return "【專屬分析重點】：結合財星格局與紫微財帛宮、田宅宮。定調其為「累積型正財」或「爆發型偏財」。精準指出資產暴漲或破財危機的黃金機遇期與高危月份，並給出適合的投資佈局。";
+        return "【專屬分析重點】：結合財星格局與紫微財帛宮、田宅宮。定調其為「正財」或「偏財」。精準指出資產暴漲或破財危機的高危月份，並給出適合的投資佈局。";
     } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("伴侶") || questionStr.includes("感情") || questionStr.includes("婚姻")) {
-        return "【專屬分析重點】：分析夫妻宮主星與桃花星。精準描繪未來伴侶特質、紅鸞星動的具體年份。評估感情障礙根源，並針對桃花煞、第三者介入或劫緣提供趨吉避凶的情感防線與抉擇指引。";
+        return "【專屬分析重點】：分析夫妻宮主星與桃花星。描繪未來伴侶特質、紅鸞星動的具體年份。評估感情障礙根源，並針對桃花煞提供趨吉避凶的情感防線。";
     } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("血光") || questionStr.includes("疾病") || questionStr.includes("長輩")) {
-        return "【專屬分析重點】：結合八字五行偏枯與紫微疾厄宮，點出先天體質弱點（如心血管、消化等）。梳理近年的意外血光或手術風險高危月份。並從五行調候給出改善慢性病與精神內耗的具體指南。";
+        return "【專屬分析重點】：結合八字五行偏枯與紫微疾厄宮，點出先天體質弱點。梳理近年的意外血光高危月份。並從五行調候給出改善慢性病與精神內耗的具體指南。";
     } else {
-        return "【專屬分析重點】：梳理十年大限起伏軌跡，畫出未來黃金爆發期與低谷期。面對人生重大抉擇（如轉行/買房/移民），給出利弊對比。並驗證命盤特殊大格，梳理今年關鍵轉折月份與風險。";
+        return "【專屬分析重點】：梳理十年大限起伏軌跡，畫出未來黃金爆發期與低谷期。面對人生重大抉擇，給出利弊對比。並驗證命盤特殊大格，梳理今年關鍵轉折月份與風險。";
     }
 }
 
@@ -117,7 +117,7 @@ function generateExactChartText(userData, currentDateStr) {
                 if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
                 if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
                 if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
-                palacesString += `- 【${p.name}】 (地支${p.earthlyBranch}宮): ${stars.join('、 ') || '空宮'}\n`;
+                palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
             });
         }
 
@@ -148,7 +148,7 @@ ${palacesString}
     }
 }
 
-// 🟢 向量模型生成區
+// 🟢 向量模型生成區 (含降級容錯機制)
 async function generateEmbeddings(text) {
     try {
         const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
@@ -215,45 +215,43 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        // 🟢 保持使用您指定的 gemini-3.5-flash
-        console.log(`[4/4] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
+        console.log(`[4/4] 呼叫 Gemini 3.1 Pro 生成深度報告...`);
         
         const prompt = `
 你是一位匯通中西、精通五大命理古籍（《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》）的宗師級 AI 命理戰略家與首席人生教練。
 
-【零幻覺嚴格協議 (Zero-Hallucination Protocol)】：
-1. 命盤絕對忠誠：下方 <FactData> 區塊內的資料是由精密引擎算出的「絕對事實」。你必須 100% 讀取 <FactData> 進行分析，絕不允許竄改八字干支！
-2. 古籍絕對嚴謹：論述必須基於正統學理與下方【Pinecone 檢索古籍文獻】。
-3. 【排版最高禁令】：絕不允許使用 LaTeX、MathJax 或任何數學表格排版。呈現命盤時，請「只使用」最單純的 Markdown 列表 (例如：- 年柱：...)，嚴禁輸出任何 HTML 或 LaTeX 標籤，否則系統會崩潰！
+【篇幅與 Token 最高控制指令】：
+1. 請將全文目標字數精準控制在 3,000 至 3,500 中文字 之間，既保證內容豐富詳實、資訊密度極高，又能確保在 Token 上限內【100% 寫完全部六大章節】，絕不允許中途斷尾！
+2. 【排版禁令】：呈現內容時只允許使用標準 Markdown 標題與列表（如：- 年柱：丙辰）。【絕對禁止】使用 LaTeX、MathJax、HTML 或表格排版（嚴禁出現 "$$" 或 "\\begin" 等數學語法），否則系統會崩潰！
+
+【零幻覺協議】：
+下方 <FactData> 區塊是精確排盤事實，請 100% 忠實讀取，嚴禁自己篡改八字或紫微星曜！
 
 ${ragFocusText}
 
-請為使用者撰寫一份「字數達 3000 字以上」，極度精密的「五大古籍合參・流年大批戰略報告」。
-【強制指令】：請務必完整寫完所有章節，直到寫出「陸、大師戰略級行動指南」才算完成，絕不允許中途截斷停筆！
-
-報告必須具備以下【史詩級學理結構】（請嚴格使用 Markdown 標題 # 與 ##）：
+請依序撰寫以下六大章節（請嚴格使用 Markdown 標題 # 與 ##，必須寫到第六章才算完整結束）：
 
 ## 壹、基本資訊與先天定盤
-（必須完整列出 <FactData> 中的 [基本資訊]，並用標準文字條列出八字干支、西洋星座、紫微五行局、命主與身主。定調其一生格局的高低與核心天賦。）
+（必須完整列出 <FactData> 中的 [基本資訊]。條列八字干支、西洋星座、紫微五行局、命/身主。定調其一生格局的高低與核心天賦。）
 
 ## 貳、八字格局與專屬開運密碼
-（深度分析五行喜忌用神。請明確給出專屬於該命主的【吉利數字】、【吉利方位】與【吉利顏色】。）
+（深度分析五行喜忌用神。請明確給出專屬的【吉利數字】、【吉利方位】與【吉利顏色】。）
 
 ## 參、四柱神煞詳解與調候樞紐
-（根據 <FactData> 詳加解釋「年柱、月柱、日柱、時柱」上的關鍵神煞對命運的影響。）
+（根據 <FactData> 詳加解釋「年柱、月柱、日柱、時柱」上的關鍵神煞對命運的影響與調候用神。）
 
 ## 肆、紫微斗數全景與特殊格局鑑定
-（剖析命宮、身宮及三方四正。嚴謹鑑定是否構成紫微斗數的【特別格局】並解析。）
+（剖析命宮、身宮及三方四正。嚴謹鑑定是否構成紫微斗數的【特別格局】並深入解析。）
 
 ## 伍、紫八合一：未來 10 年運勢曲線圖與大勢推演
-（請務必使用「純文字長條圖」格式繪製未來10年運勢，絕不可漏掉任何一年！
+（請務必使用「純文字長條圖」格式繪製未來 10 年運勢，絕不可漏掉任何一年！
 格式範例：
 2026年 | ████████░░ (80分) - [運勢簡評]
 2027年 | ██████░░░░ (60分) - [運勢簡評]
-請依此格式連續寫滿 10 年，畫完後再進行大勢推演。）
+請依此格式連續寫滿 10 年，畫完後再進行大勢文字推演。）
 
 ## 陸、大師戰略級行動指南
-（給出務實的避險防守與進攻策略。寫完此段才算報告結束。）
+（給出極度務實、可操作的避險防守與進攻策略。寫完此段報告方算完結。）
 
 【Pinecone 檢索之五大古籍文獻參考】：
 ${contexts}
@@ -275,10 +273,10 @@ ${exactChartData}
         ];
 
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-3.5-flash',
+            model: 'gemini-3.1-pro',
             safetySettings: safetySettings,
             generationConfig: {
-                temperature: 0.4, 
+                temperature: 0.3, 
                 maxOutputTokens: 8192 
             }
         });
