@@ -105,7 +105,9 @@ function generateExactChartText(userData, currentDateStr) {
         if (astrolabe && astrolabe.palaces) {
             astrolabe.palaces.forEach(p => {
                 let stars = [];
-                if (p.majorStars) stars.push(...p.majorStars.map(s => s.name));
+                if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
+                if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
+                if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
                 palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
             });
         }
@@ -115,7 +117,7 @@ function generateExactChartText(userData, currentDateStr) {
 - 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
 - 出生公曆：${userData.year}年${userData.month}月${userData.day}日
 - 出生農曆：${lunarDateStr}
-- 出生時辰：${userData.shi} (${exactHour}:00 - ${exactHour+1}:59)
+- 出生時辰：${userData.shi} (${exactHour === 0 ? 23 : exactHour - 1}:00 - ${exactHour === 0 ? 0 : exactHour}:59)
 - 性別：${userData.gender === '男' ? '乾造 (男命)' : '坤造 (女命)'}
 - 當前時空基準：${currentDateStr}
 
@@ -127,6 +129,8 @@ function generateExactChartText(userData, currentDateStr) {
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
 - 命主：${astrolabe.soul || '未知'}
 - 身主：${astrolabe.body || '未知'}
+- 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
+- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮
 - 十二宮位星曜：
 ${palacesString}
 `;
@@ -135,7 +139,7 @@ ${palacesString}
     }
 }
 
-// 🟢 極簡靜默向量轉換 (不再讓終端機噴 404 紅字)
+// 🟢 極簡靜默向量轉換
 async function generateEmbeddings(text) {
     try {
         const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
@@ -183,27 +187,42 @@ async function generateMasterResponse(question, mode = 'teaser') {
 你是一位精通命理的 AI 戰略家。
 
 【防斷尾與排版最高指令】：
-1. 為了確保你能完整寫完報告，請保持「高資訊密度、條理分明」，不要刻意灌水湊字數。確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
-2. 呈現命盤時，只允許使用最單純的 Markdown 列表（如：- 年柱：丙辰）。【絕對禁止】使用 LaTeX、HTML 或表格排版（嚴禁出現 $$ 符號），否則系統會崩潰！
+1. 請保持高資訊密度，確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
+2. 呈現內容時，只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
 
 【零幻覺協議】：
-下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字！
+下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
 
 ${ragFocusText}
 
-請依序撰寫以下六大章節：
+請「嚴格按照以下標題結構與層級」撰寫報告，不要遺漏任何指定的子標題：
 
 ## 壹、基本資訊與先天定盤
-（完整列出 <FactData> 的 [基本資訊]。條列八字、星座、五行局、命/身主。定調一生格局。）
+### 一、 基本資訊
+（完整條列 <FactData> 的 [基本資訊]、八字、星座、五行局、命/身主，以及【命宮位置】與【身宮位置】。）
+### 二、 命格總論
+（用極具張力的文字定調一生格局。必須包含以下兩個子段落：）
+#### 1. 八字視角：
+（引經據典，詳細剖析日主強弱、喜用神受制情況，以及對性格與潛意識的影響。）
+#### 2. 紫微視角：
+（詳細剖析命宮、身宮主星化象，以及三方四正格局，點出事業與財富基調。）
 
 ## 貳、八字格局與專屬開運密碼
-（分析五行喜忌。給出專屬的【吉利數字】、【吉利方位】與【吉利顏色】。）
+### 一、 格局鑑定
+（精確鑑定八字格局，指出核心病灶或成敗關鍵。）
+### 二、 五行喜忌深度剖析
+（詳細列出：最喜用神、次喜用神、最忌仇神、次忌仇神、閒神，並說明學理依據與生活影響。）
+### 三、 專屬開運密碼
+（使用 Markdown 列表或簡易表格，明確給出專屬的【吉利數字】、【吉利方位】、【吉利顏色】與【開運珠寶】及現代生活應用指南。）
 
 ## 參、四柱神煞詳解與調候樞紐
-（解釋關鍵神煞對命運的影響與調候用神。）
+### 一、 調候樞紐分析
+（引用《窮通寶鑑》等，精準點出調候用神及其在現實生活中的意義。）
+### 二、 四柱神煞嚴謹推算與現代解讀
+（必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，逐一解釋其上的關鍵神煞對命運的影響。）
 
-## 肆、紫微斗數全景與特殊格局
-（剖析命宮、身宮。鑑定特殊格局。）
+## 肆、紫微斗數全景與核心宮位深度解析
+（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說，並鑑定特殊格局。）
 
 ## 伍、未來 10 年運勢推演
 （請使用純文字長條圖繪製未來 10 年運勢。
