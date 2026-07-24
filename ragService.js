@@ -101,15 +101,26 @@ function generateExactChartText(userData, currentDateStr) {
         const zodiacSign = solarWithTime.getXingZuo() + "座"; 
         const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
 
-        // 🟢 抓取稱骨與五行屬性
+        // 🟢 修復：改由 baziWithTime (EightChar) 抓取稱骨與五行屬性，避免 TypeError
         let weightStr = "系統運算中";
         let wuxingStr = "運算中";
         try {
-            const weightObj = lunar.getWeight();
-            if (weightObj) weightStr = typeof weightObj === 'string' ? weightObj : `${weightObj.weight}兩 (${weightObj.desc})`;
-            wuxingStr = `年柱[${baziWithTime.getYearWuXing()}] 月柱[${baziWithTime.getMonthWuXing()}] 日柱[${baziWithTime.getDayWuXing()}] 時柱[${baziWithTime.getTimeWuXing()}]`;
+            if (typeof baziWithTime.getYearWuXing === 'function') {
+                wuxingStr = `年柱[${baziWithTime.getYearWuXing()}] 月柱[${baziWithTime.getMonthWuXing()}] 日柱[${baziWithTime.getDayWuXing()}] 時柱[${baziWithTime.getTimeWuXing()}]`;
+            }
+            if (typeof baziWithTime.getWeight === 'function') {
+                const w = baziWithTime.getWeight();
+                // lunar-javascript 的 getWeight() 回傳整數代表「錢」的總和 (例：42 = 4兩2錢)
+                if (typeof w === 'number') {
+                    weightStr = Math.floor(w / 10) + "兩" + (w % 10) + "錢";
+                } else {
+                    weightStr = w.toString();
+                }
+            } else {
+                weightStr = "無法取得資料";
+            }
         } catch (e) {
-            console.error("五行或稱骨抓取失敗", e);
+            console.error("五行或稱骨抓取失敗:", e);
         }
 
         let palacesString = "";
