@@ -101,6 +101,17 @@ function generateExactChartText(userData, currentDateStr) {
         const zodiacSign = solarWithTime.getXingZuo() + "座"; 
         const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
 
+        // 🟢 抓取稱骨與五行屬性
+        let weightStr = "系統運算中";
+        let wuxingStr = "運算中";
+        try {
+            const weightObj = lunar.getWeight();
+            if (weightObj) weightStr = typeof weightObj === 'string' ? weightObj : `${weightObj.weight}兩 (${weightObj.desc})`;
+            wuxingStr = `年柱[${baziWithTime.getYearWuXing()}] 月柱[${baziWithTime.getMonthWuXing()}] 日柱[${baziWithTime.getDayWuXing()}] 時柱[${baziWithTime.getTimeWuXing()}]`;
+        } catch (e) {
+            console.error("五行或稱骨抓取失敗", e);
+        }
+
         let palacesString = "";
         if (astrolabe && astrolabe.palaces) {
             astrolabe.palaces.forEach(p => {
@@ -120,10 +131,12 @@ function generateExactChartText(userData, currentDateStr) {
 - 出生時辰：${userData.shi} (${exactHour === 0 ? 23 : exactHour - 1}:00 - ${exactHour === 0 ? 0 : exactHour}:59)
 - 性別：${userData.gender === '男' ? '乾造 (男命)' : '坤造 (女命)'}
 - 當前時空基準：${currentDateStr}
+- 袁天罡稱骨：${weightStr}
 
 [系統底層四柱八字]
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
+- 八字五行屬性：${wuxingStr}
 
 [系統底層紫微斗數]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
@@ -184,12 +197,10 @@ async function generateMasterResponse(question, mode = 'teaser') {
         console.log("[2/3] 準備檢索資料庫...");
         let contexts = "";
         
-        // 🟢 強化檢索指令：強制抓取紫微斗數 31 格局相關文獻
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
         
         if (queryEmbedding) {
-            // 🟢 將檢索筆數提升至 15，確保涵蓋到格局庫
             const searchResults = await index.query({ vector: queryEmbedding, topK: 15, includeMetadata: true });
             contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || match.metadata.text || '無'}`).join('\n\n');
         }
@@ -201,9 +212,12 @@ async function generateMasterResponse(question, mode = 'teaser') {
         const prompt = `
 你是一位精通命理的 AI 戰略家。
 
-【防斷尾與排版最高指令】：
-1. 請保持高資訊密度，確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
-2. 呈現內容時，只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
+【絕對一致性與防幻覺最高指令】（違反將導致系統崩潰，請 100% 遵守）：
+1. 運勢評分與推演 100% 鎖死：為達到每次生成結果完全一致，請嚴格依據大運流年五行與本命喜忌進行機械化對應。遇喜用神之年固定給 85-95 分，忌神年固定給 50-65 分。每年評語格式必須絕對統一為：「年份 | ██████░░░░ (分數) - [運勢關鍵字] 具體事件預測」。絕對禁止隨機更動評語與分數邏輯！
+2. 神煞與星曜 100% 防幻覺：紫微斗數「絕對不允許」出現 <FactData> 中未列出的星曜，嚴禁自行塞入陰煞、解神等任何未在列表中出現的輔星。四柱神煞僅允許依據排盤學理推導最基礎且必定的幾項（如：戊戌必見魁罡），嚴禁憑空捏造或隨機替換！
+3. 調候邏輯 100% 統一：在第三部分調候分析中，必須將原局五行狀態與缺失用神融合為單一結論。統一得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」，絕不允許產生前後矛盾、或每次不同的調候結論。
+4. 宮位 100% 完整保留：第肆部分的紫微斗數解析，必須「逐一且完整」地列出「財帛宮」、「官祿宮」、「遷移宮」、「夫妻宮」，缺一不可！
+5. 排版禁令：呈現內容時只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
 
 【零幻覺協議】：
 下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
@@ -214,7 +228,7 @@ ${ragFocusText}
 
 ## 壹、基本資訊與先天定盤
 ### 一、 基本資訊
-（完整條列 <FactData> 的 [基本資訊]、八字、星座、五行局、命/身主，以及【命宮位置】與【身宮位置】。）
+（必須以列表形式，完整列出 <FactData> 中的所有資訊，包含：出生地、公農曆、時辰、性別、星座、八字干支、【八字五行屬性】、【袁天罡稱骨】、五行局、命/身主、命/身宮位置。絕不可遺漏任何一項！）
 ### 二、 命格總論
 （用極具張力的文字定調一生格局。必須包含以下兩個子段落：）
 #### 1. 八字視角：
@@ -228,22 +242,20 @@ ${ragFocusText}
 ### 二、 五行喜忌深度剖析
 （詳細列出：最喜用神、次喜用神、最忌仇神、次忌仇神、閒神，並說明學理依據與生活影響。）
 ### 三、 專屬開運密碼
-（使用 Markdown 列表或簡易表格，明確給出專屬的【吉利數字】、【吉利方位】、【吉利顏色】與【開運珠寶】及現代生活應用指南。）
+（使用 Markdown 列表，明確給出專屬的【吉利數字】、【吉利方位】、【吉利顏色】與【開運珠寶】及現代生活應用指南。）
 
 ## 參、四柱神煞詳解與調候樞紐
 ### 一、 調候樞紐分析
-（引用《窮通寶鑑》等，精準點出調候用神及其在現實生活中的意義。）
+（嚴格遵守【指令3】，精準點出調候用神及其在現實生活中的統一意義。）
 ### 二、 四柱神煞嚴謹推算與現代解讀
-（必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，逐一解釋其上的關鍵神煞對命運的影響。）
+（必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，遵守【指令2】逐一解釋其上的關鍵神煞對命運的影響。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說。
-【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局（例如：府相朝垣、機月同梁、巨機同臨等），並深入解析該格局的成敗與威力。）
+（嚴格遵守【指令4】，必須包含並詳細解析以下四大宮位，缺一不可：「財帛宮」、「官祿宮」、「遷移宮」、「夫妻宮」。
+【格局鑑定重點】：從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局，並深入解析。）
 
 ## 伍、未來 10 年運勢推演
-（請使用純文字長條圖繪製未來 10 年運勢。
-格式範例：
-2026年 | ████████░░ (80分) - [簡評]
+（請嚴格遵守【指令1】，使用純文字長條圖繪製未來 10 年運勢。
 請連續寫滿 10 年，畫完後進行大勢推演。）
 
 ## 陸、大師戰略行動指南
@@ -270,7 +282,14 @@ ${contexts}
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
-            safetySettings: safetySettings
+            safetySettings: safetySettings,
+            // 🟢 強制鎖死輸出的一致性，將隨機性降至絕對最低，確保每次報告論述與評分高度統一
+            generationConfig: {
+                temperature: 0.0,
+                topK: 1,
+                topP: 0.1,
+                maxOutputTokens: 8192
+            }
         });
         
         const result = await model.generateContent(prompt);
