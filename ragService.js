@@ -2,7 +2,7 @@ require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
-// 🟢 引入兩大數學曆法排盤引擎
+// 🟢 引入兩大數學曆法排盤引擎 (徹底消滅 AI 幻覺)
 const { Solar } = require('lunar-javascript');
 const { astro } = require('iztro');
 const locationsData = require('./locations.js');
@@ -66,25 +66,6 @@ function extractUserData(question) {
     };
 }
 
-// 🟢 內建五行屬性轉換矩陣
-function getGanZhiWuXing(gz) {
-    const gan = { "甲":"木", "乙":"木", "丙":"火", "丁":"火", "戊":"土", "己":"土", "庚":"金", "辛":"金", "壬":"水", "癸":"水" };
-    const zhi = { "子":"水", "丑":"土", "寅":"木", "卯":"木", "辰":"土", "巳":"火", "午":"火", "未":"土", "申":"金", "酉":"金", "戌":"土", "亥":"水" };
-    if(!gz || gz.length < 2) return "未知";
-    return (gan[gz[0]]||"") + (zhi[gz[1]]||"");
-}
-
-// 🟢 內建袁天罡稱骨完整矩陣
-function calculateBoneWeight(yearIndex, month, day, shiZhi) {
-    const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
-    const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
-    const dayW = [0, 5,10,8,15,16,15,8,16,8,16,9,17,8,17,10,8,9,18,5,15,10,9,8,9,15,18,7,8,16,6];
-    const shiW = { "子":16, "丑":6, "寅":7, "卯":10, "辰":9, "巳":16, "午":10, "未":8, "申":8, "酉":9, "戌":6, "亥":6 };
-    
-    let total = yearW[yearIndex] + monthW[month] + dayW[day] + (shiW[shiZhi] || 0);
-    return Math.floor(total / 10) + "兩" + (total % 10) + "錢";
-}
-
 function getRagFocus(questionStr) {
     if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽")) {
         return "【專屬分析重點】：評估事業格局與成就上限。精準點出事業轉折時機，並給出職場防小人與最契合的天賦行業方向。";
@@ -97,6 +78,23 @@ function getRagFocus(questionStr) {
     } else {
         return "【專屬分析重點】：梳理十年起伏軌跡，畫出黃金爆發期與低谷期。面對人生重大抉擇，給出利弊對比與風險提示。";
     }
+}
+
+// 🟢 內建獲取單一五行屬性 (日元天干五行)
+function getDayMasterElement(dayGan) {
+    const elements = { "甲":"木", "乙":"木", "丙":"火", "丁":"火", "戊":"土", "己":"土", "庚":"金", "辛":"金", "壬":"水", "癸":"水" };
+    return elements[dayGan] || "未知";
+}
+
+// 🟢 內建袁天罡稱骨演算法 (防 Library 版本報錯)
+function calculateBoneWeight(yearIndex, month, day, shiZhi) {
+    const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
+    const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
+    const dayW = [0, 5,10,8,15,16,15,8,16,8,16,9,17,8,17,10,8,9,18,5,15,10,9,8,9,15,18,7,8,16,6];
+    const shiW = { "子":16, "丑":6, "寅":7, "卯":10, "辰":9, "巳":16, "午":10, "未":8, "申":8, "酉":9, "戌":6, "亥":6 };
+    
+    let total = yearW[yearIndex] + monthW[month] + dayW[day] + (shiW[shiZhi] || 0);
+    return Math.floor(total / 10) + "兩" + (total % 10) + "錢";
 }
 
 const shiToIndex = { "子": 0, "丑": 1, "寅": 2, "卯": 3, "辰": 4, "巳": 5, "午": 6, "未": 7, "申": 8, "酉": 9, "戌": 10, "亥": 11 };
@@ -118,20 +116,15 @@ function generateExactChartText(userData, currentDateStr) {
         const lunarDateStr = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}日`;
         const baziWithTime = lunar.getEightChar();
         const zodiacSign = solarWithTime.getXingZuo() + "座"; 
-        
-        const yGz = baziWithTime.getYear();
-        const mGz = baziWithTime.getMonth();
-        const dGz = baziWithTime.getDay();
-        const tGz = baziWithTime.getTime();
-        const baziString = `年柱：${yGz}，月柱：${mGz}，日柱：${dGz}，時柱：${tGz}`;
+        const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
 
-        const wuxingStr = `年柱[${getGanZhiWuXing(yGz)}] 月柱[${getGanZhiWuXing(mGz)}] 日柱[${getGanZhiWuXing(dGz)}] 時柱[${getGanZhiWuXing(tGz)}]`;
+        // 🟢 精確計算袁天罡稱骨與本命單一五行
+        const dayGan = baziWithTime.getDay().charAt(0);
+        const baziElement = getDayMasterElement(dayGan);
         
-        const lunarMonth = lunar.getMonth();
-        const lunarDay = lunar.getDay();
-        const yearIndex = lunar.getYearGanZhiExact ? lunar.getYear() : (lunar.getYear() - 1984) % 60;
+        const yearIndex = (lunar.getYear() - 1984) % 60;
         const normalizedYearIndex = yearIndex < 0 ? yearIndex + 60 : yearIndex; 
-        const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunarMonth), lunarDay, userData.shi.charAt(0));
+        const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunar.getMonth()), lunar.getDay(), userData.shi.charAt(0));
 
         let palacesString = "";
         if (astrolabe && astrolabe.palaces) {
@@ -152,12 +145,12 @@ function generateExactChartText(userData, currentDateStr) {
 - 出生時辰：${userData.shi} (${exactHour === 0 ? 23 : exactHour - 1}:00 - ${exactHour === 0 ? 0 : exactHour}:59)
 - 性別：${userData.gender === '男' ? '乾造 (男命)' : '坤造 (女命)'}
 - 當前時空基準：${currentDateStr}
-- 袁天罡稱骨：${weightStr}
 
 [系統底層四柱八字]
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
-- 八字五行屬性：${wuxingStr}
+- 八字五行屬性：${baziElement}
+- 袁天罡稱骨：${weightStr}
 
 [系統底層紫微斗數]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
@@ -173,13 +166,14 @@ ${palacesString}
     }
 }
 
+// 🟢 極簡靜默向量轉換
 async function generateEmbeddings(text) {
     try {
         const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
         const result = await embeddingModel.embedContent(text);
         return result.embedding.values;
     } catch (error) {
-        return null; 
+        return null; // 靜默略過，直接使用基礎大腦
     }
 }
 
@@ -189,12 +183,8 @@ async function generateEmbeddings(text) {
 async function generateMasterResponse(question, mode = 'teaser') {
     try {
         const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentDateStr = `${currentYear}年${today.getMonth() + 1}月${today.getDate()}日`;
+        const currentDateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
-        
-        // 計算命主當前年齡
-        const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -206,7 +196,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
                 if (watchTime) {
                     timeWarning += `系統偵測您的出生地為「${userData.city}」。因地球自轉與地理經緯度影響，當地真正的「${userData.shi}」對應鐘錶時間為 <strong style="color:#38bdf8;">${watchTime}</strong>。請於解鎖前確認您確實出生於此時間段內。`;
                 } else {
-                    timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。請於解鎖前確認您的出生時辰精確無誤。`;
+                    timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。地理位置往往有 15-20 分鐘誤差，請於解鎖前確認您的出生時辰精確無誤。`;
                 }
             } else {
                 timeWarning += `本系統將依據您的出生地啟動「真太陽時」校正。請確認出生時辰精確無誤。`;
@@ -221,10 +211,12 @@ async function generateMasterResponse(question, mode = 'teaser') {
         console.log("[2/3] 準備檢索資料庫...");
         let contexts = "";
         
+        // 🟢 強化檢索指令：強制抓取紫微斗數 31 格局相關文獻
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
         
         if (queryEmbedding) {
+            // 🟢 將檢索筆數提升至 15，確保涵蓋到格局庫
             const searchResults = await index.query({ vector: queryEmbedding, topK: 15, includeMetadata: true });
             contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || match.metadata.text || '無'}`).join('\n\n');
         }
@@ -234,38 +226,28 @@ async function generateMasterResponse(question, mode = 'teaser') {
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
         const prompt = `
-你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
+你是一位精通命理的 AI 戰略家。
 
-【客製化與語氣設定】（展現生成靈活性）：
-- 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'} ${userData.city || '未知'}。
-- 語言風格：請使用符合其出生地文化背景、通俗易懂的現代語言。將艱澀的古籍文言文翻譯成現代人能秒懂的職場與生活情境。在給出人生建議時，請務必切合 ${age} 歲這個年齡段會面臨的實際人生、財務與職涯處境。
-
-【數據鐵律與防幻覺機制】（底層數據必須絕對嚴謹）：
-1. 神煞與星曜防幻覺：紫微斗數「絕對不允許」出現 <FactData> 中未列出的星曜。四柱神煞請嚴格依據曆法學理推導最基礎且必定的幾項，嚴禁憑空捏造。
-2. 調候邏輯：在調候分析中，必須結合原局五行狀態，並得出統一結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」。
-3. 運勢評分標準：未來 10 年運勢，遇喜用神之年固定給 85-95 分，忌神年固定給 50-65 分。
-
-【排版與生成安全規範】（防止斷尾與排版崩潰）：
-1. 完整性：必須一氣呵成寫完全部六大章節，請盡情展開詳細論述，絕對不可中途斷尾。
-2. 標題排版警告：標題（##, ###）必須獨立成行，【絕對禁止】將 Markdown 標題放在項目符號（* 或 -）內部！這會導致系統排版崩潰！
-3. 格式限制：僅允許使用 Markdown 標題與列表。嚴禁使用 HTML 或 LaTeX (嚴禁 $$ 符號)。
+【防斷尾與排版最高指令】：
+1. 請保持高資訊密度，確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
+2. 呈現內容時，只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
 
 【零幻覺協議】：
-下方 <FactData> 區塊是客觀排盤事實，請 100% 照抄，嚴禁自己篡改八字、宮位、稱骨重量與五行屬性！
+下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
 
 ${ragFocusText}
 
-請「嚴格按照以下標題結構與層級」撰寫，缺一不可：
+請「嚴格按照以下標題結構與層級」撰寫報告，不要遺漏任何指定的子標題：
 
 ## 壹、基本資訊與先天定盤
 ### 一、 基本資訊
-（必須以列表形式，完整列出 <FactData> 中的所有資訊，包含：出生地、公農曆、時辰、性別、星座、八字干支、【八字五行屬性】、【袁天罡稱骨】、五行局、命/身主、命/身宮位置。絕不可遺漏！）
+（完整條列 <FactData> 的 [基本資訊]、八字、星座、五行局、命/身主，以及【命宮位置】與【身宮位置】，務必包含【八字五行屬性】與【袁天罡稱骨】。）
 ### 二、 命格總論
-（用符合命主 ${age} 歲心境的文字定調一生格局。包含：）
+（用極具張力的文字定調一生格局。必須包含以下兩個子段落：）
 #### 1. 八字視角：
-（剖析日主強弱、喜用神受制情況，以及對性格與潛意識的影響。）
+（引經據典，詳細剖析日主強弱、喜用神受制情況，以及對性格與潛意識的影響。）
 #### 2. 紫微視角：
-（剖析命宮、身宮化象及三方四正格局，點出事業與財富基調。）
+（詳細剖析命宮、身宮主星化象，以及三方四正格局，點出事業與財富基調。）
 
 ## 貳、八字格局與專屬開運密碼
 ### 一、 格局鑑定
@@ -273,23 +255,26 @@ ${ragFocusText}
 ### 二、 五行喜忌深度剖析
 （詳細列出：最喜用神、次喜用神、最忌仇神、次忌仇神、閒神，並說明學理依據與生活影響。）
 ### 三、 專屬開運密碼
-（給出專屬的【吉利數字】、【吉利方位】、【吉利顏色】與【開運珠寶】及生活應用指南。）
+（使用 Markdown 列表或簡易表格，明確給出專屬的【吉利數字】、【吉利方位】、【吉利顏色】與【開運珠寶】及現代生活應用指南。）
 
 ## 參、四柱神煞詳解與調候樞紐
 ### 一、 調候樞紐分析
-（精準點出調候用神，並嚴格置入前述要求的現代商業策略結論。）
+（引用《窮通寶鑑》等，精準點出調候用神及其在現實生活中的意義。）
 ### 二、 四柱神煞嚴謹推算與現代解讀
-（分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，解釋關鍵神煞對命運的影響。）
+（必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，逐一解釋其上的關鍵神煞對命運的影響。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（必須包含並詳細解析：「財帛宮」、「官祿宮」、「遷移宮」、「夫妻宮」。從文獻中比對紫微斗數 31 種標準格局，明確鑑定符合哪些特殊格局並深入解析。）
+（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說。
+【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局（例如：府相朝垣、機月同梁、巨機同臨等），並深入解析該格局的成敗與威力。）
 
 ## 伍、未來 10 年運勢推演
 （請使用純文字長條圖繪製未來 10 年運勢。
-格式範例：2026年 | ████████░░ (80分) - [運勢關鍵字] 具體事件預測。請連續寫滿 10 年並進行大勢推演。）
+格式範例：
+2026年 | ████████░░ (80分) - [簡評]
+請連續寫滿 10 年，畫完後進行大勢推演。）
 
 ## 陸、大師戰略行動指南
-（請給出切合其 ${age} 歲現狀的務實避險與進攻策略。寫完此段即完成報告。）
+（給出務實的避險與進攻策略。寫完此段即完成報告。）
 
 <ClientData>
 ${question}
@@ -312,13 +297,7 @@ ${contexts}
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
-            safetySettings: safetySettings,
-            // 🟢 恢復 0.5 溫度：讓文字生成順暢、不卡頓，同時依靠強大的 Prompt 守住數據分析底線
-            generationConfig: {
-                temperature: 0.5,
-                topP: 0.9,
-                maxOutputTokens: 8192
-            }
+            safetySettings: safetySettings
         });
         
         const result = await model.generateContent(prompt);
