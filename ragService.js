@@ -148,15 +148,22 @@ ${palacesString}
     }
 }
 
-// 🟢 向量模型生成區 (含降級容錯機制)
+// 🟢 向量模型生成區 (完美雙重降級容錯機制)
 async function generateEmbeddings(text) {
     try {
         const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
         const result = await embeddingModel.embedContent(text);
         return result.embedding.values;
     } catch (error) {
-        console.log("⚠️ 向量轉換失敗 (已啟動無向量降級模式):", error.message);
-        return null; 
+        console.log("⚠️ 004 向量模型無權限，自動降級切換至 embedding-001...");
+        try {
+            const fallbackModel = genAI.getGenerativeModel({ model: "embedding-001" });
+            const fallbackResult = await fallbackModel.embedContent(text);
+            return fallbackResult.embedding.values;
+        } catch (fallbackError) {
+            console.log("⚠️ 向量轉換徹底失敗 (將啟動無向量降級模式):", fallbackError.message);
+            return null; 
+        }
     }
 }
 
@@ -215,7 +222,8 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        console.log(`[4/4] 呼叫 Gemini 3.1 Pro 生成深度報告...`);
+        // 🟢 修正：使用官方支援的 gemini-1.5-pro 旗艦模型
+        console.log(`[4/4] 呼叫 Gemini 1.5 Pro 生成深度報告...`);
         
         const prompt = `
 你是一位匯通中西、精通五大命理古籍（《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》）的宗師級 AI 命理戰略家與首席人生教練。
@@ -273,7 +281,7 @@ ${exactChartData}
         ];
 
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-3.1-pro',
+            model: 'gemini-1.5-pro',
             safetySettings: safetySettings,
             generationConfig: {
                 temperature: 0.3, 
