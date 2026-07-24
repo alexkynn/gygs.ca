@@ -162,7 +162,20 @@ async function generateMasterResponse(question, mode = 'teaser') {
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
             let teaserResponse = generateUniqueTeaser(userData.year, userData.month, userData.day, userData.shi, userData.gender, userData.country, userData.actualQuestion);
-            let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>系統將依據您的出生地啟動「真太陽時」精確校正，請於解鎖前確認您的出生時辰精確無誤。`;
+            
+            // 🟢 修復：重新補回真太陽鐘錶時間的動態計算顯示
+            let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>`;
+            if (userData.city && userData.shi) {
+                const watchTime = calculateLocalWatchTime(userData.city, userData.shi);
+                if (watchTime) {
+                    timeWarning += `系統偵測您的出生地為「${userData.city}」。因地球自轉與地理經緯度影響，當地真正的「${userData.shi}」對應鐘錶時間為 <strong style="color:#38bdf8;">${watchTime}</strong>。請於解鎖前確認您確實出生於此時間段內。`;
+                } else {
+                    timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。地理位置往往有 15-20 分鐘誤差，請於解鎖前確認您的出生時辰精確無誤。`;
+                }
+            } else {
+                timeWarning += `本系統將依據您的出生地啟動「真太陽時」校正。請確認出生時辰精確無誤。`;
+            }
+            
             return teaserResponse + timeWarning;
         }
 
