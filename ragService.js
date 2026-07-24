@@ -163,7 +163,6 @@ async function generateMasterResponse(question, mode = 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
             let teaserResponse = generateUniqueTeaser(userData.year, userData.month, userData.day, userData.shi, userData.gender, userData.country, userData.actualQuestion);
             
-            // 🟢 修復：重新補回真太陽鐘錶時間的動態計算顯示
             let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>`;
             if (userData.city && userData.shi) {
                 const watchTime = calculateLocalWatchTime(userData.city, userData.shi);
@@ -184,12 +183,15 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         console.log("[2/3] 準備檢索資料庫...");
         let contexts = "";
-        const enhanceQuery = `${userData.actualQuestion} 八字格局 調候用神 紫微斗數 命宮 財官 吉凶`;
+        
+        // 🟢 強化檢索指令：強制抓取紫微斗數 31 格局相關文獻
+        const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
         
         if (queryEmbedding) {
-            const searchResults = await index.query({ vector: queryEmbedding, topK: 10, includeMetadata: true });
-            contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || '無'}`).join('\n\n');
+            // 🟢 將檢索筆數提升至 15，確保涵蓋到格局庫
+            const searchResults = await index.query({ vector: queryEmbedding, topK: 15, includeMetadata: true });
+            contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || match.metadata.text || '無'}`).join('\n\n');
         }
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
@@ -235,7 +237,8 @@ ${ragFocusText}
 （必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，逐一解釋其上的關鍵神煞對命運的影響。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說，並鑑定特殊格局。）
+（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說。
+【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局（例如：府相朝垣、機月同梁、巨機同臨等），並深入解析該格局的成敗與威力。）
 
 ## 伍、未來 10 年運勢推演
 （請使用純文字長條圖繪製未來 10 年運勢。
@@ -253,6 +256,9 @@ ${question}
 <FactData>
 ${exactChartData}
 </FactData>
+
+【Pinecone 檢索之五大古籍文獻參考】：
+${contexts}
         `;
 
         const safetySettings = [
