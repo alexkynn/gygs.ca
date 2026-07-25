@@ -183,8 +183,12 @@ async function generateEmbeddings(text) {
 async function generateMasterResponse(question, mode = 'teaser') {
     try {
         const today = new Date();
-        const currentDateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+        const currentYear = today.getFullYear();
+        const currentDateStr = `${currentYear}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
+        
+        // 🟢 動態計算命主當前真實年齡
+        const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -225,15 +229,20 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
+        // 🟢 更新 Prompt：加入客製化語氣設定，同時鎖死底層數據防幻覺
         const prompt = `
-你是一位精通命理的 AI 戰略家。
+你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
+
+【客製化與語氣設定】（展現生成靈活性）：
+- 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'}。
+- 語言風格：請使用符合其出生國家文化背景、通俗易懂的現代語言。將艱澀的古籍文言文轉化為該國籍人士能秒懂的職場與生活情境。在給出人生建議與大勢推演時，請務必強烈貼合 ${age} 歲這個年齡段與其性別會面臨的真實人生、財務與職涯處境。
 
 【防斷尾與排版最高指令】：
 1. 請保持高資訊密度，確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
 2. 呈現內容時，只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
 
-【零幻覺協議】：
-下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
+【零幻覺協議】（底層數據分析嚴守鐵律）：
+下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字、宮位位置、五行屬性與稱骨重量！所有星曜與神煞的分析，必須嚴格基於 <FactData> 提供的數據，絕不可無中生有或隨機增減（如嚴禁自行發明陰煞、解神等）。
 
 ${ragFocusText}
 
@@ -243,7 +252,7 @@ ${ragFocusText}
 ### 一、 基本資訊
 （完整條列 <FactData> 的 [基本資訊]、八字、星座、五行局、命/身主，以及【命宮位置】與【身宮位置】，務必包含【八字五行屬性】與【袁天罡稱骨】。）
 ### 二、 命格總論
-（用極具張力的文字定調一生格局。必須包含以下兩個子段落：）
+（用符合命主 ${age} 歲心境且極具張力的文字定調一生格局。必須包含以下兩個子段落：）
 #### 1. 八字視角：
 （引經據典，詳細剖析日主強弱、喜用神受制情況，以及對性格與潛意識的影響。）
 #### 2. 紫微視角：
@@ -274,7 +283,7 @@ ${ragFocusText}
 請連續寫滿 10 年，畫完後進行大勢推演。）
 
 ## 陸、大師戰略行動指南
-（給出務實的避險與進攻策略。寫完此段即完成報告。）
+（給出切合其 ${age} 歲與性別現狀的務實避險與進攻策略。寫完此段即完成報告。）
 
 <ClientData>
 ${question}
