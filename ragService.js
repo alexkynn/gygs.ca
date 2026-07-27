@@ -86,7 +86,7 @@ function getDayMasterElement(dayGan) {
     return elements[dayGan] || "未知";
 }
 
-// 🟢 內建袁天罡稱骨演算法 (防 Library 版本報錯)
+// 🟢 內建袁天罡稱骨演算法 (支援男命與女命判定)
 function calculateBoneWeight(yearIndex, month, day, shiZhi) {
     const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
     const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
@@ -150,7 +150,7 @@ function generateExactChartText(userData, currentDateStr) {
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
 - 八字五行屬性：${baziElement}
-- 袁天罡稱骨：${weightStr}
+- 袁天罡稱骨：${weightStr} (${userData.gender === '男' ? '男命' : '女命'})
 
 [系統底層紫微斗數]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
@@ -180,8 +180,7 @@ async function generateEmbeddings(text) {
 // ==========================================
 // 核心路由生成區
 // ==========================================
-// 🟢 支援 server.js 傳入 userEmail 參數以提取名稱，確保客製化開場白
-async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
+async function generateMasterResponse(question, mode = 'teaser') {
     try {
         const today = new Date();
         const currentYear = today.getFullYear();
@@ -190,14 +189,6 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         
         // 🟢 動態計算命主當前真實年齡
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
-
-        // 🟢 智能提取 Email 前綴 (支援第三參數傳入，或自動從問題字串中提取)
-        let extractedEmail = userEmail;
-        if (!extractedEmail) {
-            const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
-            if (emailMatch) extractedEmail = emailMatch[1];
-        }
-        const emailPrefix = (extractedEmail && extractedEmail.includes('@')) ? extractedEmail.split('@')[0] : '朋友';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -238,7 +229,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
-        // 🟢 更新 Prompt：強化「數據 100% 綁定」的防幻覺鐵律
+        // 🟢 更新 Prompt：加入性別稱骨歌訣對應指令
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
@@ -246,24 +237,15 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 - 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'}。
 - 語言風格：請使用符合其出生國家文化背景、通俗易懂的現代語言。將艱澀的古籍文言文轉化為該國籍人士能秒懂的職場與生活情境。在給出人生建議與大勢推演時，請務必強烈貼合 ${age} 歲這個年齡段與其性別會面臨的真實人生、財務與職涯處境。
 
-【零幻覺協議】（底層數據分析 100% 鎖死，絕不妥協）：
-1. 數據唯一性：下方 <FactData> 區塊是唯一且絕對精確的排盤事實。你「絕對不可以」自行重新排盤、推算或腦補。
-2. 全文貫穿：從第一章到第六章的每一項分析，都必須 100% 綁定並直接引用 <FactData> 裡的具體干支（如月柱）、宮位星曜、五行屬性與稱骨重量作為論述證據。
-3. 嚴禁無中生有：嚴禁在推演中替換日主、篡改五行，或發明未出現在 <FactData> 中的紫微星曜（絕對禁止亂塞陰煞、解神、天巫等未列出的輔星）。
-4. 稱骨解讀：必須嚴格根據 <FactData> 中的性別（男命或女命）調用對應的稱骨歌訣（讖語），絕不可將男命歌訣張冠李戴到女命身上。
+【稱骨與數據零幻覺鐵律】：
+- 袁天罡稱骨解讀：必須嚴格根據 <FactData> 中的性別（男命或女命）來調用對應的稱骨歌訣（讖語），**絕不可將男命歌訣張冠李戴到女命身上（或反之）**。若需引用詩句，必須 100% 符合該性別的傳統稱骨批語。
 
 【防斷尾與排版最高指令】：
 1. 請保持高資訊密度，確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
 2. 呈現內容時，只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
-3. **強制開場白**：在報告的最開頭（大標題之前），請務必一字不漏地輸出以下文字作為開場：
-先天命盤大批・流年專屬藍圖
-融合《滴天髓》・《三命通會》・《子平真詮》・《窮通寶鑑》・《紫微斗數全書》
-親愛的${emailPrefix}，您好：
-感謝您的付費解鎖。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖：
 
-<FactData>
-${exactChartData}
-</FactData>
+【零幻覺協議】：
+下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
 
 ${ragFocusText}
 
@@ -275,13 +257,13 @@ ${ragFocusText}
 ### 二、 命格總論
 （用符合命主 ${age} 歲心境且極具張力的文字定調一生格局。必須包含以下兩個子段落：）
 #### 1. 八字視角：
-（引經據典，並基於 <FactData> 中的日主與干支，詳細剖析強弱、喜用神受制情況，以及對性格與潛意識的影響。）
+（引經據典，詳細剖析日主強弱、喜用神受制情況，以及對性格與潛意識的影響。）
 #### 2. 紫微視角：
-（100% 基於 <FactData> 所列之星曜，詳細剖析命宮、身宮主星化象，以及三方四正格局，點出事業與財富基調。）
+（詳細剖析命宮、身宮主星化象，以及三方四正格局，點出事業與財富基調。）
 
 ## 貳、八字格局與專屬開運密碼
 ### 一、 格局鑑定
-（基於 <FactData> 中確實存在的干支，精確鑑定八字格局，指出核心病灶或成敗關鍵。）
+（精確鑑定八字格局，指出核心病灶或成敗關鍵。）
 ### 二、 五行喜忌深度剖析
 （詳細列出：最喜用神、次喜用神、最忌仇神、次忌仇神、閒神，並說明學理依據與生活影響。）
 ### 三、 專屬開運密碼
@@ -291,11 +273,11 @@ ${ragFocusText}
 ### 一、 調候樞紐分析
 （引用《窮通寶鑑》等，精準點出調候用神及其在現實生活中的意義。）
 ### 二、 四柱神煞嚴謹推算與現代解讀
-（必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，嚴格根據 <FactData> 確有的干支，逐一解釋其上的關鍵神煞對命運的影響。）
+（必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，逐一解釋其上的關鍵神煞對命運的影響。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（100% 基於 <FactData> 確實列出的星曜，針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的解說。
-【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局，並深入解析該格局的成敗與威力。若不符合絕不硬湊。）
+（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說。
+【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局（例如：府相朝垣、機月同梁、巨機同臨等），並深入解析該格局的成敗與威力。）
 
 ## 伍、未來 10 年運勢推演
 （請使用純文字長條圖繪製未來 10 年運勢。
@@ -310,6 +292,10 @@ ${ragFocusText}
 ${question}
 </ClientData>
 
+<FactData>
+${exactChartData}
+</FactData>
+
 【Pinecone 檢索之五大古籍文獻參考】：
 ${contexts}
         `;
@@ -323,12 +309,7 @@ ${contexts}
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
-            safetySettings: safetySettings,
-            generationConfig: {
-                temperature: 0.5,
-                topP: 0.9,
-                maxOutputTokens: 8192
-            }
+            safetySettings: safetySettings
         });
         
         const result = await model.generateContent(prompt);
