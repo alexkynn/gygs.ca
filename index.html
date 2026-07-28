@@ -253,7 +253,7 @@
                         </div>
                     </div>
 
-                    <!-- 🟢 新增：婚姻與子女狀態區塊 -->
+                    <!-- 🟢 更新：婚姻與子女狀態區塊 (改用下拉選單) -->
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填)</label>
@@ -266,8 +266,33 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="childrenStatus" class="form-label text-light">子女狀況 (選填)</label>
-                            <input type="text" class="form-control" id="childrenStatus" placeholder="例如：無、2、1男1女">
+                            <label class="form-label text-light">子女狀況 (選填)</label>
+                            <div class="d-flex gap-2">
+                                <select class="form-select text-center" id="childrenBoy">
+                                    <option value="0" selected>0 男</option>
+                                    <option value="1">1 男</option>
+                                    <option value="2">2 男</option>
+                                    <option value="3">3 男</option>
+                                    <option value="4">4 男</option>
+                                    <option value="5">5 男</option>
+                                    <option value="6">6 男</option>
+                                    <option value="7">7 男</option>
+                                    <option value="8">8 男</option>
+                                    <option value="9">9 男</option>
+                                </select>
+                                <select class="form-select text-center" id="childrenGirl">
+                                    <option value="0" selected>0 女</option>
+                                    <option value="1">1 女</option>
+                                    <option value="2">2 女</option>
+                                    <option value="3">3 女</option>
+                                    <option value="4">4 女</option>
+                                    <option value="5">5 女</option>
+                                    <option value="6">6 女</option>
+                                    <option value="7">7 女</option>
+                                    <option value="8">8 女</option>
+                                    <option value="9">9 女</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -491,6 +516,21 @@
         }
     });
 
+    // 🟢 輔助函數：組合子女字串
+    function getChildrenStatusString() {
+        const boyCount = document.getElementById('childrenBoy').value;
+        const girlCount = document.getElementById('childrenGirl').value;
+        
+        if (boyCount === "0" && girlCount === "0") {
+            return "無子女";
+        }
+        
+        let result = "";
+        if (boyCount !== "0") result += `${boyCount}男`;
+        if (girlCount !== "0") result += `${girlCount}女`;
+        return result;
+    }
+
     document.getElementById('ask-chart-form').addEventListener('submit', async function(e) {
         e.preventDefault(); 
         
@@ -516,11 +556,11 @@
         
         const questionText = document.getElementById('question').value;
         
-        // 🟢 獲取新增的家庭狀態
+        // 🟢 獲取家庭狀態與組合子女字串
         const marriageVal = document.getElementById('marriageStatus').value;
-        const childrenVal = document.getElementById('childrenStatus').value || '未提供';
+        const childrenVal = getChildrenStatusString();
 
-        // 🟢 將完整且精確的資料打包送給後端 Teaser 模式 (精準對齊 Regex)
+        // 🟢 將完整且精確的資料打包送給後端 Teaser 模式
         const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}, 婚姻:${marriageVal}, 子女:${childrenVal}\n【來訪者提問】：${questionText}`;
 
         try {
@@ -568,9 +608,9 @@
         const gender = document.querySelector('input[name="gender"]:checked').value;
         const question = document.getElementById('question').value;
         
-        // 🟢 獲取新增的家庭狀態
+        // 🟢 獲取家庭狀態與組合子女字串
         const marriageVal = document.getElementById('marriageStatus').value;
-        const childrenVal = document.getElementById('childrenStatus').value || '未提供';
+        const childrenVal = getChildrenStatusString();
         
         // 🟢 更新 birthData 以包含婚姻與子女狀態
         const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}, 婚姻:${marriageVal}, 子女:${childrenVal}`;
