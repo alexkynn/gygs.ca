@@ -253,7 +253,7 @@
                         </div>
                     </div>
 
-                    <!-- 🟢 更新：婚姻與子女狀態區塊 (改用下拉選單) -->
+                    <!-- 🟢 家庭現狀：婚姻與子女狀態區塊 -->
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填)</label>
@@ -629,14 +629,12 @@
             const data = await response.json();
             
             if (data.success && data.checkoutUrl) {
-                // 🟢 【新增】在跳轉前，把現在的預告結果和表單狀態存起來
                 const currentState = {
                     teaserHtml: document.getElementById('analysis-text').innerHTML,
                     email: emailInput
                 };
                 sessionStorage.setItem('gygs_state', JSON.stringify(currentState));
 
-                // 跳轉到 Lemon Squeezy
                 window.location.href = data.checkoutUrl;
             } else {
                 alert("建立結帳通道時遇到阻礙：" + data.message);
