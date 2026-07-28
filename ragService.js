@@ -45,7 +45,7 @@ function calculateLocalWatchTime(cityName, shiName) {
     return `${formatTime(shi.start, offset)} - ${formatTime(shi.end, offset)}`;
 }
 
-// 🟢 精準提取使用者資料（包含新增的婚姻與子女）
+// 🟢 精準提取使用者資料（包含婚姻與子女）
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
     const shiMatch = question.match(/時辰[:：]?(.)時/);
@@ -182,7 +182,8 @@ function generateExactChartText(userData, currentDateStr) {
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
 - 八字五行屬性：${baziElement}
-- 袁天罡稱骨：${weightStr} (${genderStr}) - 專屬讖語：「${weightPoem}」
+- 袁天罡稱骨：${weightStr} (${genderStr})
+- 專屬讖語：「${weightPoem}」
 
 [系統底層紫微斗數]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
@@ -218,7 +219,6 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         const currentDateStr = `${currentYear}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
         
-        // 🟢 動態計算命主當前真實年齡
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
 
         // 🟢 提取 Email 前綴 (客製化開場白使用)
@@ -239,7 +239,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
                 if (watchTime) {
                     timeWarning += `系統偵測您的出生地為「${userData.city}」。因地球自轉與地理經緯度影響，當地真正的「${userData.shi}」對應鐘錶時間為 <strong style="color:#38bdf8;">${watchTime}</strong>。請於解鎖前確認您確實出生於此時間段內。`;
                 } else {
-                    timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。請於解鎖前確認您的出生時辰精確無誤。`;
+                    timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。地理位置往往有 15-20 分鐘誤差，請於解鎖前確認您的出生時辰精確無誤。`;
                 }
             } else {
                 timeWarning += `本系統將依據您的出生地啟動「真太陽時」校正。請確認出生時辰精確無誤。`;
@@ -266,24 +266,24 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
-        // 🟢 徹底升級 Prompt：加入「現實錨定法則」與「禁止開場白」防護
+        // 🟢 徹底升級 Prompt：加入防斷尾、防重複開場白、嚴謹開運數字對應邏輯
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
 【客製化與語氣設定】
 - 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'}。
 - 家庭現狀：婚姻狀態為「${userData.marriage}」，子女狀況為「${userData.children}」。
-- 語言風格：請使用通俗易懂的現代語言。強烈貼合 ${age} 歲這個年齡段、性別與其「家庭現狀」會面臨的真實人生與財務處境。
+- 語言風格：通俗易懂，強烈貼合 ${age} 歲年齡段、性別與其「家庭現狀」會面臨的真實人生與財務處境。
 
 【零幻覺協議與現實錨定法則】（底層數據分析 100% 鎖死）：
-1. 稱骨絕對禁令：對於袁天罡稱骨，你【必須100%字字不漏地照抄】 <FactData> 中提供的「重量」與「專屬讖語」，絕對禁止自行修改、替換或腦補其他版本的歌訣！
-2. 現實錨定法則：當命盤與客戶提供的家庭現狀（婚姻/子女）出現表面矛盾時（例如命格剋子但現實有孩），絕對禁止否定客戶的現實或武斷預測災難。必須將命盤解釋為「潛在能量與曾經經歷的考驗」，著重分析未來該如何化解衝突、保護家庭並為子女做長遠規劃。
-3. 數據綁定：嚴禁篡改八字、宮位，嚴禁發明未出現在 <FactData> 中的星曜。
+1. 稱骨與數據綁定：你【必須100%字字不漏地照抄】 <FactData> 中提供的「重量」與「專屬讖語」，嚴禁自行修改。嚴禁篡改八字與發明未出現在 <FactData> 中的星曜。
+2. 開運密碼鐵律：【三、專屬開運密碼】中的吉利數字與顏色，必須嚴格對應你在【二、五行喜忌】中所推導出的「最喜用神」來產生（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），絕對禁止隨機亂編！
+3. 現實錨定法則：當命盤與客戶提供的家庭現狀（婚姻/子女）出現表面矛盾時，絕對禁止否定客戶的現實。必須將命盤解釋為「潛在能量與曾經歷的考驗」，著重分析未來該如何化解衝突、保護家庭。
 
-【排版最高指令】：
-1. 請直接從「## 壹、基本資訊與先天定盤」開始撰寫，【絕對不要輸出任何問候語或開場白】，系統已自動生成開場。
-2. 確保能一氣呵成寫完六大章節。
-3. 標題（## 或 ###）必須獨立成行，禁止放在項目符號後。
+【防斷尾與排版最高指令】（極度重要）：
+1. 【絕對禁止開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何「親愛的...」、「你好」、「感謝解鎖」等問候語！
+2. 【禁止中斷】：請保持高資訊密度，確保能一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
+3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止放在項目符號後。
 
 <FactData>
 ${exactChartData}
@@ -291,11 +291,11 @@ ${exactChartData}
 
 ${ragFocusText}
 
-請「嚴格按照以下標題結構與層級」撰寫報告，不要遺漏任何指定的子標題：
+請「嚴格按照以下標題結構與層級」直接開始撰寫報告（再次提醒，第一行必須是標題，不准寫問候語）：
 
 ## 壹、基本資訊與先天定盤
 ### 一、 基本資訊
-（完整條列 <FactData> 內的 [基本資訊]、[家庭現狀]，務必包含八字五行屬性，以及照抄 <FactData> 內的袁天罡稱骨與讖語。）
+（必須完整列出 <FactData> 內所有的 [基本資訊]、[家庭現狀]、[系統底層四柱八字] 以及 [系統底層紫微斗數]。絕對不可遺漏：八字五行屬性、袁天罡稱骨與讖語、五行局、命主、身主、命宮位置、身宮位置！）
 ### 二、 命格總論
 #### 1. 八字視角：
 #### 2. 紫微視角：
@@ -303,7 +303,9 @@ ${ragFocusText}
 ## 貳、八字格局與專屬開運密碼
 ### 一、 格局鑑定
 ### 二、 五行喜忌深度剖析
+（必須明確指出「最喜用神」為何種五行。）
 ### 三、 專屬開運密碼
+（吉利數字與顏色必須與你在上一段得出的「最喜用神」五行嚴格對應，不可隨機產生。）
 
 ## 參、四柱神煞詳解與調候樞紐
 ### 一、 調候樞紐分析
@@ -345,6 +347,14 @@ ${contexts}
         });
         
         const result = await model.generateContent(prompt);
+        let aiText = result.response.text().trim();
+        
+        // 🟢 最終安全網：如果 AI 還是不聽話吐出了開場白，用正則表達式強制把它剪掉！
+        // 尋找第一個 "## 壹" 出現的位置，把前面的贅字全部砍掉。
+        const startIndex = aiText.indexOf('## 壹');
+        if (startIndex > 0) {
+            aiText = aiText.substring(startIndex);
+        }
         
         // 🟢 完美解法：由 JS 程式端直接組合客製化開場白，確保絕對不會重複！
         const finalEmailReport = `先天命盤大批・流年專屬藍圖
@@ -356,7 +366,7 @@ ${contexts}
 
 ---
 
-${result.response.text()}
+${aiText}
 `;
 
         return finalEmailReport;
