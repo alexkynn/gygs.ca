@@ -253,6 +253,24 @@
                         </div>
                     </div>
 
+                    <!-- 🟢 新增：婚姻與子女狀態區塊 -->
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填)</label>
+                            <select class="form-select" id="marriageStatus">
+                                <option value="未提供" selected>未提供 / 保密</option>
+                                <option value="單身">單身 / 未婚</option>
+                                <option value="已婚">已婚</option>
+                                <option value="離異">離異</option>
+                                <option value="喪偶">喪偶</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="childrenStatus" class="form-label text-light">子女狀況 (選填)</label>
+                            <input type="text" class="form-control" id="childrenStatus" placeholder="例如：無、2、1男1女">
+                        </div>
+                    </div>
+
                     <!-- 🟢 25 大熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
                         <label for="question" class="form-label text-light">🎯 請選擇您最想探索的人生課題</label>
@@ -497,9 +515,13 @@
         const genderLabel = gender === 'female' ? "女命（坤造）" : "男命（乾造）";
         
         const questionText = document.getElementById('question').value;
+        
+        // 🟢 獲取新增的家庭狀態
+        const marriageVal = document.getElementById('marriageStatus').value;
+        const childrenVal = document.getElementById('childrenStatus').value || '未提供';
 
         // 🟢 將完整且精確的資料打包送給後端 Teaser 模式 (精準對齊 Regex)
-        const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}\n【來訪者提問】：${questionText}`;
+        const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}, 婚姻:${marriageVal}, 子女:${childrenVal}\n【來訪者提問】：${questionText}`;
 
         try {
             const response = await fetch('/api/ask', {
@@ -546,7 +568,12 @@
         const gender = document.querySelector('input[name="gender"]:checked').value;
         const question = document.getElementById('question').value;
         
-        const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}`;
+        // 🟢 獲取新增的家庭狀態
+        const marriageVal = document.getElementById('marriageStatus').value;
+        const childrenVal = document.getElementById('childrenStatus').value || '未提供';
+        
+        // 🟢 更新 birthData 以包含婚姻與子女狀態
+        const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}, 婚姻:${marriageVal}, 子女:${childrenVal}`;
 
         try {
             const response = await fetch('/api/checkout', {

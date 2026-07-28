@@ -45,11 +45,14 @@ function calculateLocalWatchTime(cityName, shiName) {
     return `${formatTime(shi.start, offset)} - ${formatTime(shi.end, offset)}`;
 }
 
+// 🟢 升級：加入婚姻與子女的正則捕捉
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
     const shiMatch = question.match(/時辰[:：]?(.)時/);
     const dateMatch = question.match(/日期[:：]?(\d{4})-(\d{2})-(\d{2})/);
     const genderMatch = question.match(/性別[:：]?(男|女)/);
+    const marriageMatch = question.match(/婚姻[:：]?([^,，\n]+)/);
+    const childrenMatch = question.match(/子女[:：]?([^,，\n]+)/);
     
     const questionTextMatch = question.match(/提問:(.*)/) || question.match(/【來訪者提問】：(.*)/);
     const actualQuestion = questionTextMatch ? questionTextMatch[1].trim() : question;
@@ -62,6 +65,8 @@ function extractUserData(question) {
         month: dateMatch ? parseInt(dateMatch[2], 10) : null,
         day: dateMatch ? parseInt(dateMatch[3], 10) : null,
         gender: genderMatch ? genderMatch[1] : "女命",
+        marriage: marriageMatch ? marriageMatch[1].trim() : "未提供",
+        children: childrenMatch ? childrenMatch[1].trim() : "未提供",
         actualQuestion: actualQuestion
     };
 }
@@ -86,7 +91,7 @@ function getDayMasterElement(dayGan) {
     return elements[dayGan] || "未知";
 }
 
-// 🟢 內建袁天罡稱骨演算法 (支援男命與女命判定)
+// 🟢 內建袁天罡稱骨演算法 (防 Library 版本報錯)
 function calculateBoneWeight(yearIndex, month, day, shiZhi) {
     const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
     const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
@@ -146,11 +151,15 @@ function generateExactChartText(userData, currentDateStr) {
 - 性別：${userData.gender === '男' ? '乾造 (男命)' : '坤造 (女命)'}
 - 當前時空基準：${currentDateStr}
 
+[家庭現狀]
+- 婚姻狀態：${userData.marriage}
+- 子女狀況：${userData.children}
+
 [系統底層四柱八字]
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
 - 八字五行屬性：${baziElement}
-- 袁天罡稱骨：${weightStr} (${userData.gender === '男' ? '男命' : '女命'})
+- 袁天罡稱骨：${weightStr}
 
 [系統底層紫微斗數]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
@@ -180,15 +189,22 @@ async function generateEmbeddings(text) {
 // ==========================================
 // 核心路由生成區
 // ==========================================
-async function generateMasterResponse(question, mode = 'teaser') {
+async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
         const today = new Date();
         const currentYear = today.getFullYear();
         const currentDateStr = `${currentYear}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
         
-        // 🟢 動態計算命主當前真實年齡
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
+
+        // 🟢 智能提取 Email 前綴
+        let extractedEmail = userEmail;
+        if (!extractedEmail) {
+            const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+            if (emailMatch) extractedEmail = emailMatch[1];
+        }
+        const emailPrefix = (extractedEmail && extractedEmail.includes('@')) ? extractedEmail.split('@')[0] : '朋友';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -215,12 +231,10 @@ async function generateMasterResponse(question, mode = 'teaser') {
         console.log("[2/3] 準備檢索資料庫...");
         let contexts = "";
         
-        // 🟢 強化檢索指令：強制抓取紫微斗數 31 格局相關文獻
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
         
         if (queryEmbedding) {
-            // 🟢 將檢索筆數提升至 15，確保涵蓋到格局庫
             const searchResults = await index.query({ vector: queryEmbedding, topK: 15, includeMetadata: true });
             contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || match.metadata.text || '無'}`).join('\n\n');
         }
@@ -229,20 +243,29 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
-        // 🟢 更新 Prompt：加入性別稱骨歌訣對應指令
+        // 🟢 更新 Prompt：植入現實錨定法則與家庭變數
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
 【客製化與語氣設定】（展現生成靈活性）：
 - 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'}。
-- 語言風格：請使用符合其出生國家文化背景、通俗易懂的現代語言。將艱澀的古籍文言文轉化為該國籍人士能秒懂的職場與生活情境。在給出人生建議與大勢推演時，請務必強烈貼合 ${age} 歲這個年齡段與其性別會面臨的真實人生、財務與職涯處境。
+- 家庭現狀：婚姻狀態為「${userData.marriage}」，子女狀況為「${userData.children}」。
+- 語言風格：請使用符合其出生國家文化背景、通俗易懂的現代語言。將艱澀的古籍文言文轉化為該國籍人士能秒懂的職場與生活情境。在給出人生建議與大勢推演時，請務必強烈貼合 ${age} 歲這個年齡段、其性別與其「家庭現狀」會面臨的真實人生、財務與職涯處境。
+
+【現實錨定法則】（防止認知失調與幻覺）：
+當 <FactData> 的命理學理與客戶提供的家庭現狀（婚姻/子女）出現表面矛盾時（例如命盤顯示夫妻宮極差，但客戶現實已婚或家庭穩定），絕對禁止直接否定客戶的現實或武斷預測災難。你必須將命盤解釋為「潛在的能量傾向與曾經歷的考驗」，著重分析客戶在未來流年中該如何透過智慧化解伴侶衝突、保護家庭資產，並為子女做好防禦性規劃。
 
 【稱骨與數據零幻覺鐵律】：
-- 袁天罡稱骨解讀：必須嚴格根據 <FactData> 中的性別（男命或女命）來調用對應的稱骨歌訣（讖語），**絕不可將男命歌訣張冠李戴到女命身上（或反之）**。若需引用詩句，必須 100% 符合該性別的傳統稱骨批語。
+- 袁天罡稱骨解讀：必須嚴格根據 <FactData> 中的性別（男命或女命）來調用對應的稱骨歌訣（讖語），絕不可將男命歌訣張冠李戴到女命身上。若需引用詩句，必須 100% 符合該性別的傳統稱骨批語。
 
 【防斷尾與排版最高指令】：
 1. 請保持高資訊密度，確保能【一氣呵成寫完六大章節】，直到寫出「陸、大師戰略行動指南」為止！
 2. 呈現內容時，只允許使用最單純的 Markdown 列表、標題。絕對禁止使用 LaTeX (嚴禁 $$ 符號) 或 HTML。
+3. **強制開場白**：在報告的最開頭（大標題之前），請務必一字不漏地輸出以下文字作為開場：
+先天命盤大批・流年專屬藍圖
+融合《滴天髓》・《三命通會》・《子平真詮》・《窮通寶鑑》・《紫微斗數全書》
+親愛的${emailPrefix}，您好：
+感謝您的付費解鎖。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖：
 
 【零幻覺協議】：
 下方 <FactData> 區塊是精確排盤事實，請 100% 照抄，嚴禁自己篡改八字或宮位位置！
@@ -253,7 +276,7 @@ ${ragFocusText}
 
 ## 壹、基本資訊與先天定盤
 ### 一、 基本資訊
-（完整條列 <FactData> 的 [基本資訊]、八字、星座、五行局、命/身主，以及【命宮位置】與【身宮位置】，務必包含【八字五行屬性】與【袁天罡稱骨】連同對應性別之解讀。）
+（完整條列 <FactData> 的 [基本資訊] 與 [家庭現狀]、八字、星座、五行局、命/身主，以及【命宮位置】與【身宮位置】，務必包含【八字五行屬性】與【袁天罡稱骨】連同對應性別之解讀。）
 ### 二、 命格總論
 （用符合命主 ${age} 歲心境且極具張力的文字定調一生格局。必須包含以下兩個子段落：）
 #### 1. 八字視角：
@@ -276,8 +299,8 @@ ${ragFocusText}
 （必須分列「1. 年柱」、「2. 月柱」、「3. 日柱」、「4. 時柱」，逐一解釋其上的關鍵神煞對命運的影響。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說。
-【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局（例如：府相朝垣、機月同梁、巨機同臨等），並深入解析該格局的成敗與威力。）
+（針對「財帛宮」、「官祿宮」、「遷移宮」與「夫妻宮」給出極度詳細的星曜解說。必須融合【家庭現狀】給出現實建議。
+【格局鑑定重點】：請從【Pinecone 檢索之五大古籍文獻參考】中，比對紫微斗數 31 種標準格局，明確鑑定命主的 12 宮位星曜組合符合哪些特殊格局，並深入解析該格局的成敗與威力。）
 
 ## 伍、未來 10 年運勢推演
 （請使用純文字長條圖繪製未來 10 年運勢。
@@ -286,7 +309,7 @@ ${ragFocusText}
 請連續寫滿 10 年，畫完後進行大勢推演。）
 
 ## 陸、大師戰略行動指南
-（給出務實的避險與進攻策略。寫完此段即完成報告。）
+（給出務實的避險與進攻策略，並結合【家庭現狀】給出綜合建議。寫完此段即完成報告。）
 
 <ClientData>
 ${question}
@@ -309,7 +332,12 @@ ${contexts}
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
-            safetySettings: safetySettings
+            safetySettings: safetySettings,
+            generationConfig: {
+                temperature: 0.5,
+                topP: 0.9,
+                maxOutputTokens: 8192
+            }
         });
         
         const result = await model.generateContent(prompt);
