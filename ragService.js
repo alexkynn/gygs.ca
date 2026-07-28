@@ -45,7 +45,7 @@ function calculateLocalWatchTime(cityName, shiName) {
     return `${formatTime(shi.start, offset)} - ${formatTime(shi.end, offset)}`;
 }
 
-// 🟢 精準提取使用者資料（包含婚姻與子女）
+// 🟢 精準提取使用者資料（包含婚姻與子女狀態）
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
     const shiMatch = question.match(/時辰[:：]?(.)時/);
@@ -212,7 +212,7 @@ async function generateEmbeddings(text) {
 // ==========================================
 // 核心路由生成區
 // ==========================================
-async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
+async function generateMasterResponse(question, mode = 'teaser') {
     try {
         const today = new Date();
         const currentYear = today.getFullYear();
@@ -220,14 +220,6 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         const userData = extractUserData(question);
         
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
-
-        // 🟢 提取 Email 前綴 (客製化開場白使用)
-        let extractedEmail = userEmail;
-        if (!extractedEmail) {
-            const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
-            if (emailMatch) extractedEmail = emailMatch[1];
-        }
-        const emailPrefix = (extractedEmail && extractedEmail.includes('@')) ? extractedEmail.split('@')[0] : '朋友';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -266,23 +258,23 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
-        // 🟢 徹底升級 Prompt：加入防斷尾、防重複開場白、嚴謹開運數字對應邏輯
+        // 🟢 徹底升級 Prompt：防斷尾、防重複開場白、嚴謹開運數字對應邏輯
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
 【客製化與語氣設定】
 - 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'}。
 - 家庭現狀：婚姻狀態為「${userData.marriage}」，子女狀況為「${userData.children}」。
-- 語言風格：通俗易懂，強烈貼合 ${age} 歲年齡段、性別與其「家庭現狀」會面臨的真實人生與財務處境。
+- 語言風格：請使用通俗易懂的現代語言。在給出建議時，必須強烈貼合 ${age} 歲年齡段與其「家庭現狀」會面臨的真實人生處境。
 
-【零幻覺協議與現實錨定法則】（底層數據分析 100% 鎖死）：
-1. 稱骨與數據綁定：你【必須100%字字不漏地照抄】 <FactData> 中提供的「重量」與「專屬讖語」，嚴禁自行修改。嚴禁篡改八字與發明未出現在 <FactData> 中的星曜。
-2. 開運密碼鐵律：【三、專屬開運密碼】中的吉利數字與顏色，必須嚴格對應你在【二、五行喜忌】中所推導出的「最喜用神」來產生（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），絕對禁止隨機亂編！
-3. 現實錨定法則：當命盤與客戶提供的家庭現狀（婚姻/子女）出現表面矛盾時，絕對禁止否定客戶的現實。必須將命盤解釋為「潛在能量與曾經歷的考驗」，著重分析未來該如何化解衝突、保護家庭。
+【零幻覺協議與現實錨定法則】（底層數據 100% 鎖死）：
+1. 稱骨與數據綁定：你【必須100%字字不漏地照抄】 <FactData> 中提供的「袁天罡稱骨」與「專屬讖語」，絕對禁止自行修改。嚴禁篡改八字或發明未出現在 <FactData> 中的星曜。
+2. 開運密碼鐵律：在寫「三、專屬開運密碼」時，吉利數字與顏色【必須嚴格對應】你推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），絕對禁止隨機發明！
+3. 現實錨定法則：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，絕對禁止否定客戶的現實。必須將命盤解釋為「潛在能量」，著重分析未來該如何化解衝突、保護家庭。
 
 【防斷尾與排版最高指令】（極度重要）：
-1. 【絕對禁止開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何「親愛的...」、「你好」、「感謝解鎖」等問候語！
-2. 【禁止中斷】：請保持高資訊密度，確保能一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
+1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
+2. 【禁止中斷】：請保持高資訊密度，確保一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
 3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止放在項目符號後。
 
 <FactData>
@@ -291,11 +283,11 @@ ${exactChartData}
 
 ${ragFocusText}
 
-請「嚴格按照以下標題結構與層級」直接開始撰寫報告（再次提醒，第一行必須是標題，不准寫問候語）：
+請「嚴格按照以下標題結構與層級」直接開始撰寫報告（再次提醒，第一行必須是標題）：
 
 ## 壹、基本資訊與先天定盤
 ### 一、 基本資訊
-（必須完整列出 <FactData> 內所有的 [基本資訊]、[家庭現狀]、[系統底層四柱八字] 以及 [系統底層紫微斗數]。絕對不可遺漏：八字五行屬性、袁天罡稱骨與讖語、五行局、命主、身主、命宮位置、身宮位置！）
+（必須完整列出 <FactData> 內所有的資訊。絕對不可遺漏以下項目：【八字五行屬性】、【袁天罡稱骨】及其【專屬讖語】、【五行局】、【命主/身主】以及【命宮/身宮位置】！）
 ### 二、 命格總論
 #### 1. 八字視角：
 #### 2. 紫微視角：
@@ -313,7 +305,7 @@ ${ragFocusText}
 ### 二、 四柱神煞嚴謹推算與現代解讀
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（針對財帛宮、官祿宮、遷移宮與夫妻宮解說。此章節必須融合命主提供的【家庭現狀】給出具體分析。）
+（針對財帛宮、官祿宮、遷移宮與夫妻宮解說。此章節必須融合命主的【婚姻與子女狀況】給出具體分析。）
 
 ## 伍、未來 10 年運勢推演
 （請使用純文字長條圖繪製未來 10 年運勢。格式：年份 | ████████░░ (分數) - [簡評]）
@@ -349,27 +341,14 @@ ${contexts}
         const result = await model.generateContent(prompt);
         let aiText = result.response.text().trim();
         
-        // 🟢 最終安全網：如果 AI 還是不聽話吐出了開場白，用正則表達式強制把它剪掉！
-        // 尋找第一個 "## 壹" 出現的位置，把前面的贅字全部砍掉。
+        // 🟢 最終安全網：如果 AI 還是不聽話吐出了任何開場白，強制把它剪掉！
         const startIndex = aiText.indexOf('## 壹');
         if (startIndex > 0) {
             aiText = aiText.substring(startIndex);
         }
         
-        // 🟢 完美解法：由 JS 程式端直接組合客製化開場白，確保絕對不會重複！
-        const finalEmailReport = `先天命盤大批・流年專屬藍圖
-融合《滴天髓》・《三命通會》・《子平真詮》・《窮通寶鑑》・《紫微斗數全書》
-
-親愛的 ${emailPrefix}，您好：
-
-感謝您的付費解鎖。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖：
-
----
-
-${aiText}
-`;
-
-        return finalEmailReport;
+        // 🟢 直接回傳乾淨的報告內容。外部伺服器 (server.js) 原本的開場白將會完美銜接！
+        return aiText;
 
     } catch (error) {
         console.error("RAG 發生錯誤:", error);
