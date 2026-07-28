@@ -107,11 +107,9 @@ function getBoneWeightPoem(weightStr, gender) {
     const poems = {
         "男命": {
             "3兩2錢": "初年運限事難謀，漸漸財源如水流，半世喪功無進退，到老終期免憂愁。"
-            // 未來可在此擴充男命詩句
         },
         "女命": {
             "3兩2錢": "初限建家命半前，恓惶憂慮費心田。忙忙碌碌無成事，若逢中末信天然。"
-            // 未來可在此擴充女命詩句
         }
     };
     
@@ -212,7 +210,7 @@ async function generateEmbeddings(text) {
 // ==========================================
 // 核心路由生成區
 // ==========================================
-async function generateMasterResponse(question, mode = 'teaser') {
+async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
         const today = new Date();
         const currentYear = today.getFullYear();
@@ -220,6 +218,14 @@ async function generateMasterResponse(question, mode = 'teaser') {
         const userData = extractUserData(question);
         
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
+
+        // 🟢 提取 Email 前綴 (客製化開場白使用，如果前端有傳的話)
+        let extractedEmail = userEmail;
+        if (!extractedEmail) {
+            const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+            if (emailMatch) extractedEmail = emailMatch[1];
+        }
+        const emailPrefix = (extractedEmail && extractedEmail.includes('@')) ? extractedEmail.split('@')[0] : '朋友';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -258,7 +264,7 @@ async function generateMasterResponse(question, mode = 'teaser') {
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
-        // 🟢 徹底升級 Prompt：防斷尾、防重複開場白、嚴謹開運數字對應邏輯
+        // 🟢 徹底升級 Prompt：解開神煞死鎖、鎖定開運數字、防止重複開場白
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
@@ -267,10 +273,10 @@ async function generateMasterResponse(question, mode = 'teaser') {
 - 家庭現狀：婚姻狀態為「${userData.marriage}」，子女狀況為「${userData.children}」。
 - 語言風格：請使用通俗易懂的現代語言。在給出建議時，必須強烈貼合 ${age} 歲年齡段與其「家庭現狀」會面臨的真實人生處境。
 
-【零幻覺協議與現實錨定法則】（底層數據 100% 鎖死）：
-1. 稱骨與數據綁定：你【必須100%字字不漏地照抄】 <FactData> 中提供的「袁天罡稱骨」與「專屬讖語」，絕對禁止自行修改。嚴禁篡改八字或發明未出現在 <FactData> 中的星曜。
-2. 開運密碼鐵律：在寫「三、專屬開運密碼」時，吉利數字與顏色【必須嚴格對應】你推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），絕對禁止隨機發明！
-3. 現實錨定法則：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，絕對禁止否定客戶的現實。必須將命盤解釋為「潛在能量」，著重分析未來該如何化解衝突、保護家庭。
+【零幻覺協議與邏輯解鎖】（最嚴格遵守）：
+1. 神煞特赦與數據綁定：紫微星曜必須 100% 來自 <FactData>，嚴禁自行發明。但對於【四柱神煞】（如驛馬、華蓋、魁罡等），由於 <FactData> 未直接提供，【特此允許且要求】你根據 <FactData> 中的八字干支，自行推導並寫入「第三章」中，這不違規！袁天罡稱骨與讖語必須字字不漏照抄。
+2. 開運密碼鐵律：【三、專屬開運密碼】中的吉利數字與顏色，必須【嚴格對應】你在【二、五行喜忌】推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），絕對禁止隨機亂編！
+3. 現實錨定：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，絕對禁止否定客戶的現實。必須將命盤解釋為「潛在能量與曾經歷的考驗」，著重分析未來該如何化解衝突、保護家庭。
 
 【防斷尾與排版最高指令】（極度重要）：
 1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
@@ -287,7 +293,7 @@ ${ragFocusText}
 
 ## 壹、基本資訊與先天定盤
 ### 一、 基本資訊
-（必須完整列出 <FactData> 內所有的資訊。絕對不可遺漏以下項目：【八字五行屬性】、【袁天罡稱骨】及其【專屬讖語】、【五行局】、【命主/身主】以及【命宮/身宮位置】！）
+（必須完整列出 <FactData> 內所有的資訊。絕對不可遺漏：【八字五行屬性】、【袁天罡稱骨】及其【專屬讖語】、【五行局】、【命主/身主】以及【命宮/身宮位置】！）
 ### 二、 命格總論
 #### 1. 八字視角：
 #### 2. 紫微視角：
@@ -297,12 +303,13 @@ ${ragFocusText}
 ### 二、 五行喜忌深度剖析
 （必須明確指出「最喜用神」為何種五行。）
 ### 三、 專屬開運密碼
-（吉利數字與顏色必須與你在上一段得出的「最喜用神」五行嚴格對應，不可隨機產生。）
+（吉利數字與顏色必須與「最喜用神」五行嚴格對應，不可隨機產生。）
 
 ## 參、四柱神煞詳解與調候樞紐
 ### 一、 調候樞紐分析
 （必須得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」。）
 ### 二、 四柱神煞嚴謹推算與現代解讀
+（請根據八字干支推導出神煞。以流暢的段落依序分析年柱、月柱、日柱、時柱的神煞影響，避免使用過度複雜的嵌套列表，以免排版崩潰。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
 （針對財帛宮、官祿宮、遷移宮與夫妻宮解說。此章節必須融合命主的【婚姻與子女狀況】給出具體分析。）
