@@ -148,6 +148,7 @@ function generateExactChartText(userData, currentDateStr) {
         const normalizedYearIndex = yearIndex < 0 ? yearIndex + 60 : yearIndex; 
         const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunar.getMonth()), lunar.getDay(), userData.shi.charAt(0));
 
+        // 獲取絕對正確的詩句，將其變為不可篡改的 Data
         const genderStr = userData.gender === '男' ? '男命' : '女命';
         const weightPoem = getBoneWeightPoem(weightStr, genderStr);
 
@@ -261,7 +262,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
+        console.log(`[3/3] 呼叫 Gemini 3.1 Pro 生成深度報告...`);
         
         // 🟢 終極防護 Prompt：解除神煞死鎖，放寬清單限制，徹底杜絕斷尾
         const prompt = `
@@ -281,7 +282,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 【防斷尾與排版最高指令】（極度重要）：
 1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
 2. 【禁止中斷】：請一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
-3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止嵌套於項目符號後。未來 10 年運勢的簡評請控制在一句話以內。
+3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止嵌套於項目符號後。未來 10 年運勢的簡評請精簡至一句話，每一年寫一行即可，以防字數超載斷尾。
 
 <FactData>
 ${exactChartData}
@@ -335,8 +336,9 @@ ${contexts}
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
+        // 🟢 升級為 gemini-3.1-pro 模型，擁有極強的長文本生成與推理能力
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-3.5-flash',
+            model: 'gemini-3.1-pro',
             safetySettings: safetySettings,
             generationConfig: {
                 temperature: 0.5,
