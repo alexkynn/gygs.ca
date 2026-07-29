@@ -140,7 +140,7 @@ function generateExactChartText(userData, currentDateStr) {
         const zodiacSign = solarWithTime.getXingZuo() + "座"; 
         const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
 
-        // 🟢 精確計算袁天罡稱骨與本命單一五行
+        // 精確計算袁天罡稱骨與本命單一五行
         const dayGan = baziWithTime.getDay().charAt(0);
         const baziElement = getDayMasterElement(dayGan);
         
@@ -148,7 +148,6 @@ function generateExactChartText(userData, currentDateStr) {
         const normalizedYearIndex = yearIndex < 0 ? yearIndex + 60 : yearIndex; 
         const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunar.getMonth()), lunar.getDay(), userData.shi.charAt(0));
 
-        // 🟢 獲取絕對正確的詩句，將其變為不可篡改的 Data
         const genderStr = userData.gender === '男' ? '男命' : '女命';
         const weightPoem = getBoneWeightPoem(weightStr, genderStr);
 
@@ -219,7 +218,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
 
-        // 🟢 提取 Email 前綴 (客製化開場白使用，如果前端有傳的話)
+        // 提取 Email 前綴 (客製化開場白使用，如果前端有傳的話)
         let extractedEmail = userEmail;
         if (!extractedEmail) {
             const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
@@ -264,7 +263,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
-        // 🟢 徹底升級 Prompt：解開神煞死鎖、鎖定開運數字、防止重複開場白
+        // 🟢 終極防護 Prompt：解除神煞死鎖，放寬清單限制，徹底杜絕斷尾
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
@@ -274,14 +273,15 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 - 語言風格：請使用通俗易懂的現代語言。在給出建議時，必須強烈貼合 ${age} 歲年齡段與其「家庭現狀」會面臨的真實人生處境。
 
 【零幻覺協議與邏輯解鎖】（最嚴格遵守）：
-1. 神煞特赦與數據綁定：紫微星曜必須 100% 來自 <FactData>，嚴禁自行發明。但對於【四柱神煞】（如驛馬、華蓋、魁罡等），由於 <FactData> 未直接提供，【特此允許且要求】你根據 <FactData> 中的八字干支，自行推導並寫入「第三章」中，這不違規！袁天罡稱骨與讖語必須字字不漏照抄。
-2. 開運密碼鐵律：【三、專屬開運密碼】中的吉利數字與顏色，必須【嚴格對應】你在【二、五行喜忌】推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），絕對禁止隨機亂編！
-3. 現實錨定：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，絕對禁止否定客戶的現實。必須將命盤解釋為「潛在能量與曾經歷的考驗」，著重分析未來該如何化解衝突、保護家庭。
+1. 稱骨與數據綁定：你【必須100%字字不漏地照抄】 <FactData> 中提供的「袁天罡稱骨」與「專屬讖語」，絕對禁止自行修改。嚴禁篡改八字或發明未出現在 <FactData> 中的星曜。
+2. 神煞特赦指令（防止中斷）：由於 <FactData> 未提供神煞，在寫第三章「四柱神煞」時，【絕對禁止】逐一推演各柱！你只需要挑選命局中最常見的 2 到 3 個神煞（如驛馬、華蓋、魁罡），寫成「一段」通順的白話文分析即可，這不視為違規。
+3. 開運密碼鐵律：【三、專屬開運密碼】的數字與顏色，必須【嚴格對應】你推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），禁止隨機亂編！
+4. 現實錨定法則：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，禁止否定客戶的現實。將命盤解釋為「潛在能量」，著重分析未來該如何化解衝突、保護家庭。
 
 【防斷尾與排版最高指令】（極度重要）：
 1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
-2. 【禁止中斷】：請保持高資訊密度，確保一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
-3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止放在項目符號後。
+2. 【禁止中斷】：請一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
+3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止嵌套於項目符號後。未來 10 年運勢的簡評請控制在一句話以內。
 
 <FactData>
 ${exactChartData}
@@ -308,8 +308,8 @@ ${ragFocusText}
 ## 參、四柱神煞詳解與調候樞紐
 ### 一、 調候樞紐分析
 （必須得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」。）
-### 二、 四柱神煞嚴謹推算與現代解讀
-（請根據八字干支推導出神煞。以流暢的段落依序分析年柱、月柱、日柱、時柱的神煞影響，避免使用過度複雜的嵌套列表，以免排版崩潰。）
+### 二、 四柱神煞與現代解讀
+（【極度重要：嚴禁逐柱列點推演】。請直接寫成一個流暢的段落，提及代表性神煞對事業與家庭的影響即可，不要使用清單符號。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
 （針對財帛宮、官祿宮、遷移宮與夫妻宮解說。此章節必須融合命主的【婚姻與子女狀況】給出具體分析。）
@@ -354,7 +354,7 @@ ${contexts}
             aiText = aiText.substring(startIndex);
         }
         
-        // 🟢 直接回傳乾淨的報告內容。外部伺服器 (server.js) 原本的開場白將會完美銜接！
+        // 🟢 徹底移除 JS 端的開場白拼接，只回傳乾淨的 Markdown，讓 server.js 去處理它原本的信件抬頭。
         return aiText;
 
     } catch (error) {
