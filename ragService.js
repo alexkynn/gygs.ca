@@ -10,7 +10,7 @@ const { generateUniqueTeaser } = require('./teaserLibrary.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
-// 🟢 初始化 Gemini AI (保持讀取環境變數以確保安全性)
+// 🟢 初始化 Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ==========================================
@@ -263,7 +263,8 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        console.log(`[3/3] 呼叫 Gemini 2.5 Pro 生成深度報告...`);
+        // 🟢 使用確認可連線的 gemini-3.5-flash
+        console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
         
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
@@ -279,10 +280,11 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 3. 開運密碼鐵律：【三、專屬開運密碼】的數字與顏色，必須【嚴格對應】你推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），禁止隨機亂編！
 4. 現實錨定法則：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，禁止否定客戶的現實。將命盤解釋為「潛在能量」，著重分析未來該如何化解衝突、保護家庭。
 
-【防斷尾與排版最高指令】（極度重要）：
+【防斷尾與排版最高指令】（極度重要，關乎系統存亡）：
 1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
-2. 【禁止中斷】：請一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
-3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止嵌套於項目符號後。未來 10 年運勢的簡評請精簡至一句話，每一年寫一行即可，以防字數超載斷尾。
+2. 【禁止使用長條圖特殊符號】：在第五章撰寫十年運勢時，【絕對禁止】使用 █ 或 ░ 等特殊區塊符號（這會導致系統超載崩潰）！
+3. 【運勢極簡格式】：未來 10 年運勢請用最簡潔的「年份 | 分數/100 | 簡評」格式，每一年僅限一行。
+4. 【禁止中斷】：請務必一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
 
 <FactData>
 ${exactChartData}
@@ -310,13 +312,13 @@ ${ragFocusText}
 ### 一、 調候樞紐分析
 （必須得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」。）
 ### 二、 四柱神煞與現代解讀
-（【極度重要：嚴禁逐柱列點推演】。請直接寫成一個流暢的段落，提及代表性神煞對事業與家庭的影響即可，不要使用清單符號。）
+（直接寫成一個流暢的段落，提及代表性神煞對事業與家庭的影響即可，不要使用清單符號。）
 
 ## 肆、紫微斗數全景與核心宮位深度解析
 （針對財帛宮、官祿宮、遷移宮與夫妻宮解說。此章節必須融合命主的【婚姻與子女狀況】給出具體分析。）
 
 ## 伍、未來 10 年運勢推演
-（請使用純文字長條圖繪製未來 10 年運勢。格式：年份 | ████████░░ (分數) - [簡評]）
+（禁止使用長條圖符號！格式必須為：年份 | 運勢分數/100 | 一句話簡評）
 
 ## 陸、大師戰略行動指南
 （給出務實的避險與進攻策略，並結合【家庭現狀】給出綜合建議。寫完此段即完成報告。）
@@ -336,14 +338,14 @@ ${contexts}
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
-        // 🟢 使用 gemini-2.5-pro 模型，並將 maxOutputTokens 提高至 16384 以防斷尾
+        // 🟢 確保使用 gemini-3.5-flash，並設定足夠的 maxOutputTokens 避免斷尾
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-2.5-pro',
+            model: 'gemini-3.5-flash',
             safetySettings: safetySettings,
             generationConfig: {
                 temperature: 0.5,
                 topP: 0.9,
-                maxOutputTokens: 16384 // Set limit high enough for 4,000+ chars
+                maxOutputTokens: 8192
             }
         });
         
