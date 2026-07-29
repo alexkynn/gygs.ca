@@ -209,7 +209,7 @@ async function generateEmbeddings(text) {
 }
 
 // ==========================================
-// 核心路由生成區
+// 核心路由生成區 (🟢 改用兩階段生成以防斷尾)
 // ==========================================
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
@@ -220,13 +220,11 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
 
-        // 提取 Email 前綴
         let extractedEmail = userEmail;
         if (!extractedEmail) {
             const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
             if (emailMatch) extractedEmail = emailMatch[1];
         }
-        const emailPrefix = (extractedEmail && extractedEmail.includes('@')) ? extractedEmail.split('@')[0] : '朋友';
 
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
@@ -243,14 +241,13 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             } else {
                 timeWarning += `本系統將依據您的出生地啟動「真太陽時」校正。請確認出生時辰精確無誤。`;
             }
-            
             return teaserResponse + timeWarning;
         }
 
-        console.log("[1/3] 計算絕對命盤...");
+        console.log("[1/4] 計算絕對命盤...");
         const exactChartData = generateExactChartText(userData, currentDateStr);
 
-        console.log("[2/3] 準備檢索資料庫...");
+        console.log("[2/4] 準備檢索資料庫...");
         let contexts = "";
         
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
@@ -263,74 +260,6 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        // 🟢 使用確認可連線的 gemini-3.5-flash
-        console.log(`[3/3] 呼叫 Gemini 3.5 Flash 生成深度報告...`);
-        
-        const prompt = `
-你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
-
-【客製化與語氣設定】
-- 命主特徵：目前年齡 ${age} 歲，性別 ${userData.gender}，出生於 ${userData.country || '未知'}。
-- 家庭現狀：婚姻狀態為「${userData.marriage}」，子女狀況為「${userData.children}」。
-- 語言風格：請使用通俗易懂的現代語言。在給出建議時，必須強烈貼合 ${age} 歲年齡段與其「家庭現狀」會面臨的真實人生處境。
-
-【零幻覺協議與邏輯解鎖】（最嚴格遵守）：
-1. 稱骨與數據綁定：你【必須100%字字不漏地照抄】 <FactData> 中提供的「袁天罡稱骨」與「專屬讖語」，絕對禁止自行修改。嚴禁篡改八字或發明未出現在 <FactData> 中的星曜。
-2. 神煞特赦指令（防止中斷）：由於 <FactData> 未提供神煞，在寫第三章「四柱神煞」時，【絕對禁止】逐一推演各柱！你只需要挑選命局中最常見的 2 到 3 個神煞（如驛馬、華蓋、魁罡），寫成「一段」通順的白話文分析即可，這不視為違規。
-3. 開運密碼鐵律：【三、專屬開運密碼】的數字與顏色，必須【嚴格對應】你推導出的「最喜用神」（木=3,8/青綠; 火=2,7/紅紫; 土=5,0/黃棕; 金=4,9/白金; 水=1,6/黑藍），禁止隨機亂編！
-4. 現實錨定法則：當命盤與家庭現狀（婚姻/子女）有表面矛盾時，禁止否定客戶的現實。將命盤解釋為「潛在能量」，著重分析未來該如何化解衝突、保護家庭。
-
-【防斷尾與排版最高指令】（極度重要，關乎系統存亡）：
-1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
-2. 【禁止使用長條圖特殊符號】：在第五章撰寫十年運勢時，【絕對禁止】使用 █ 或 ░ 等特殊區塊符號（這會導致系統超載崩潰）！
-3. 【運勢極簡格式】：未來 10 年運勢請用最簡潔的「年份 | 分數/100 | 簡評」格式，每一年僅限一行。
-4. 【禁止中斷】：請務必一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
-
-<FactData>
-${exactChartData}
-</FactData>
-
-${ragFocusText}
-
-請「嚴格按照以下標題結構與層級」直接開始撰寫報告（再次提醒，第一行必須是標題）：
-
-## 壹、基本資訊與先天定盤
-### 一、 基本資訊
-（必須完整列出 <FactData> 內所有的資訊。絕對不可遺漏：【八字五行屬性】、【袁天罡稱骨】及其【專屬讖語】、【五行局】、【命主/身主】以及【命宮/身宮位置】！）
-### 二、 命格總論
-#### 1. 八字視角：
-#### 2. 紫微視角：
-
-## 貳、八字格局與專屬開運密碼
-### 一、 格局鑑定
-### 二、 五行喜忌深度剖析
-（必須明確指出「最喜用神」為何種五行。）
-### 三、 專屬開運密碼
-（吉利數字與顏色必須與「最喜用神」五行嚴格對應，不可隨機產生。）
-
-## 參、四柱神煞詳解與調候樞紐
-### 一、 調候樞紐分析
-（必須得出結論：「不可單打獨鬥，必須借力市場資源與資本槓桿，以市場實踐清洗體制腐朽」。）
-### 二、 四柱神煞與現代解讀
-（直接寫成一個流暢的段落，提及代表性神煞對事業與家庭的影響即可，不要使用清單符號。）
-
-## 肆、紫微斗數全景與核心宮位深度解析
-（針對財帛宮、官祿宮、遷移宮與夫妻宮解說。此章節必須融合命主的【婚姻與子女狀況】給出具體分析。）
-
-## 伍、未來 10 年運勢推演
-（禁止使用長條圖符號！格式必須為：年份 | 運勢分數/100 | 一句話簡評）
-
-## 陸、大師戰略行動指南
-（給出務實的避險與進攻策略，並結合【家庭現狀】給出綜合建議。寫完此段即完成報告。）
-
-<ClientData>
-${question}
-</ClientData>
-
-【Pinecone 檢索文獻】：
-${contexts}
-        `;
-
         const safetySettings = [
             { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
             { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -338,7 +267,7 @@ ${contexts}
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
-        // 🟢 確保使用 gemini-3.5-flash，並設定足夠的 maxOutputTokens 避免斷尾
+        // 🟢 使用您確認可連線的 gemini-3.5-flash
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
             safetySettings: safetySettings,
@@ -348,17 +277,109 @@ ${contexts}
                 maxOutputTokens: 8192
             }
         });
+
+        // ==========================================
+        // 🚀 第一階段生成：上半部報告 (第 1 ~ 3 章)
+        // ==========================================
+        console.log(`[3/4] 呼叫 Gemini 3.5 Flash 生成深度報告【上半部】...`);
+        const promptPart1 = `
+你是一位精通中西命理的 AI 戰略家。請根據精確排盤，撰寫命理報告的【上半部】。
+
+【客製化設定】命主年齡 ${age} 歲，性別 ${userData.gender}。婚姻：「${userData.marriage}」，子女：「${userData.children}」。
+【數據鐵律】必須字字不漏照抄 <FactData> 中的「袁天罡稱骨」與「專屬讖語」。絕對禁止篡改八字或自行發明神煞。
+【開運鐵律】吉利數字與顏色必須對應推導出的「最喜用神」(木=3,8; 火=2,7; 土=5,0; 金=4,9; 水=1,6)。
+【防斷尾指令】你「只能」撰寫第一章至第三章，寫完第三章後立刻停止。禁止寫後續章節，絕對禁止任何問候開場白！
+
+<FactData>
+${exactChartData}
+</FactData>
+
+${ragFocusText}
+
+請「嚴格按照以下結構」開始撰寫（第一行必須是標題）：
+
+## 壹、基本資訊與先天定盤
+### 一、 基本資訊
+（列出 <FactData> 內所有資訊。包含：八字五行、稱骨及讖語、五行局、命/身主、命/身宮位置。）
+### 二、 命格總論
+#### 1. 八字視角：
+#### 2. 紫微視角：
+
+## 貳、八字格局與專屬開運密碼
+### 一、 格局鑑定
+### 二、 五行喜忌深度剖析
+（明確指出「最喜用神」為何種五行。）
+### 三、 專屬開運密碼
+（數字與顏色必須與「最喜用神」嚴格對應。）
+
+## 參、四柱神煞詳解與調候樞紐
+### 一、 調候樞紐分析
+（結論帶入：不可單打獨鬥，必須借力市場資源...）
+### 二、 四柱神煞與現代解讀
+（挑選 2-3 個命局神煞，寫成一段通順白話文即可，嚴禁逐柱條列推演。）
+
+【Pinecone 檢索文獻】：
+${contexts}
+        `;
         
-        const result = await model.generateContent(prompt);
-        let aiText = result.response.text().trim();
+        const resultPart1 = await model.generateContent(promptPart1);
+        let aiTextPart1 = resultPart1.response.text().trim();
+
+
+        // ==========================================
+        // 🚀 第二階段生成：下半部報告 (第 4 ~ 6 章)
+        // ==========================================
+        console.log(`[4/4] 呼叫 Gemini 3.5 Flash 生成深度報告【下半部】...`);
+        const promptPart2 = `
+你是一位精通中西命理的 AI 戰略家。我們正在分段撰寫一份深度命理分析報告。
+請根據相同的命盤數據，直接接續撰寫【下半部】（第四至第六章）。
+
+【上半部報告內容參考】（請保持邏輯一致性，特別是喜用神的判斷）：
+${aiTextPart1}
+
+【排版與邏輯鐵律】：
+1. 嚴禁任何開場白，你的第一行輸出必須直接是「## 肆、紫微斗數全景與核心宮位深度解析」。
+2. 現實錨定：針對紫微宮位分析，必須融合命主提供的【婚姻：${userData.marriage}】與【子女：${userData.children}】現狀給出實際建議。
+3. 運勢格式：第五章十年運勢【嚴禁使用長條圖特殊符號】！格式必須為「年份 | 分數/100 | 一句話簡評」，每一年僅限一行。
+4. 必須寫到第六章「戰略行動指南」結束，並針對提問給出務實策略。
+
+<FactData>
+${exactChartData}
+</FactData>
+
+<ClientData>
+提問重點：${userData.actualQuestion}
+</ClientData>
+
+請「嚴格按照以下結構」接續撰寫：
+
+## 肆、紫微斗數全景與核心宮位深度解析
+（針對財帛宮、官祿宮、遷移宮與夫妻宮解說，並融合家庭現狀。）
+
+## 伍、未來 10 年運勢推演
+（禁用區塊符號。格式範例：2026年 | 80分 | 事業突破，利於跨界。）
+
+## 陸、大師戰略行動指南
+（針對提問給出務實避險與進攻策略。寫完此段即完成報告。）
+        `;
+
+        const resultPart2 = await model.generateContent(promptPart2);
+        let aiTextPart2 = resultPart2.response.text().trim();
+
+
+        // ==========================================
+        // 🚀 組合並清理最終報告
+        // ==========================================
+        let finalAiText = aiTextPart1 + '\n\n' + aiTextPart2;
         
-        // 🟢 最終安全網：如果 AI 還是不聽話吐出了任何開場白，強制把它剪掉！
-        const startIndex = aiText.indexOf('## 壹');
+        // 最終安全網：清理頭部的殘留開場白或 markdown 標籤
+        finalAiText = finalAiText.replace(/^```markdown\n/i, ''); 
+        const startIndex = finalAiText.indexOf('## 壹');
         if (startIndex > 0) {
-            aiText = aiText.substring(startIndex);
+            finalAiText = finalAiText.substring(startIndex);
         }
         
-        return aiText;
+        return finalAiText;
 
     } catch (error) {
         console.error("RAG 發生錯誤:", error);
