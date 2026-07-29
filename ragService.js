@@ -10,6 +10,7 @@ const { generateUniqueTeaser } = require('./teaserLibrary.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
+// 🟢 初始化 Gemini AI (保持讀取環境變數以確保安全性)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ==========================================
@@ -219,6 +220,14 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         
         const age = userData.year ? currentYear - parseInt(userData.year) : '未知';
 
+        // 提取 Email 前綴
+        let extractedEmail = userEmail;
+        if (!extractedEmail) {
+            const emailMatch = question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+            if (emailMatch) extractedEmail = emailMatch[1];
+        }
+        const emailPrefix = (extractedEmail && extractedEmail.includes('@')) ? extractedEmail.split('@')[0] : '朋友';
+
         if (mode === 'teaser') {
             console.log("⚡ 啟動零 Token 矩陣織錦誘餌模式...");
             let teaserResponse = generateUniqueTeaser(userData.year, userData.month, userData.day, userData.shi, userData.gender, userData.country, userData.actualQuestion);
@@ -254,8 +263,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        // 🟢 修正：使用官方支援的最新高階推理模型 (加了 -latest 後綴防 404)
-        console.log(`[3/3] 呼叫 Gemini 1.5 Pro 生成深度報告...`);
+        console.log(`[3/3] 呼叫 Gemini 2.5 Pro 生成深度報告...`);
         
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
@@ -274,8 +282,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 【防斷尾與排版最高指令】（極度重要）：
 1. 【絕對禁止任何開場白】：你的第一行輸出必須直接是「## 壹、基本資訊與先天定盤」，絕對不允許出現任何問候語！
 2. 【禁止中斷】：請一氣呵成寫完六大章節，直到寫出「陸、大師戰略行動指南」結束為止，嚴禁中途斷尾！
-3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止嵌套於項目符號後。
-4. 【十年運勢防超載】：在撰寫第五章時，每一年的運勢與簡評「必須嚴格合併為單一純文字行」，絕對禁止跨行或加入額外的分析段落，以免字數超載！
+3. Markdown 標題符號（## 或 ###）必須放在獨立新行的行首，禁止嵌套於項目符號後。未來 10 年運勢的簡評請精簡至一句話，每一年寫一行即可，以防字數超載斷尾。
 
 <FactData>
 ${exactChartData}
@@ -329,14 +336,14 @@ ${contexts}
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
-        // 🟢 使用官方最新的 Pro 模型名稱，並確保擁有 8192 Token 輸出空間
+        // 🟢 使用 gemini-2.5-pro 模型，並將 maxOutputTokens 提高至 16384 以防斷尾
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-1.5-pro-latest',
+            model: 'gemini-2.5-pro',
             safetySettings: safetySettings,
             generationConfig: {
                 temperature: 0.5,
                 topP: 0.9,
-                maxOutputTokens: 8192
+                maxOutputTokens: 16384 // Set limit high enough for 4,000+ chars
             }
         });
         
