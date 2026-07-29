@@ -262,9 +262,9 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        console.log(`[3/3] 呼叫 Gemini 3.1 Pro 生成深度報告...`);
+        // 🟢 修正：使用 Google 官方正式支援的最高階推理模型
+        console.log(`[3/3] 呼叫 Gemini 1.5 Pro 生成深度報告...`);
         
-        // 🟢 終極防護 Prompt：解除神煞死鎖，放寬清單限制，徹底杜絕斷尾
         const prompt = `
 你是一位精通中西命理的 AI 戰略家。請根據以下精確的排盤數據，撰寫一份結構完整、資訊豐富的深度命理分析報告。
 
@@ -336,9 +336,9 @@ ${contexts}
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
-        // 🟢 升級為 gemini-3.1-pro 模型，擁有極強的長文本生成與推理能力
+        // 🟢 使用真正的官方模型名稱
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-3.1-pro',
+            model: 'gemini-1.5-pro',
             safetySettings: safetySettings,
             generationConfig: {
                 temperature: 0.5,
