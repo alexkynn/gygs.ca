@@ -72,13 +72,18 @@ function extractUserData(question) {
     };
 }
 
+// 🟢 根據 36 道新題庫精準定位 RAG 檢索焦點
 function getRagFocus(questionStr) {
-    if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽")) {
+    if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽") || questionStr.includes("轉職") || questionStr.includes("行業")) {
         return "【專屬分析重點】：評估事業格局與成就上限。精準點出事業轉折時機，並給出職場防小人與最契合的天賦行業方向。";
-    } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("資金")) {
+    } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("資金") || questionStr.includes("置產")) {
         return "【專屬分析重點】：結合財星格局，定調其為正財或偏財。指出資產暴漲或破財危機的高危月份，給出投資佈局建議。";
-    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情")) {
+    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情") || questionStr.includes("結婚") || questionStr.includes("伴侶")) {
         return "【專屬分析重點】：分析夫妻宮。描繪未來伴侶特質與紅鸞星動年份。評估感情障礙，並提供趨吉避凶的情感防線。";
+    } else if (questionStr.includes("家庭") || questionStr.includes("孩子") || questionStr.includes("子女") || questionStr.includes("懷孕")) {
+        return "【專屬分析重點】：分析子女宮與田宅宮。評估子息緣分、家庭關係與潛在的家宅變故，給出促進家庭和諧的建議。";
+    } else if (questionStr.includes("移民") || questionStr.includes("出國") || questionStr.includes("搬家") || questionStr.includes("海外")) {
+        return "【專屬分析重點】：分析遷移宮與田宅宮。評估出外發展的吉凶，鑑定最旺命主的地理方位與移居黃金時機。";
     } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("疾病")) {
         return "【專屬分析重點】：結合五行偏枯點出先天體質弱點。梳理意外血光高危月份，給出改善健康與精神內耗的指南。";
     } else {
