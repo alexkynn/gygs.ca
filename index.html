@@ -75,10 +75,17 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
+        /* 🟢 色彩層次優化：標題區塊 */
         .box-title {
             font-size: 1.25rem;
             font-weight: 700;
             letter-spacing: -0.02em;
+            color: #f8fafc; /* 提亮標題，增加對比度 */
+        }
+        
+        /* 🟢 色彩層次優化：表單標籤稍微柔和化，凸顯輸入框 */
+        .form-label.text-light {
+            color: #cbd5e1 !important; 
         }
 
         .btn-glow {
@@ -95,16 +102,24 @@
         .desc-text { font-size: 0.9rem; line-height: 1.6; }
         .service-item { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem; }
 
+        /* 🟢 色彩層次優化：輸入框背景與文字對比 */
         .form-control, .form-select {
-            background-color: rgba(31, 41, 55, 0.9);
+            background-color: rgba(15, 23, 42, 0.9); /* 稍微加深背景產生立體下凹感 */
             border-color: #374151;
-            color: #f3f4f6;
+            color: #e0f2fe; /* 文字改用微亮的冰藍色，增加與標籤的層次感 */
         }
         .form-control:focus, .form-select:focus {
-            background-color: rgba(31, 41, 55, 1);
+            background-color: rgba(15, 23, 42, 1);
             border-color: #38bdf8;
-            color: #f3f4f6;
+            color: #ffffff; /* 獲得焦點時文字變純白 */
             box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
+        }
+
+        /* 🟢 修正 Bootstrap 預設的 disabled 樣式，避免白字配淺灰背景 */
+        .form-control:disabled, .form-select:disabled {
+            background-color: rgba(17, 24, 39, 0.7) !important;
+            color: #6b7280 !important; /* 未激活時文字稍微調暗 */
+            border-color: #374151 !important;
         }
         
         optgroup {
@@ -113,9 +128,11 @@
             font-style: normal;
             background-color: #111827;
         }
+        
+        /* 🟢 色彩層次優化：下拉選單項目 */
         option {
-            color: #e2e8f0;
-            background-color: #1f2937;
+            color: #e0f2fe;
+            background-color: #111827;
             padding: 5px 0;
         }
 
