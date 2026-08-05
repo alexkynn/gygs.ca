@@ -330,7 +330,7 @@
                     <!-- 🟢 動態雙層熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
                         <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 <span class="en-text">(Step 1: Choose the life area to explore)</span></label>
-                        <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px;">
+                        <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px; font-size: 1.05rem;">
                             <option value="" disabled selected>請選擇領域分類... (Please select a category...)</option>
                             <option value="career">💼 職涯與事業發展 (Career & Business)</option>
                             <option value="wealth">💰 財富與資產佈局 (Wealth & Financial Risk)</option>
@@ -341,7 +341,7 @@
                         </select>
 
                         <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 <span class="en-text">(Step 2: Choose your specific question)</span></label>
-                        <select id="question" required class="form-select text-light" style="padding: 12px;" disabled>
+                        <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;" disabled>
                             <option value="" disabled selected>請先選擇上方的領域分類... (Please select a category above first...)</option>
                         </select>
                     </div>
@@ -354,6 +354,31 @@
                     <h4 class="text-info mb-3">📜 古籍溯源與先天定盤 (摘要)：</h4>
                     <div id="analysis-text" class="text-light-50 lh-lg mb-4 p-3 rounded" style="background-color: rgba(31, 41, 55, 0.9); border-left: 4px solid #38bdf8; font-size: 1.05rem;">
                         <!-- AI 短篇結論會顯示在這裡 -->
+                    </div>
+                    
+                    <!-- 🟢 恢復遺失的解鎖付款與 Email 區塊 (Restored Payment Checkout Section) -->
+                    <div id="unlock-container" class="engine-box p-4 mt-4 border border-warning" style="box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);">
+                        <h4 class="text-warning text-center fw-bold mb-3">
+                            🔓 解鎖完整 3000 字深度戰略報告 <br>
+                            <span class="en-text" style="font-size: 0.75em; font-weight: normal;">(Unlock Full 3000-Word Strategic Report)</span>
+                        </h4>
+                        <p class="text-light text-center mb-4" style="font-size: 0.95rem; opacity: 0.9;">
+                            包含：紫微 31 大格鑑定、十年流年運勢推演、喜用神開運密碼，以及專屬您的行動破局戰略。
+                        </p>
+                        <!-- 指向您的結帳 API 路由，例如 Stripe 的 /create-checkout-session -->
+                        <form action="/create-checkout-session" method="POST" id="checkout-form">
+                            <!-- 隱藏欄位：儲存使用者的提問與命盤參數 -->
+                            <input type="hidden" name="question" id="hidden-checkout-question">
+                            
+                            <div class="mb-4">
+                                <label for="checkout-email" class="form-label text-warning">接收完整報告的 Email <span class="en-text">(Email to receive full report)</span></label>
+                                <input type="email" name="email" id="checkout-email" class="form-control" placeholder="your@email.com" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning w-100 py-3 fw-bold fs-5 text-dark" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border: none; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
+                                💳 前往付款解鎖 <span class="en-text">(Go to Payment)</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -625,6 +650,13 @@
             if (data.success) {
                 document.getElementById('analysis-result-container').classList.remove('d-none');
                 document.getElementById('analysis-text').innerHTML = data.answer.replace(/\n/g, '<br>');
+                
+                // 🟢 將完整提問資料寫入隱藏的結帳表單中，準備送往後端
+                const hiddenCheckoutQuestion = document.getElementById('hidden-checkout-question');
+                if (hiddenCheckoutQuestion) {
+                    hiddenCheckoutQuestion.value = formattedQuestion;
+                }
+
             } else {
                 alert("伺服器回應訊息: " + data.message);
             }
