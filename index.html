@@ -2,17 +2,11 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>gygs.ca - 專屬人生導航與五庫全書決策指南</title>
     
     <!-- 🟢 新增 Favicon (Browser Tab Logo) -->
     <link rel="icon" href="gygs_galaxy_logo.png" type="image/png">
-    
-    <!-- 🟢 iPhone / iOS 專屬 Web App 沉浸式優化 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    <link rel="apple-touch-icon" href="gygs_galaxy_logo.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -160,26 +154,6 @@
             font-size: 0.85em;
             font-weight: 400;
             opacity: 0.75;
-        }
-
-        /* =========================================
-           🟢 行動裝置/iPhone 專屬排版優化 (Mobile/iOS Tweaks)
-           ========================================= */
-        @media (max-width: 768px) {
-            /* 縮小標題以適應 iPhone 窄螢幕 */
-            .main-title { font-size: 1.75rem; }
-            header h4 { font-size: 1.15rem; }
-            
-            /* 縮減最外層容器的上下留白，保留更多空間給表單 */
-            .container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
-            
-            /* 減少區塊內距，讓輸入框能向外延伸延展 */
-            .engine-box { padding: 1.25rem !important; }
-
-            /* ⚠️ 極度重要：強制字體大小 >= 16px，徹底解決 iPhone Safari 點擊輸入框會自動畫面放大的問題 */
-            .form-control, .form-select, input, select {
-                font-size: 16px !important;
-            }
         }
     </style>
     
@@ -354,31 +328,6 @@
                     <h4 class="text-info mb-3">📜 古籍溯源與先天定盤 (摘要)：</h4>
                     <div id="analysis-text" class="text-light-50 lh-lg mb-4 p-3 rounded" style="background-color: rgba(31, 41, 55, 0.9); border-left: 4px solid #38bdf8; font-size: 1.05rem;">
                         <!-- AI 短篇結論會顯示在這裡 -->
-                    </div>
-                    
-                    <!-- 🟢 恢復遺失的解鎖付款與 Email 區塊 (Restored Payment Checkout Section) -->
-                    <div id="unlock-container" class="engine-box p-4 mt-4 border border-warning" style="box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);">
-                        <h4 class="text-warning text-center fw-bold mb-3">
-                            🔓 解鎖完整 3000 字深度戰略報告 <br>
-                            <span class="en-text" style="font-size: 0.75em; font-weight: normal;">(Unlock Full 3000-Word Strategic Report)</span>
-                        </h4>
-                        <p class="text-light text-center mb-4" style="font-size: 0.95rem; opacity: 0.9;">
-                            包含：紫微 31 大格鑑定、十年流年運勢推演、喜用神開運密碼，以及專屬您的行動破局戰略。
-                        </p>
-                        <!-- 指向您的結帳 API 路由，例如 Stripe 的 /create-checkout-session -->
-                        <form action="/create-checkout-session" method="POST" id="checkout-form">
-                            <!-- 隱藏欄位：儲存使用者的提問與命盤參數 -->
-                            <input type="hidden" name="question" id="hidden-checkout-question">
-                            
-                            <div class="mb-4">
-                                <label for="checkout-email" class="form-label text-warning">接收完整報告的 Email <span class="en-text">(Email to receive full report)</span></label>
-                                <input type="email" name="email" id="checkout-email" class="form-control" placeholder="your@email.com" required>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-warning w-100 py-3 fw-bold fs-5 text-dark" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border: none; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
-                                💳 前往付款解鎖 <span class="en-text">(Go to Payment)</span>
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -650,13 +599,6 @@
             if (data.success) {
                 document.getElementById('analysis-result-container').classList.remove('d-none');
                 document.getElementById('analysis-text').innerHTML = data.answer.replace(/\n/g, '<br>');
-                
-                // 🟢 將完整提問資料寫入隱藏的結帳表單中，準備送往後端
-                const hiddenCheckoutQuestion = document.getElementById('hidden-checkout-question');
-                if (hiddenCheckoutQuestion) {
-                    hiddenCheckoutQuestion.value = formattedQuestion;
-                }
-
             } else {
                 alert("伺服器回應訊息: " + data.message);
             }
