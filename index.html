@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>gygs.ca - 專屬人生導航與五庫全書決策指南</title>
     
-    <!-- 🟢 新增 Favicon (Browser Tab Logo) -->
-    <link rel="icon" href="gygs_galaxy_logo.png" type="image/png">
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
@@ -121,13 +118,6 @@
             line-height: 1.6;
         }
         .select-compact { padding-left: 0.5rem; padding-right: 1.5rem; }
-
-        /* 🟢 英文翻譯縮小字體樣式 */
-        .en-text {
-            font-size: 0.85em;
-            font-weight: 400;
-            opacity: 0.75;
-        }
     </style>
     
     <!-- 🟢 引入全球真太陽時資料庫 -->
@@ -142,8 +132,7 @@
             <img src="gygs_galaxy_logo.png?v=1.0" alt="gygs.ca Galaxy Logo" class="logo-img img-fluid">
         </div>
         <div class="badge-soft-launch mb-2">💡 五庫全書 AI 宗師引擎已連線</div>
-        <h1 class="main-title mb-3">gygs.ca 命格解碼與未來戰略導航</h1>
-        <h4 class="text-info fw-bold mb-4" style="letter-spacing: 1px;">運勢有時，抉擇有道。<br>看清格局，走對人生。</h4>
+        <h1 class="main-title mb-3">gygs.ca 命理大數據戰略指南</h1>
         <p class="text-secondary">
             結合《紫微斗數全書》、《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》的宏觀智慧，<br>為您的事業、財務與人生旅程，梳理出最清晰、權威的前進方向。
         </p>
@@ -152,23 +141,23 @@
     <div class="row mb-5">
         <div class="col-12">
             <div class="engine-box p-4">
-                <h3 class="box-title mb-4">🚀 輸入先天命盤，生成專屬決策指南 <span class="en-text">(Enter Destiny Data to Generate Your Decision Guide)</span></h3>
+                <h3 class="box-title mb-4">🟢 啟動命運檢索與對話</h3>
                 
                 <form id="ask-chart-form" onsubmit="event.preventDefault();" autocomplete="off">
                     <div class="row">
                         <!-- 🟢 國家與城市下拉選單 -->
                         <div class="col-md-6 mb-3">
-                            <label for="country" class="form-label text-light">出生國家 <span class="en-text">(Country of Birth)</span></label>
+                            <label for="country" class="form-label text-light">出生國家 (Country)</label>
                             <select class="form-select" id="country" autocomplete="country-name" required>
-                                <option value="" disabled selected>請選擇出生國家... (Please select country of birth...)</option>
+                                <option value="" disabled selected>請選擇出生國家...</option>
                                 <!-- 國家選項將由 locations.js 自動填入 -->
                             </select>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="city" class="form-label text-light">出生城市 <span class="en-text">(City of Birth)</span></label>
+                            <label for="city" class="form-label text-light">出生城市 (City)</label>
                             <select class="form-select" id="city" autocomplete="address-level2" required>
-                                <option value="" disabled selected>請先選擇國家... (Please select a country first...)</option>
+                                <option value="" disabled selected>請先選擇國家...</option>
                                 <!-- 城市選項將由 locations.js 自動填入 -->
                             </select>
                         </div>
@@ -176,21 +165,21 @@
 
                     <div class="row mb-3">
                         <div class="col-md-5 mb-3 mb-md-0">
-                            <label class="form-label text-light">出生西曆日期 <span class="en-text">(Gregorian Date of Birth)</span></label>
+                            <label class="form-label text-light">出生西曆日期</label>
                             <div class="row g-2">
                                 <div class="col-4">
                                     <select class="form-select select-compact" id="birthYear" required>
-                                        <option value="" disabled selected>年 (Year)</option>
+                                        <option value="" disabled selected>年</option>
                                     </select>
                                 </div>
                                 <div class="col-4">
                                     <select class="form-select select-compact" id="birthMonth" required>
-                                        <option value="" disabled selected>月 (Month)</option>
+                                        <option value="" disabled selected>月</option>
                                     </select>
                                 </div>
                                 <div class="col-4">
                                     <select class="form-select select-compact" id="birthDay" required>
-                                        <option value="" disabled selected>日 (Day)</option>
+                                        <option value="" disabled selected>日</option>
                                     </select>
                                 </div>
                             </div>
@@ -198,34 +187,34 @@
                         </div>
 
                         <div class="col-md-4 mb-3 mb-md-0">
-                            <label for="timeIndex" class="form-label text-light">出生時辰 <span class="en-text">(Time of Birth)</span></label>
+                            <label for="timeIndex" class="form-label text-light">出生時辰</label>
                             <select class="form-select" id="timeIndex" required>
-                                <option value="" disabled selected>請選擇時辰 (Please select a time)</option>
-                                <option value="0">子時 (Zi: 23:00 - 00:59)</option>
-                                <option value="1">丑時 (Chou: 01:00 - 02:59)</option>
-                                <option value="2">寅時 (Yin: 03:00 - 04:59)</option>
-                                <option value="3">卯時 (Mao: 05:00 - 06:59)</option>
-                                <option value="4">辰時 (Chen: 07:00 - 08:59)</option>
-                                <option value="5">巳時 (Si: 09:00 - 10:59)</option>
-                                <option value="6">午時 (Wu: 11:00 - 12:59)</option>
-                                <option value="7">未時 (Wei: 13:00 - 14:59)</option>
-                                <option value="8">申時 (Shen: 15:00 - 16:59)</option>
-                                <option value="9">酉時 (You: 17:00 - 18:59)</option>
-                                <option value="10">戌時 (Xu: 19:00 - 20:59)</option>
-                                <option value="11">亥時 (Hai: 21:00 - 22:59)</option>
+                                <option value="" disabled selected>請選擇時辰</option>
+                                <option value="0">子時 (23:00 - 00:59)</option>
+                                <option value="1">丑時 (01:00 - 02:59)</option>
+                                <option value="2">寅時 (03:00 - 04:59)</option>
+                                <option value="3">卯時 (05:00 - 06:59)</option>
+                                <option value="4">辰時 (07:00 - 08:59)</option>
+                                <option value="5">巳時 (09:00 - 10:59)</option>
+                                <option value="6">午時 (11:00 - 12:59)</option>
+                                <option value="7">未時 (13:00 - 14:59)</option>
+                                <option value="8">申時 (15:00 - 16:59)</option>
+                                <option value="9">酉時 (17:00 - 18:59)</option>
+                                <option value="10">戌時 (19:00 - 20:59)</option>
+                                <option value="11">亥時 (21:00 - 22:59)</option>
                             </select>
                         </div>
 
                         <div class="col-md-3">
-                            <div class="form-label text-light">性別 <span class="en-text">(Gender)</span></div>
+                            <div class="form-label text-light">性別</div>
                             <div class="d-flex gap-3 pt-1">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
-                                    <label class="form-check-label text-light" for="gender-male">男 <span class="en-text">(Male)</span></label>
+                                    <label class="form-check-label text-light" for="gender-male">男</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female">
-                                    <label class="form-check-label text-light" for="gender-female">女 <span class="en-text">(Female)</span></label>
+                                    <label class="form-check-label text-light" for="gender-female">女</label>
                                 </div>
                             </div>
                         </div>
@@ -234,41 +223,41 @@
                     <!-- 🟢 家庭現狀：婚姻與子女狀態區塊 -->
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
-                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填) <span class="en-text">(Marital Status - Optional)</span></label>
+                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填)</label>
                             <select class="form-select" id="marriageStatus">
-                                <option value="未提供" selected>未提供 / 保密 (Not Provided / Confidential)</option>
-                                <option value="單身">單身 / 未婚 (Single / Unmarried)</option>
-                                <option value="已婚">已婚 (Married)</option>
-                                <option value="離異">離異 (Divorced)</option>
-                                <option value="喪偶">喪偶 (Widowed)</option>
+                                <option value="未提供" selected>未提供 / 保密</option>
+                                <option value="單身">單身 / 未婚</option>
+                                <option value="已婚">已婚</option>
+                                <option value="離異">離異</option>
+                                <option value="喪偶">喪偶</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-light">子女狀況 (選填) <span class="en-text">(Children - Optional)</span></label>
+                            <label class="form-label text-light">子女狀況 (選填)</label>
                             <div class="d-flex gap-2">
                                 <select class="form-select text-center" id="childrenBoy">
-                                    <option value="0" selected>0 男 (0 Boys)</option>
-                                    <option value="1">1 男 (1 Boy)</option>
-                                    <option value="2">2 男 (2 Boys)</option>
-                                    <option value="3">3 男 (3 Boys)</option>
-                                    <option value="4">4 男 (4 Boys)</option>
-                                    <option value="5">5 男 (5 Boys)</option>
-                                    <option value="6">6 男 (6 Boys)</option>
-                                    <option value="7">7 男 (7 Boys)</option>
-                                    <option value="8">8 男 (8 Boys)</option>
-                                    <option value="9">9 男 (9 Boys)</option>
+                                    <option value="0" selected>0 男</option>
+                                    <option value="1">1 男</option>
+                                    <option value="2">2 男</option>
+                                    <option value="3">3 男</option>
+                                    <option value="4">4 男</option>
+                                    <option value="5">5 男</option>
+                                    <option value="6">6 男</option>
+                                    <option value="7">7 男</option>
+                                    <option value="8">8 男</option>
+                                    <option value="9">9 男</option>
                                 </select>
                                 <select class="form-select text-center" id="childrenGirl">
-                                    <option value="0" selected>0 女 (0 Girls)</option>
-                                    <option value="1">1 女 (1 Girl)</option>
-                                    <option value="2">2 女 (2 Girls)</option>
-                                    <option value="3">3 女 (3 Girls)</option>
-                                    <option value="4">4 女 (4 Girls)</option>
-                                    <option value="5">5 女 (5 Girls)</option>
-                                    <option value="6">6 女 (6 Girls)</option>
-                                    <option value="7">7 女 (7 Girls)</option>
-                                    <option value="8">8 女 (8 Girls)</option>
-                                    <option value="9">9 女 (9 Girls)</option>
+                                    <option value="0" selected>0 女</option>
+                                    <option value="1">1 女</option>
+                                    <option value="2">2 女</option>
+                                    <option value="3">3 女</option>
+                                    <option value="4">4 女</option>
+                                    <option value="5">5 女</option>
+                                    <option value="6">6 女</option>
+                                    <option value="7">7 女</option>
+                                    <option value="8">8 女</option>
+                                    <option value="9">9 女</option>
                                 </select>
                             </div>
                         </div>
@@ -276,9 +265,9 @@
 
                     <!-- 🟢 動態雙層熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
-                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 <span class="en-text">(Step 1: Choose the life area to explore)</span></label>
+                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域</label>
                         <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px; font-size: 1.05rem;">
-                            <option value="" disabled selected>請選擇領域分類... (Please select a category...)</option>
+                            <option value="" disabled selected>請選擇領域分類...</option>
                             <option value="career">💼 職涯與事業發展 (Career & Business)</option>
                             <option value="wealth">💰 財富與資產佈局 (Wealth & Financial Risk)</option>
                             <option value="love">❤️ 感情與婚姻緣分 (Love & Relationships)</option>
@@ -287,13 +276,13 @@
                             <option value="timing">⏳ 流年時機與重大抉擇 (Timing & Decisions)</option>
                         </select>
 
-                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 <span class="en-text">(Step 2: Choose your specific question)</span></label>
+                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題</label>
                         <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;" disabled>
-                            <option value="" disabled selected>請先選擇上方的領域分類... (Please select a category above first...)</option>
+                            <option value="" disabled selected>請先選擇上方的領域分類...</option>
                         </select>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-3 mt-2 btn-glow fw-bold fs-6">生成初步命格診斷 <span class="en-text">(Generate Preliminary Destiny Diagnosis)</span></button>
+                    <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-3 mt-2 btn-glow fw-bold fs-6">生成初步命格診斷</button>
                 </form>
 
                 <div id="analysis-result-container" class="mt-4 d-none">
@@ -333,7 +322,7 @@
             }
 
             countrySelect.addEventListener('change', function() {
-                citySelect.innerHTML = '<option value="" disabled selected>請選擇出生城市... (Please select city of birth...)</option>';
+                citySelect.innerHTML = '<option value="" disabled selected>請選擇出生城市...</option>';
                 const cities = locationsData[this.value];
                 if (cities) {
                     cities.forEach(city => {
@@ -386,7 +375,7 @@
 
             const currentDay = daySelect.value;
             
-            daySelect.innerHTML = '<option value="" disabled selected>日 (Day)</option>';
+            daySelect.innerHTML = '<option value="" disabled selected>日</option>';
             for (let i = 1; i <= daysInMonth; i++) {
                 const val = i.toString().padStart(2, '0');
                 const option = document.createElement('option');
@@ -416,58 +405,58 @@
 
         updateDays();
 
-        // 🟢 雙層動態下拉選單邏輯 (Progressive Disclosure) 加上全英文翻譯對照
+        // 🟢 雙層動態下拉選單邏輯 (Progressive Disclosure)
         const questionCategory = document.getElementById('questionCategory');
         const questionSelect = document.getElementById('question');
 
         const questionsMap = {
             'career': [
-                "我未來 12 個月內是否能順利轉職或跳槽？ (Will I successfully change jobs or pivot within the next 12 months?)",
-                "我的命格更適合創業還是留在企業/體制內發展？ (Am I better suited for entrepreneurship or staying in corporate/public sectors?)",
-                "我的事業天花板在哪裡？如何突破目前的發展瓶頸？ (Where is my career ceiling? How can I break through my current bottleneck?)",
-                "我的八字與紫微格局最適合從事什麼行業？ (Which industries best match my BaZi and Zi Wei Destiny Chart?)",
-                "我該如何發展第二曲線（副業），將自身才能變現？ (How should I develop a second curve (side hustle) to monetize my talents?)",
-                "職場上如何防範小人背叛、合夥糾紛與官非口舌？ (How can I prevent backstabbing, partnership disputes, and legal issues at work?)"
+                "我未來 12 個月內是否能順利轉職或跳槽？",
+                "我的命格更適合創業還是留在企業/體制內發展？",
+                "我的事業天花板在哪裡？如何突破目前的發展瓶頸？",
+                "我的八字與紫微格局最適合從事什麼行業？",
+                "我該如何發展第二曲線（副業），將自身才能變現？",
+                "職場上如何防範小人背叛、合夥糾紛與官非口舌？"
             ],
             'wealth': [
-                "我一生中最強的財富爆發週期何時開始？ (When will my strongest wealth-building cycle begin?)",
-                "我的財富上限如何？屬於正財穩健型還是偏財爆發型？ (What is my wealth limit? Is it steady income or windfall wealth?)",
-                "為什麼我明明很努力，卻依然在財務上掙扎？ (Why do I work hard but still struggle financially?)",
-                "未來五年內，我最該避免的重大財務/投資錯誤是什麼？ (What major financial/investment mistake should I avoid in the next 5 years?)",
-                "我適合投資不動產、股票基金還是合夥經商？ (Am I suited for real estate, stocks/funds, or business partnerships?)",
-                "近期是否有破財風險或債務危機？該如何佈局與防守？ (Is there a risk of financial loss or debt soon? How should I prepare?)"
+                "我一生中最強的財富爆發週期何時開始？",
+                "我的財富上限如何？屬於正財穩健型還是偏財爆發型？",
+                "為什麼我明明很努力，卻依然在財務上掙扎？",
+                "未來五年內，我最該避免的重大財務/投資錯誤是什麼？",
+                "我適合投資不動產、股票基金還是合夥經商？",
+                "近期是否有破財風險或債務危機？該如何佈局與防守？"
             ],
             'love': [
-                "我最有可能在何時遇見命中注定的正緣伴侶？ (When am I most likely to meet my destined life partner?)",
-                "為什麼我總是在感情中重蹈覆轍，吸引到不對的人？ (Why do I keep repeating relationship patterns and attracting the wrong people?)",
-                "我目前的這段感情/關係能走到結婚嗎？ (Will my current relationship lead to marriage?)",
-                "我的靈魂伴侶或正緣具備什麼樣的性格特質？ (What personality traits does my soulmate or destined partner have?)",
-                "命盤中是否有桃花煞、第三者介入的隱憂？如何趨吉避凶？ (Does my chart show risks of toxic romance or third-party interference? How to avoid?)",
-                "我的下一段感情會比上一段更健康、更順利嗎？ (Will my next relationship be healthier and smoother than the last?)"
+                "我最有可能在何時遇見命中注定的正緣伴侶？",
+                "為什麼我總是在感情中重蹈覆轍，吸引到不對的人？",
+                "我目前的這段感情/關係能走到結婚嗎？",
+                "我的靈魂伴侶或正緣具備什麼樣的性格特質？",
+                "命盤中是否有桃花煞、第三者介入的隱憂？如何趨吉避凶？",
+                "我的下一段感情會比上一段更健康、更順利嗎？"
             ],
             'family': [
-                "命盤顯示我會有孩子嗎？子息緣分如何？ (Does my chart show children? How is my relationship with them?)",
-                "我的命格中大概會有幾個孩子？ (Approximately how many children are indicated in my destiny chart?)",
-                "未來我與子女的互動關係與親情厚薄如何？ (What will my future relationship and emotional bond with my children be like?)",
-                "我該如何化解家庭矛盾，提升家族的和諧氣場？ (How can I resolve family conflicts and improve family harmony?)",
-                "今年是適合懷孕生子、建立家庭的好時機嗎？ (Is this a good year to get pregnant and start a family?)",
-                "未來有哪些家庭責任或變故會深刻影響我的人生？ (What future family responsibilities or changes will deeply impact my life?)"
+                "命盤顯示我會有孩子嗎？子息緣分如何？",
+                "我的命格中大概會有幾個孩子？",
+                "未來我與子女的互動關係與親情厚薄如何？",
+                "我該如何化解家庭矛盾，提升家族的和諧氣場？",
+                "今年是適合懷孕生子、建立家庭的好時機嗎？",
+                "未來有哪些家庭責任或變故會深刻影響我的人生？"
             ],
             'migration': [
-                "我應該選擇移民/出國發展，還是留在原居地？ (Should I immigrate/go abroad or stay in my current location?)",
-                "哪個國家或地理方位的能量最能助旺我的運勢？ (Which country or geographic direction boosts my luck the most?)",
-                "移居海外或跨國工作能突破我目前的事業瓶頸嗎？ (Can moving abroad or working internationally break my career bottleneck?)",
-                "哪座城市的磁場能為我帶來最好的發展機遇？ (Which city's energy brings me the best development opportunities?)",
-                "命盤顯示哪一年是我搬家或跨國遷移的最佳時機？ (Which year is the best time for relocation or international migration?)",
-                "我適合在本地置產，還是海外投資房地產？ (Am I better suited to buy property locally or invest abroad?)"
+                "我應該選擇移民/出國發展，還是留在原居地？",
+                "哪個國家或地理方位的能量最能助旺我的運勢？",
+                "移居海外或跨國工作能突破我目前的事業瓶頸嗎？",
+                "哪座城市的磁場能為我帶來最好的發展機遇？",
+                "命盤顯示哪一年是我搬家或跨國遷移的最佳時機？",
+                "我適合在本地置產，還是海外投資房地產？"
             ],
             'timing': [
-                "未來十年中，哪幾年將帶來我人生最大的機遇與翻轉？ (Which years in the next decade will bring my biggest opportunities and turnarounds?)",
-                "我今生靈魂的真正使命與隱藏潛力是什麼？ (What is my soul's true purpose and hidden potential in this life?)",
-                "流年運勢顯示我何時適合進場投資大筆資產？ (When does my annual luck indicate a good time for major investments?)",
-                "今年流年是否適合步入婚姻、完成終身大事？ (Is this year's luck favorable for getting married?)",
-                "在未來的幾年中，我應該在哪個年份特別保守、避免風險？ (In the coming years, which year should I be especially conservative and avoid risks?)",
-                "生命中反覆出現的挫折，是要教會我什麼功課？ (What lesson are the recurring setbacks in my life trying to teach me?)"
+                "未來十年中，哪幾年將帶來我人生最大的機遇與翻轉？",
+                "我今生靈魂的真正使命與隱藏潛力是什麼？",
+                "流年運勢顯示我何時適合進場投資大筆資產？",
+                "今年流年是否適合步入婚姻、完成終身大事？",
+                "在未來的幾年中，我應該在哪個年份特別保守、避免風險？",
+                "生命中反覆出現的挫折，是要教會我什麼功課？"
             ]
         };
 
@@ -475,7 +464,7 @@
             const selectedCategory = this.value;
             const options = questionsMap[selectedCategory];
             
-            questionSelect.innerHTML = '<option value="" disabled selected>請下拉選擇您當前最大的疑惑... (Please select your biggest question...)</option>';
+            questionSelect.innerHTML = '<option value="" disabled selected>請下拉選擇您當前最大的疑惑...</option>';
             
             if (options) {
                 options.forEach(q => {
@@ -528,9 +517,8 @@
         e.preventDefault(); 
         
         const btn = document.getElementById('submit-btn');
-        // 使用 innerHTML 確保可以正確存取並還原帶有 span 標籤的內容
-        const originalBtnText = btn.innerHTML;
-        btn.innerHTML = '🔮 正在提取五大古籍演算法，請稍候... <span class="en-text">(Extracting from 5 ancient texts, please wait...)</span>';
+        const originalBtnText = btn.innerText;
+        btn.innerText = "🔮 正在提取五大古籍演算法，請稍候...";
         btn.disabled = true;
 
         const country = document.getElementById('country').value;
@@ -575,7 +563,7 @@
             console.error("Error Detail:", error);
             alert("網路似乎暫時斷了線！請稍後再試一次。");
         } finally {
-            btn.innerHTML = originalBtnText;
+            btn.innerText = originalBtnText;
             btn.disabled = false;
         }
     });
