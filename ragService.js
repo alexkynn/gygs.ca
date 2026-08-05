@@ -1,6 +1,8 @@
 require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
+const fs = require('fs');
+const path = require('path');
 
 // 🟢 引入兩大數學曆法排盤引擎 (徹底消滅 AI 幻覺)
 const { Solar } = require('lunar-javascript');
@@ -213,6 +215,35 @@ async function generateEmbeddings(text) {
     }
 }
 
+// 🟢 數據分析日誌記錄函數 (JSONL Format)
+function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userEmail) {
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        email: userEmail || "anonymous",
+        demographics: {
+            country: userData.country,
+            city: userData.city,
+            birthYear: userData.year,
+            gender: userData.gender,
+            maritalStatus: userData.marriage,
+            children: userData.children
+        },
+        question: actualQuestion,
+        report_length: finalAiText.length,
+        ai_report: finalAiText
+    };
+
+    const logFilePath = path.join(__dirname, 'analytics_log.jsonl');
+
+    fs.appendFile(logFilePath, JSON.stringify(logEntry) + '\n', (err) => {
+        if (err) {
+            console.error("⚠️ Failed to write to analytics log:", err);
+        } else {
+            console.log("📊 Transaction successfully logged for analytics.");
+        }
+    });
+}
+
 // ==========================================
 // 核心路由生成區 (🟢 雙階段生成防斷尾)
 // ==========================================
@@ -384,6 +415,9 @@ ${exactChartData}
             finalAiText = finalAiText.substring(startIndex);
         }
         
+        // 🟢 記錄數據以供內部數據分析使用
+        logTransactionForAnalytics(userData, userData.actualQuestion, finalAiText, extractedEmail);
+
         return finalAiText;
 
     } catch (error) {
