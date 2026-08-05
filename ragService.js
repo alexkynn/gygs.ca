@@ -209,7 +209,7 @@ async function generateEmbeddings(text) {
 }
 
 // ==========================================
-// 核心路由生成區 (🟢 雙階段生成防斷尾)
+// 核心路由生成區 (🟢 改用兩階段生成以防斷尾)
 // ==========================================
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
@@ -267,7 +267,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
-        // 🟢 使用確認穩定的 gemini-3.5-flash
+        // 🟢 使用您確認可連線的 gemini-3.5-flash
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
             safetySettings: safetySettings,
@@ -314,7 +314,7 @@ ${ragFocusText}
 
 ## 參、四柱神煞詳解與調候樞紐
 ### 一、 調候樞紐分析
-（請嚴格依據命主八字真實的寒暖燥濕與喜用神，推演出客觀且專屬的調候與戰略指引，絕不可套用固定結論模板。）
+（結論帶入：不可單打獨鬥，必須借力市場資源...）
 ### 二、 四柱神煞與現代解讀
 （挑選 2-3 個命局神煞，寫成一段通順白話文即可，嚴禁逐柱條列推演。）
 
@@ -354,7 +354,7 @@ ${exactChartData}
 請「嚴格按照以下結構」接續撰寫：
 
 ## 肆、紫微斗數全景與核心宮位深度解析
-（請從檢索文獻中比對「紫微斗數 31 特殊格局」，明確鑑定命主的星曜組合符合哪些特殊大格或破格，並針對財帛宮、官祿宮、遷移宮與夫妻宮解說，同時融合家庭現狀給出實際建議。）
+（針對財帛宮、官祿宮、遷移宮與夫妻宮解說，並融合家庭現狀。）
 
 ## 伍、未來 10 年運勢推演
 （禁用區塊符號。格式範例：2026年 | 80分 | 事業突破，利於跨界。）
