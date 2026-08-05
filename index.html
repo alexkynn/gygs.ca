@@ -136,6 +136,7 @@
             padding: 5px 0;
         }
 
+        /* 🟢 新增 text-align: justify 確保免責聲明左右對齊排版嚴謹 */
         .disclaimer-box {
             font-size: 0.75rem; color: #9ca3af;
             background-color: rgba(17, 24, 39, 0.8);
@@ -144,6 +145,7 @@
             border-radius: 8px;
             padding: 1.25rem; margin-top: 2rem;
             line-height: 1.6;
+            text-align: justify;
         }
         .select-compact { padding-left: 0.5rem; padding-right: 1.5rem; }
 
@@ -332,11 +334,15 @@
         </div>
     </div>
 
+    <!-- 🟢 移除 text-center 確保 justify 左右對齊生效，並加入雙語免責聲明 -->
     <div class="row">
         <div class="col-12">
-            <div class="disclaimer-box text-center">
+            <div class="disclaimer-box">
                 <strong>Disclaimer & Limitation of Liability:</strong><br>
                 All information, analysis, algorithms, and strategic concepts provided by gygs.ca—including but not limited to AI-generated reports and consultation services—are solely for educational, informational, and personal planning purposes. They do not constitute certified financial, investment, legal, accounting, medical, or professional advice. The dual-engine macro/micro framework is a theoretical data model and should not be relied upon as the sole basis for making trading, investment, or life-altering decisions. Users are entirely responsible for their own actions and risk management. The creators, developers, analysts, and operators associated with gygs.ca shall not be held liable for any direct, indirect, incidental, consequential, or financial losses arising from the use or interpretation of this platform. Past historical correlations or algorithm results do not guarantee future performance or specific outcomes.
+                <br><br>
+                <strong>免責聲明與責任限制：</strong><br>
+                gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 AI 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
             </div>
         </div>
     </div>
