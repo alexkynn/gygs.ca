@@ -263,22 +263,51 @@
                         </div>
                     </div>
 
-                    <!-- 🟢 動態雙層熱門命理問題選單 -->
+                    <!-- 🟢 25 大熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
-                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域</label>
-                        <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px; font-size: 1.05rem;">
-                            <option value="" disabled selected>請選擇領域分類...</option>
-                            <option value="career">💼 職涯與事業發展 (Career & Business)</option>
-                            <option value="wealth">💰 財富與資產佈局 (Wealth & Financial Risk)</option>
-                            <option value="love">❤️ 感情與婚姻緣分 (Love & Relationships)</option>
-                            <option value="family">🏡 家庭與子女教養 (Family & Children)</option>
-                            <option value="migration">🌎 移居與地理轉換 (Migration & Relocation)</option>
-                            <option value="timing">⏳ 流年時機與重大抉擇 (Timing & Decisions)</option>
-                        </select>
+                        <label for="question" class="form-label text-light">🎯 請選擇您最想探索的人生課題</label>
+                        <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;">
+                            <option value="" disabled selected>請下拉選擇您當前最大的疑惑...</option>
+                            
+                            <optgroup label="💼 類別一：事業發展 (Career & Business)">
+                                <option value="我未來的事業天花板在哪裡？適合創業還是留任大廠/公職發展？">Q1: 我未來的事業天花板在哪裡？適合創業還是留任體制？</option>
+                                <option value="明後年是否有跳槽轉職、升遷或創業的黃金轉折點？">Q2: 明後年是否有跳槽轉職、升遷或創業的黃金轉折點？</option>
+                                <option value="職場上如何防範小人背叛、合夥糾紛與官非口舌？">Q3: 職場上如何防範小人背叛、合夥糾紛與官非口舌？</option>
+                                <option value="我的八字與紫微格局最適合從事什麼行業才能事半功倍？">Q4: 我的命格最適合從事什麼行業才能事半功倍？</option>
+                                <option value="當前事業遇到瓶頸與焦慮，該如何突破並找到第二曲線（副業）？">Q5: 事業遇到瓶頸，該如何突破並找到第二收入曲線？</option>
+                            </optgroup>
 
-                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題</label>
-                        <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;" disabled>
-                            <option value="" disabled selected>請先選擇上方的領域分類...</option>
+                            <optgroup label="💰 類別二：財富資產 (Wealth & Financial)">
+                                <option value="我一生中的財富格局上限如何？屬於正財穩健型還是偏財爆發型？">Q6: 我的財富上限如何？屬於正財穩健型還是偏財爆發型？</option>
+                                <option value="我何時能迎來資產暴漲或創業橫發的黃金機遇期？">Q7: 我何時能迎來資產暴漲或橫發的黃金機遇期？</option>
+                                <option value="命盤中的財庫狀況如何？如何防範漏財、投資暴敗與資金鏈斷裂？">Q8: 我的財庫狀況如何？如何防範漏財與投資暴敗？</option>
+                                <option value="我適合投資不動產、股票基金還是合夥經商？">Q9: 我適合投資不動產、股票基金還是合夥經商？</option>
+                                <option value="近期是否有破財風險或債務危機？該如何佈局與防守？">Q10: 近期是否有破財風險？該如何佈局與防守？</option>
+                            </optgroup>
+
+                            <optgroup label="❤️ 類別三：姻緣情感 (Romance & Relationships)">
+                                <option value="我的正緣何時出現？伴侶的外貌特質、性格與經濟背景如何？">Q11: 我的正緣何時出現？伴侶的性格與背景特質如何？</option>
+                                <option value="我未來的婚姻品質如何？如何化解感情中的溝通障礙與生離孤克？">Q12: 我的婚姻品質如何？如何化解感情中的溝通障礙？</option>
+                                <option value="目前這段感情/婚姻是正緣還是劫緣？是否值得繼續堅持？">Q13: 目前這段感情是正緣還是劫緣？值得繼續堅持嗎？</option>
+                                <option value="命盤中是否有桃花煞、第三者介入或二次婚姻的隱憂？如何趨吉避凶？">Q14: 命盤是否有桃花煞或第三者隱憂？如何趨吉避凶？</option>
+                                <option value="我的子息緣分與晚輩/下屬關係如何？如何培養和睦的家族氣場？">Q15: 我的子息緣分與晚輩下屬關係如何？</option>
+                            </optgroup>
+
+                            <optgroup label="🌿 類別四：健康身心 (Health & Vitality)">
+                                <option value="我的先天體質弱點在哪裡？未來需特別防範哪些五行疾病或器官病變？">Q16: 我的先天體質弱點在哪？需防範哪些五行疾病？</option>
+                                <option value="近年（或流年）是否有突發性意外血光、手術或精神重壓風險？">Q17: 近年是否有突發性意外血光或手術風險？</option>
+                                <option value="如何透過命理調候（寒暖燥濕）與日常生活方式來改善慢性健康問題？">Q18: 如何透過命理調候與日常作息改善慢性健康問題？</option>
+                                <option value="長期精神焦慮、失眠與內耗的根源是什麼？如何從心理與命理上調適？">Q19: 精神焦慮與內耗的根源為何？如何從命理上調適？</option>
+                                <option value="家中長輩或至親的健康氣數如何？流年該如何進行危機預警？">Q20: 家中長輩的健康氣數如何？流年該如何預警？</option>
+                            </optgroup>
+
+                            <optgroup label="🧭 類別五：命格運勢與重大抉擇 (Life Blueprint)">
+                                <option value="我的一生大運走勢如何？高峰期與低谷期分別在哪些歲數區間？">Q21: 我的一生大運走勢如何？高峰與低谷在哪些歲數？</option>
+                                <option value="我目前面臨重大人生抉擇（如移民、買房、轉行），哪條路才是順應天時？">Q22: 面臨重大人生抉擇(移民/轉行等)，該如何順應天時？</option>
+                                <option value="命盤中有哪些特殊大格（如三奇加會、火貪暴發）或破格？">Q23: 命盤中有哪些特殊大格或需要注意的破格？</option>
+                                <option value="我該如何找到自己的人生使命（Ikigai）並發揮先天最大的潛能？">Q24: 我該如何找到人生使命並發揮先天最大潛能？</option>
+                                <option value="今年的流年運勢總體如何？有哪些關鍵月份與必須注意的風險？">Q25: 今年的流年運勢總體如何？有哪些關鍵轉折月份？</option>
+                            </optgroup>
                         </select>
                     </div>
 
@@ -290,6 +319,22 @@
                     <h4 class="text-info mb-3">📜 古籍溯源與先天定盤 (摘要)：</h4>
                     <div id="analysis-text" class="text-light-50 lh-lg mb-4 p-3 rounded" style="background-color: #1f2937; border-left: 4px solid #38bdf8; font-size: 1.05rem;">
                         <!-- AI 短篇結論會顯示在這裡 -->
+                    </div>
+
+                    <!-- 🔒 付費解鎖區塊 -->
+                    <div id="unlock-section" class="p-4 rounded text-center mt-3" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);">
+                        <h5 class="text-white mb-2">🔓 立即解鎖 3000 字五庫全書大批報告</h5>
+                        <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》進行五書合參深度推演，為您的專屬問題提供極度精密的避險與進攻戰略。</p>
+                        
+                        <div class="mb-3 text-start">
+                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱：</label>
+                            <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
+                        </div>
+
+                        <button id="checkout-btn" class="btn btn-glow w-100 py-3 fw-bold fs-5 mt-2" type="button">
+                            💳 支付 $4.99 取得完整戰略藍圖
+                        </button>
+                        <div class="text-muted small mt-3">支援 Apple Pay, Google Pay 與全球信用卡 (由 Lemon Squeezy 安全處理)</div>
                     </div>
                 </div>
             </div>
@@ -343,7 +388,7 @@
         const daySelect = document.getElementById('birthDay');
         const hiddenDate = document.getElementById('date');
 
-        // 允許選取到未來 2 年
+        // 🟢 允許選取到未來 2 年 (支援擇日產子/胎兒潛能預測)
         const currentYear = new Date().getFullYear();
         for (let i = currentYear + 2; i >= 1920; i--) {
             const option = document.createElement('option');
@@ -405,92 +450,32 @@
 
         updateDays();
 
-        // 🟢 雙層動態下拉選單邏輯 (Progressive Disclosure)
-        const questionCategory = document.getElementById('questionCategory');
-        const questionSelect = document.getElementById('question');
-
-        const questionsMap = {
-            'career': [
-                "我未來 12 個月內是否能順利轉職或跳槽？",
-                "我的命格更適合創業還是留在企業/體制內發展？",
-                "我的事業天花板在哪裡？如何突破目前的發展瓶頸？",
-                "我的八字與紫微格局最適合從事什麼行業？",
-                "我該如何發展第二曲線（副業），將自身才能變現？",
-                "職場上如何防範小人背叛、合夥糾紛與官非口舌？"
-            ],
-            'wealth': [
-                "我一生中最強的財富爆發週期何時開始？",
-                "我的財富上限如何？屬於正財穩健型還是偏財爆發型？",
-                "為什麼我明明很努力，卻依然在財務上掙扎？",
-                "未來五年內，我最該避免的重大財務/投資錯誤是什麼？",
-                "我適合投資不動產、股票基金還是合夥經商？",
-                "近期是否有破財風險或債務危機？該如何佈局與防守？"
-            ],
-            'love': [
-                "我最有可能在何時遇見命中注定的正緣伴侶？",
-                "為什麼我總是在感情中重蹈覆轍，吸引到不對的人？",
-                "我目前的這段感情/關係能走到結婚嗎？",
-                "我的靈魂伴侶或正緣具備什麼樣的性格特質？",
-                "命盤中是否有桃花煞、第三者介入的隱憂？如何趨吉避凶？",
-                "我的下一段感情會比上一段更健康、更順利嗎？"
-            ],
-            'family': [
-                "命盤顯示我會有孩子嗎？子息緣分如何？",
-                "我的命格中大概會有幾個孩子？",
-                "未來我與子女的互動關係與親情厚薄如何？",
-                "我該如何化解家庭矛盾，提升家族的和諧氣場？",
-                "今年是適合懷孕生子、建立家庭的好時機嗎？",
-                "未來有哪些家庭責任或變故會深刻影響我的人生？"
-            ],
-            'migration': [
-                "我應該選擇移民/出國發展，還是留在原居地？",
-                "哪個國家或地理方位的能量最能助旺我的運勢？",
-                "移居海外或跨國工作能突破我目前的事業瓶頸嗎？",
-                "哪座城市的磁場能為我帶來最好的發展機遇？",
-                "命盤顯示哪一年是我搬家或跨國遷移的最佳時機？",
-                "我適合在本地置產，還是海外投資房地產？"
-            ],
-            'timing': [
-                "未來十年中，哪幾年將帶來我人生最大的機遇與翻轉？",
-                "我今生靈魂的真正使命與隱藏潛力是什麼？",
-                "流年運勢顯示我何時適合進場投資大筆資產？",
-                "今年流年是否適合步入婚姻、完成終身大事？",
-                "在未來的幾年中，我應該在哪個年份特別保守、避免風險？",
-                "生命中反覆出現的挫折，是要教會我什麼功課？"
-            ]
-        };
-
-        questionCategory.addEventListener('change', function() {
-            const selectedCategory = this.value;
-            const options = questionsMap[selectedCategory];
-            
-            questionSelect.innerHTML = '<option value="" disabled selected>請下拉選擇您當前最大的疑惑...</option>';
-            
-            if (options) {
-                options.forEach(q => {
-                    const opt = document.createElement('option');
-                    opt.value = q;
-                    opt.textContent = q;
-                    questionSelect.appendChild(opt);
-                });
-                questionSelect.disabled = false;
-            } else {
-                questionSelect.disabled = true;
-            }
-        });
-
-        // 結帳成功後的還原邏輯
+        // 🟢 【新增】結帳成功後的還原邏輯
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('status') === 'success') {
             const savedState = sessionStorage.getItem('gygs_state');
             if (savedState) {
                 const state = JSON.parse(savedState);
+                
+                // 1. 顯示原本的 AI 分析預告
                 document.getElementById('analysis-result-container').classList.remove('d-none');
                 document.getElementById('analysis-text').innerHTML = state.teaserHtml;
                 
+                // 2. 將付費區塊替換為精美的成功提示
+                const unlockSection = document.getElementById('unlock-section');
+                unlockSection.innerHTML = `
+                    <h5 class="text-success mb-3" style="font-weight: 800;">✅ 付款成功！大師正在為您撰寫報告</h5>
+                    <p class="text-light mb-1">您的專屬 3000 字戰略藍圖正在由 AI 宗師進行五庫全書運算。</p>
+                    <p class="text-secondary small">約 1~2 分鐘內將寄送至您的信箱：<strong>${state.email}</strong><br>（若未收到，請檢查垃圾郵件匣）</p>
+                `;
+                
+                // 3. 清除 URL 參數，讓網址列變回乾淨的 https://gygs.ca
                 window.history.replaceState(null, null, window.location.pathname);
+                
+                // 4. 用完即丟，清除暫存
                 sessionStorage.removeItem('gygs_state');
                 
+                // 5. 畫面自動滾動到結果區塊
                 setTimeout(() => {
                     document.getElementById('analysis-result-container').scrollIntoView({ behavior: 'smooth' });
                 }, 100);
@@ -538,9 +523,11 @@
         
         const questionText = document.getElementById('question').value;
         
+        // 🟢 獲取家庭狀態與組合子女字串
         const marriageVal = document.getElementById('marriageStatus').value;
         const childrenVal = getChildrenStatusString();
 
+        // 🟢 將完整且精確的資料打包送給後端 Teaser 模式
         const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}, 婚姻:${marriageVal}, 子女:${childrenVal}\n【來訪者提問】：${questionText}`;
 
         try {
@@ -564,6 +551,67 @@
             alert("網路似乎暫時斷了線！請稍後再試一次。");
         } finally {
             btn.innerText = originalBtnText;
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('checkout-btn').addEventListener('click', async function() {
+        const emailInput = document.getElementById('checkout-email').value.trim();
+        
+        if (!emailInput || !emailInput.includes('@')) {
+            alert("請輸入正確的 Email 信箱，這樣大師才能把完整報告寄給您喔！");
+            return;
+        }
+
+        const btn = document.getElementById('checkout-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "🔄 正在為您建立安全結帳通道...";
+        btn.disabled = true;
+
+        const country = document.getElementById('country').value;
+        const city = document.getElementById('city').value;
+        const date = document.getElementById('date').value;
+        const timeIndex = document.getElementById('timeIndex').value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const question = document.getElementById('question').value;
+        
+        // 🟢 獲取家庭狀態與組合子女字串
+        const marriageVal = document.getElementById('marriageStatus').value;
+        const childrenVal = getChildrenStatusString();
+        
+        // 🟢 更新 birthData 以包含婚姻與子女狀態
+        const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}, 婚姻:${marriageVal}, 子女:${childrenVal}`;
+
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: emailInput,
+                    question: question,
+                    birthData: birthData
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.checkoutUrl) {
+                const currentState = {
+                    teaserHtml: document.getElementById('analysis-text').innerHTML,
+                    email: emailInput
+                };
+                sessionStorage.setItem('gygs_state', JSON.stringify(currentState));
+
+                window.location.href = data.checkoutUrl;
+            } else {
+                alert("建立結帳通道時遇到阻礙：" + data.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error("結帳發生錯誤:", error);
+            alert("目前網路連線似乎不穩定，請稍後再試。");
+            btn.innerHTML = originalText;
             btn.disabled = false;
         }
     });
