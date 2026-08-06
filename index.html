@@ -97,6 +97,13 @@
             box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
         }
         
+        /* 🟢 修正 Bootstrap 預設的 disabled 樣式，強制保持暗黑主題 */
+        .form-control:disabled, .form-select:disabled {
+            background-color: #111827 !important;
+            color: #6b7280 !important;
+            border-color: #1f2937 !important;
+        }
+        
         optgroup {
             color: #38bdf8;
             font-weight: bold;
@@ -266,7 +273,7 @@
 
                     <!-- 🟢 動態雙層熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
-                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 (Choose Your Primary Focus)</label>
+                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 (Step 1: Choose Your Primary Focus)</label>
                         <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px; font-size: 1.05rem;">
                             <option value="" disabled selected>請選擇領域分類... (Please select a category...)</option>
                             <option value="career">💼 職涯與事業發展 (Career & Business)</option>
@@ -277,7 +284,7 @@
                             <option value="timing">⏳ 流年時機與重大抉擇 (Personal Growth & Timing)</option>
                         </select>
 
-                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 (Select Your Specific Question)</label>
+                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 (Step 2: Select Your Specific Question)</label>
                         <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;" disabled>
                             <option value="" disabled selected>請先選擇上方的領域分類... (Please select a category above first...)</option>
                         </select>
@@ -299,7 +306,7 @@
                         <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》進行五書合參深度推演，為您的專屬問題提供極度精密的避險與進攻戰略。</p>
                         
                         <div class="mb-3 text-start">
-                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱：</label>
+                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱 (Email to receive full report)：</label>
                             <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
                         </div>
 
