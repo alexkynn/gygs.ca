@@ -133,6 +133,7 @@
         </div>
         <div class="badge-soft-launch mb-2">💡 五庫全書 AI 宗師引擎已連線</div>
         <h1 class="main-title mb-3">gygs.ca 命理大數據戰略指南</h1>
+        <h4 class="text-info fw-bold mb-4" style="letter-spacing: 1px;">運勢有時，抉擇有道。<br>看清格局，走對人生。</h4>
         <p class="text-secondary">
             結合《紫微斗數全書》、《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》的宏觀智慧，<br>為您的事業、財務與人生旅程，梳理出最清晰、權威的前進方向。
         </p>
@@ -141,13 +142,13 @@
     <div class="row mb-5">
         <div class="col-12">
             <div class="engine-box p-4">
-                <h3 class="box-title mb-4">🟢 啟動命運檢索與對話</h3>
+                <h3 class="box-title mb-4">🟢 啟動命運檢索與對話 (Start Destiny Search & Dialogue)</h3>
                 
                 <form id="ask-chart-form" onsubmit="event.preventDefault();" autocomplete="off">
                     <div class="row">
                         <!-- 🟢 國家與城市下拉選單 -->
                         <div class="col-md-6 mb-3">
-                            <label for="country" class="form-label text-light">出生國家 (Country)</label>
+                            <label for="country" class="form-label text-light">出生國家 (Country of Birth)</label>
                             <select class="form-select" id="country" autocomplete="country-name" required>
                                 <option value="" disabled selected>請選擇出生國家...</option>
                                 <!-- 國家選項將由 locations.js 自動填入 -->
@@ -155,7 +156,7 @@
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="city" class="form-label text-light">出生城市 (City)</label>
+                            <label for="city" class="form-label text-light">出生城市 (City of Birth)</label>
                             <select class="form-select" id="city" autocomplete="address-level2" required>
                                 <option value="" disabled selected>請先選擇國家...</option>
                                 <!-- 城市選項將由 locations.js 自動填入 -->
@@ -165,7 +166,7 @@
 
                     <div class="row mb-3">
                         <div class="col-md-5 mb-3 mb-md-0">
-                            <label class="form-label text-light">出生西曆日期</label>
+                            <label class="form-label text-light">出生西曆日期 (Gregorian Date of Birth)</label>
                             <div class="row g-2">
                                 <div class="col-4">
                                     <select class="form-select select-compact" id="birthYear" required>
@@ -187,7 +188,7 @@
                         </div>
 
                         <div class="col-md-4 mb-3 mb-md-0">
-                            <label for="timeIndex" class="form-label text-light">出生時辰</label>
+                            <label for="timeIndex" class="form-label text-light">出生時辰 (Time of Birth)</label>
                             <select class="form-select" id="timeIndex" required>
                                 <option value="" disabled selected>請選擇時辰</option>
                                 <option value="0">子時 (23:00 - 00:59)</option>
@@ -206,15 +207,15 @@
                         </div>
 
                         <div class="col-md-3">
-                            <div class="form-label text-light">性別</div>
+                            <div class="form-label text-light">性別 (Gender)</div>
                             <div class="d-flex gap-3 pt-1">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
-                                    <label class="form-check-label text-light" for="gender-male">男</label>
+                                    <label class="form-check-label text-light" for="gender-male">男 (Male)</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female">
-                                    <label class="form-check-label text-light" for="gender-female">女</label>
+                                    <label class="form-check-label text-light" for="gender-female">女 (Female)</label>
                                 </div>
                             </div>
                         </div>
@@ -223,7 +224,7 @@
                     <!-- 🟢 家庭現狀：婚姻與子女狀態區塊 -->
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
-                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填)</label>
+                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填) (Marital Status - Optional)</label>
                             <select class="form-select" id="marriageStatus">
                                 <option value="未提供" selected>未提供 / 保密</option>
                                 <option value="單身">單身 / 未婚</option>
@@ -233,7 +234,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-light">子女狀況 (選填)</label>
+                            <label class="form-label text-light">子女狀況 (選填) (Children - Optional)</label>
                             <div class="d-flex gap-2">
                                 <select class="form-select text-center" id="childrenBoy">
                                     <option value="0" selected>0 男</option>
@@ -265,9 +266,9 @@
 
                     <!-- 🟢 動態雙層熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
-                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 (Choose Your Primary Focus)</label>
+                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 (Step 1: Choose Your Primary Focus)</label>
                         <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px; font-size: 1.05rem;">
-                            <option value="" disabled selected>請選擇領域分類...</option>
+                            <option value="" disabled selected>請選擇領域分類... (Please select a category...)</option>
                             <option value="career">💼 職涯與事業發展 (Career & Business)</option>
                             <option value="wealth">💰 財富與資產佈局 (Wealth & Financial Risk)</option>
                             <option value="love">❤️ 感情與婚姻緣分 (Love & Relationships)</option>
@@ -276,9 +277,9 @@
                             <option value="timing">⏳ 流年時機與重大抉擇 (Personal Growth & Timing)</option>
                         </select>
 
-                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 (Select Your Specific Question)</label>
+                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 (Step 2: Select Your Specific Question)</label>
                         <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;" disabled>
-                            <option value="" disabled selected>請先選擇上方的領域分類...</option>
+                            <option value="" disabled selected>請先選擇上方的領域分類... (Please select a category above first...)</option>
                         </select>
                     </div>
 
@@ -298,7 +299,7 @@
                         <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》進行五書合參深度推演，為您的專屬問題提供極度精密的避險與進攻戰略。</p>
                         
                         <div class="mb-3 text-start">
-                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱：</label>
+                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱 (Email to receive full report)：</label>
                             <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
                         </div>
 
