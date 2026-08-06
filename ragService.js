@@ -7,6 +7,8 @@ const { Solar } = require('lunar-javascript');
 const { astro } = require('iztro');
 const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
+// 🟢 引入外部袁天罡稱骨詩詞庫
+const boneWeightPoems = require('./boneWeightPoems.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
@@ -73,16 +75,12 @@ function extractUserData(question) {
 }
 
 function getRagFocus(questionStr) {
-    if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽") || questionStr.includes("轉職") || questionStr.includes("行業")) {
+    if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽")) {
         return "【專屬分析重點】：評估事業格局與成就上限。精準點出事業轉折時機，並給出職場防小人與最契合的天賦行業方向。";
-    } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("資金") || questionStr.includes("置產")) {
+    } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("資金")) {
         return "【專屬分析重點】：結合財星格局，定調其為正財或偏財。指出資產暴漲或破財危機的高危月份，給出投資佈局建議。";
-    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情") || questionStr.includes("結婚") || questionStr.includes("伴侶")) {
+    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情")) {
         return "【專屬分析重點】：分析夫妻宮。描繪未來伴侶特質與紅鸞星動年份。評估感情障礙，並提供趨吉避凶的情感防線。";
-    } else if (questionStr.includes("家庭") || questionStr.includes("孩子") || questionStr.includes("子女") || questionStr.includes("懷孕")) {
-        return "【專屬分析重點】：分析子女宮與田宅宮。評估子息緣分、家庭關係與潛在的家宅變故，給出促進家庭和諧的建議。";
-    } else if (questionStr.includes("移民") || questionStr.includes("出國") || questionStr.includes("搬家") || questionStr.includes("海外")) {
-        return "【專屬分析重點】：分析遷移宮與田宅宮。評估出外發展的吉凶，鑑定最旺命主的地理方位與移居黃金時機。";
     } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("疾病")) {
         return "【專屬分析重點】：結合五行偏枯點出先天體質弱點。梳理意外血光高危月份，給出改善健康與精神內耗的指南。";
     } else {
@@ -107,21 +105,13 @@ function calculateBoneWeight(yearIndex, month, day, shiZhi) {
     return Math.floor(total / 10) + "兩" + (total % 10) + "錢";
 }
 
-// 🟢 內建袁天罡稱骨詩詞庫 (硬數據，徹底消滅 AI 腦補幻覺)
+// 🟢 從外部讀取袁天罡稱骨詩詞
 function getBoneWeightPoem(weightStr, gender) {
-    const poems = {
-        "男命": {
-            "3兩2錢": "初年運限事難謀，漸漸財源如水流，半世喪功無進退，到老終期免憂愁。"
-        },
-        "女命": {
-            "3兩2錢": "初限建家命半前，恓惶憂慮費心田。忙忙碌碌無成事，若逢中末信天然。"
-        }
-    };
-    
-    if (poems[gender] && poems[gender][weightStr]) {
-        return poems[gender][weightStr];
+    if (boneWeightPoems[gender] && boneWeightPoems[gender][weightStr]) {
+        return boneWeightPoems[gender][weightStr];
     }
-    return "系統古籍庫擴充中，請參考下方命盤解析。"; 
+    // 🟢 若遇尚未建檔的重量，回傳專業的過渡性指引，避免報錯語氣
+    return `骨重${weightStr}，此命局自有天地之機，詳見下方核心解析。`; 
 }
 
 const shiToIndex = { "子": 0, "丑": 1, "寅": 2, "卯": 3, "辰": 4, "巳": 5, "午": 6, "未": 7, "申": 8, "酉": 9, "戌": 10, "亥": 11 };
