@@ -291,6 +291,22 @@
                     <div id="analysis-text" class="text-light-50 lh-lg mb-4 p-3 rounded" style="background-color: #1f2937; border-left: 4px solid #38bdf8; font-size: 1.05rem;">
                         <!-- AI 短篇結論會顯示在這裡 -->
                     </div>
+
+                    <!-- 🔒 付費解鎖區塊 -->
+                    <div id="unlock-section" class="p-4 rounded text-center mt-3" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);">
+                        <h5 class="text-white mb-2">🔓 立即解鎖 3000 字五庫全書大批報告</h5>
+                        <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》進行五書合參深度推演，為您的專屬問題提供極度精密的避險與進攻戰略。</p>
+                        
+                        <div class="mb-3 text-start">
+                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱：</label>
+                            <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
+                        </div>
+
+                        <button id="checkout-btn" class="btn btn-glow w-100 py-3 fw-bold fs-5 mt-2" type="button">
+                            💳 支付 $4.99 取得完整戰略藍圖
+                        </button>
+                        <div class="text-muted small mt-3">支援 Apple Pay, Google Pay 與全球信用卡 (由 Lemon Squeezy 安全處理)</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -343,7 +359,7 @@
         const daySelect = document.getElementById('birthDay');
         const hiddenDate = document.getElementById('date');
 
-        // 允許選取到未來 2 年
+        // 🟢 允許選取到未來 2 年 (支援擇日產子/胎兒潛能預測)
         const currentYear = new Date().getFullYear();
         for (let i = currentYear + 2; i >= 1920; i--) {
             const option = document.createElement('option');
@@ -460,37 +476,53 @@
             ]
         };
 
-        questionCategory.addEventListener('change', function() {
-            const selectedCategory = this.value;
-            const options = questionsMap[selectedCategory];
-            
-            questionSelect.innerHTML = '<option value="" disabled selected>請下拉選擇您當前最大的疑惑...</option>';
-            
-            if (options) {
-                options.forEach(q => {
-                    const opt = document.createElement('option');
-                    opt.value = q;
-                    opt.textContent = q;
-                    questionSelect.appendChild(opt);
-                });
-                questionSelect.disabled = false;
-            } else {
-                questionSelect.disabled = true;
-            }
-        });
+        if (questionCategory && questionSelect) {
+            questionCategory.addEventListener('change', function() {
+                const selectedCategory = this.value;
+                const options = questionsMap[selectedCategory];
+                
+                questionSelect.innerHTML = '<option value="" disabled selected>請下拉選擇您當前最大的疑惑...</option>';
+                
+                if (options) {
+                    options.forEach(q => {
+                        const opt = document.createElement('option');
+                        opt.value = q;
+                        opt.textContent = q;
+                        questionSelect.appendChild(opt);
+                    });
+                    questionSelect.disabled = false;
+                } else {
+                    questionSelect.disabled = true;
+                }
+            });
+        }
 
-        // 結帳成功後的還原邏輯
+        // 🟢 【新增】結帳成功後的還原邏輯
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('status') === 'success') {
             const savedState = sessionStorage.getItem('gygs_state');
             if (savedState) {
                 const state = JSON.parse(savedState);
+                
+                // 1. 顯示原本的 AI 分析預告
                 document.getElementById('analysis-result-container').classList.remove('d-none');
                 document.getElementById('analysis-text').innerHTML = state.teaserHtml;
                 
+                // 2. 將付費區塊替換為精美的成功提示
+                const unlockSection = document.getElementById('unlock-section');
+                unlockSection.innerHTML = `
+                    <h5 class="text-success mb-3" style="font-weight: 800;">✅ 付款成功！大師正在為您撰寫報告</h5>
+                    <p class="text-light mb-1">您的專屬 3000 字戰略藍圖正在由 AI 宗師進行五庫全書運算。</p>
+                    <p class="text-secondary small">約 1~2 分鐘內將寄送至您的信箱：<strong>${state.email}</strong><br>（若未收到，請檢查垃圾郵件匣）</p>
+                `;
+                
+                // 3. 清除 URL 參數，讓網址列變回乾淨的 https://gygs.ca
                 window.history.replaceState(null, null, window.location.pathname);
+                
+                // 4. 用完即丟，清除暫存
                 sessionStorage.removeItem('gygs_state');
                 
+                // 5. 畫面自動滾動到結果區塊
                 setTimeout(() => {
                     document.getElementById('analysis-result-container').scrollIntoView({ behavior: 'smooth' });
                 }, 100);
@@ -538,9 +570,11 @@
         
         const questionText = document.getElementById('question').value;
         
+        // 🟢 獲取家庭狀態與組合子女字串
         const marriageVal = document.getElementById('marriageStatus').value;
         const childrenVal = getChildrenStatusString();
 
+        // 🟢 將完整且精確的資料打包送給後端 Teaser 模式
         const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}, 婚姻:${marriageVal}, 子女:${childrenVal}\n【來訪者提問】：${questionText}`;
 
         try {
@@ -564,6 +598,67 @@
             alert("網路似乎暫時斷了線！請稍後再試一次。");
         } finally {
             btn.innerText = originalBtnText;
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('checkout-btn').addEventListener('click', async function() {
+        const emailInput = document.getElementById('checkout-email').value.trim();
+        
+        if (!emailInput || !emailInput.includes('@')) {
+            alert("請輸入正確的 Email 信箱，這樣大師才能把完整報告寄給您喔！");
+            return;
+        }
+
+        const btn = document.getElementById('checkout-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "🔄 正在為您建立安全結帳通道...";
+        btn.disabled = true;
+
+        const country = document.getElementById('country').value;
+        const city = document.getElementById('city').value;
+        const date = document.getElementById('date').value;
+        const timeIndex = document.getElementById('timeIndex').value;
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const question = document.getElementById('question').value;
+        
+        // 🟢 獲取家庭狀態與組合子女字串
+        const marriageVal = document.getElementById('marriageStatus').value;
+        const childrenVal = getChildrenStatusString();
+        
+        // 🟢 更新 birthData 以包含婚姻與子女狀態
+        const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}, 婚姻:${marriageVal}, 子女:${childrenVal}`;
+
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: emailInput,
+                    question: question,
+                    birthData: birthData
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.checkoutUrl) {
+                const currentState = {
+                    teaserHtml: document.getElementById('analysis-text').innerHTML,
+                    email: emailInput
+                };
+                sessionStorage.setItem('gygs_state', JSON.stringify(currentState));
+
+                window.location.href = data.checkoutUrl;
+            } else {
+                alert("建立結帳通道時遇到阻礙：" + data.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error("結帳發生錯誤:", error);
+            alert("目前網路連線似乎不穩定，請稍後再試。");
+            btn.innerHTML = originalText;
             btn.disabled = false;
         }
     });
