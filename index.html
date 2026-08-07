@@ -2,8 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gygs.ca - 專屬人生導航與五庫全書決策指南</title>
+    
+    <!-- 🟢 iPhone / iOS 專屬 Web App 沉浸式優化 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="apple-touch-icon" href="gygs_galaxy_logo.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -97,13 +103,6 @@
             box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
         }
         
-        /* 🟢 修正 Bootstrap 預設的 disabled 樣式，強制保持暗黑主題 */
-        .form-control:disabled, .form-select:disabled {
-            background-color: #111827 !important;
-            color: #6b7280 !important;
-            border-color: #1f2937 !important;
-        }
-        
         optgroup {
             color: #38bdf8;
             font-weight: bold;
@@ -123,8 +122,29 @@
             border-radius: 8px;
             padding: 1.25rem; margin-top: 2rem;
             line-height: 1.6;
+            text-align: justify;
         }
         .select-compact { padding-left: 0.5rem; padding-right: 1.5rem; }
+
+        /* =========================================
+           🟢 行動裝置/iPhone 專屬排版優化 (Mobile/iOS Tweaks)
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 縮小標題以適應 iPhone 窄螢幕 */
+            .main-title { font-size: 1.75rem; }
+            header h4 { font-size: 1.15rem; }
+            
+            /* 縮減最外層容器的上下留白，保留更多空間給表單 */
+            .container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+            
+            /* 減少區塊內距，讓輸入框能向外延伸延展 */
+            .engine-box { padding: 1.25rem !important; }
+
+            /* ⚠️ 極度重要：強制字體大小 >= 16px，徹底解決 iPhone Safari 點擊輸入框會自動畫面放大的問題 */
+            .form-control, .form-select, input, select {
+                font-size: 16px !important;
+            }
+        }
     </style>
     
     <!-- 🟢 引入全球真太陽時資料庫 -->
@@ -273,7 +293,7 @@
 
                     <!-- 🟢 動態雙層熱門命理問題選單 -->
                     <div class="mb-4 mt-4">
-                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 (Step 1: Choose Your Primary Focus)</label>
+                        <label for="questionCategory" class="form-label text-light">🎯 第一步：請選擇您想探索的生命領域 (Choose Your Primary Focus)</label>
                         <select id="questionCategory" required class="form-select text-light mb-3" style="padding: 12px; font-size: 1.05rem;">
                             <option value="" disabled selected>請選擇領域分類... (Please select a category...)</option>
                             <option value="career">💼 職涯與事業發展 (Career & Business)</option>
@@ -284,7 +304,7 @@
                             <option value="timing">⏳ 流年時機與重大抉擇 (Personal Growth & Timing)</option>
                         </select>
 
-                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 (Step 2: Select Your Specific Question)</label>
+                        <label for="question" class="form-label text-light">🎯 第二步：請選擇您最想解答的具體問題 (Select Your Specific Question)</label>
                         <select id="question" required class="form-select text-light" style="padding: 12px; font-size: 1.05rem;" disabled>
                             <option value="" disabled selected>請先選擇上方的領域分類... (Please select a category above first...)</option>
                         </select>
@@ -322,9 +342,12 @@
 
     <div class="row">
         <div class="col-12">
-            <div class="disclaimer-box text-center">
+            <div class="disclaimer-box">
                 <strong>Disclaimer & Limitation of Liability:</strong><br>
                 All information, analysis, algorithms, and strategic concepts provided by gygs.ca—including but not limited to AI-generated reports and consultation services—are solely for educational, informational, and personal planning purposes. They do not constitute certified financial, investment, legal, accounting, medical, or professional advice. The dual-engine macro/micro framework is a theoretical data model and should not be relied upon as the sole basis for making trading, investment, or life-altering decisions. Users are entirely responsible for their own actions and risk management. The creators, developers, analysts, and operators associated with gygs.ca shall not be held liable for any direct, indirect, incidental, consequential, or financial losses arising from the use or interpretation of this platform. Past historical correlations or algorithm results do not guarantee future performance or specific outcomes.
+                <br><br>
+                <strong>免責聲明與責任限制：</strong><br>
+                gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 AI 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
             </div>
         </div>
     </div>
@@ -567,9 +590,9 @@
         const timeIndex = document.getElementById('timeIndex').value;
         
         const timeMap = {
-            "0": "子時", "1": "丑時", "2": "寅時", "3": "卯時",
-            "4": "辰時", "5": "巳時", "6": "午時", "7": "未時",
-            "8": "申時", "9": "酉時", "10": "戌時", "11": "亥時"
+            "0": "子时", "1": "丑时", "2": "寅时", "3": "卯时",
+            "4": "辰时", "5": "巳时", "6": "午时", "7": "未时",
+            "8": "申时", "9": "酉时", "10": "戌时", "11": "亥时"
         };
         const timeLabel = timeMap[timeIndex];
         
