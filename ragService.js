@@ -2,6 +2,10 @@ require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
+// 🟢 引入原生 File System 模組供數據分析儲存使用
+const fs = require('fs');
+const path = require('path');
+
 // 🟢 引入兩大數學曆法排盤引擎 (徹底消滅 AI 幻覺)
 const { Solar } = require('lunar-javascript');
 const { astro } = require('iztro');
@@ -54,8 +58,8 @@ function extractUserData(question) {
     const shiMatch = question.match(/時辰[:：]?(.)時/);
     const dateMatch = question.match(/日期[:：]?(\d{4})-(\d{2})-(\d{2})/);
     const genderMatch = question.match(/性別[:：]?(男|女)/);
-    const marriageMatch = question.match(/婚姻[:：]?([^,，\n]+)/);
-    const childrenMatch = question.match(/子女[:：]?([^,，\n]+)/);
+    const marriageMatch = question.match(/婚姻[:：]?([^,\n]+)/);
+    const childrenMatch = question.match(/子女[:：]?([^,\n]+)/);
     
     const questionTextMatch = question.match(/提問:(.*)/) || question.match(/【來訪者提問】：(.*)/);
     const actualQuestion = questionTextMatch ? questionTextMatch[1].trim() : question;
@@ -110,7 +114,6 @@ function getBoneWeightPoem(weightStr, gender) {
     if (boneWeightPoems[gender] && boneWeightPoems[gender][weightStr]) {
         return boneWeightPoems[gender][weightStr];
     }
-    // 🟢 若遇尚未建檔的重量，回傳專業的過渡性指引，避免報錯語氣
     return `骨重${weightStr}，此命局自有天地之機，詳見下方核心解析。`; 
 }
 
@@ -200,6 +203,35 @@ async function generateEmbeddings(text) {
     } catch (error) {
         return null; 
     }
+}
+
+// 🟢 數據分析日誌記錄函數 (JSONL Format)
+function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userEmail) {
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        email: userEmail || "anonymous",
+        demographics: {
+            country: userData.country,
+            city: userData.city,
+            birthYear: userData.year,
+            gender: userData.gender,
+            maritalStatus: userData.marriage,
+            children: userData.children
+        },
+        question: actualQuestion,
+        report_length: finalAiText.length,
+        ai_report: finalAiText
+    };
+
+    const logFilePath = path.join(__dirname, 'analytics_log.jsonl');
+
+    fs.appendFile(logFilePath, JSON.stringify(logEntry) + '\n', (err) => {
+        if (err) {
+            console.error("⚠️ Failed to write to analytics log:", err);
+        } else {
+            console.log("📊 Transaction successfully logged for analytics.");
+        }
+    });
 }
 
 // ==========================================
@@ -373,6 +405,9 @@ ${exactChartData}
             finalAiText = finalAiText.substring(startIndex);
         }
         
+        // 🟢 記錄數據以供內部數據分析使用
+        logTransactionForAnalytics(userData, userData.actualQuestion, finalAiText, extractedEmail);
+
         return finalAiText;
 
     } catch (error) {
