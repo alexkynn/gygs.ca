@@ -2,10 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs'); // 🟢 新增：用來讀取 Logo 檔案
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
-const crypto = require('crypto'); // 🟢 用來驗證 Lemon Squeezy 的安全簽章
-const puppeteer = require('puppeteer'); // 🟢 100% 免費的 in-house PDF 生成引擎
+const crypto = require('crypto');
+const puppeteer = require('puppeteer');
 
 // 🟢 引入 RAG AI 命理檢索大腦
 const { generateMasterResponse } = require('./ragService');
@@ -146,7 +147,7 @@ app.post('/api/checkout', async (req, res) => {
                         checkout_data: { email: email, custom: { user_question: question, user_birth: birthData } },
                         product_options: {
                             enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)],
-                            redirect_url: "https://gygs.ca/?status=success",       // 🟢 加上 ?status=success 參數，以便前端辨識並保留畫面
+                            redirect_url: "https://gygs.ca/?status=success",
                             receipt_link_url: "https://gygs.ca",   
                             receipt_button_text: "返回 gygs.ca 首頁" 
                         }
@@ -208,33 +209,83 @@ app.post('/api/webhook/lemon', async (req, res) => {
                                  .replace('時辰:10', '時辰：戌時').replace('時辰:11', '時辰：亥時');
 
             console.log(`✅ 收到付款！準備為 ${customerEmail} 撰寫報告...`);
-            console.log(`🔍 翻譯後的命盤資料: ${userBirth}`); 
 
             const finalPromptForAI = `【來訪者真實命盤資料】：${userBirth}\n【來訪者提問】：${userQuestion}`;
             res.status(200).send('Webhook received');
 
-            // 呼叫大腦生成 3000 字大批 ('full' 模式)
             generateMasterResponse(finalPromptForAI, 'full').then(async (reportContent) => {
                 let formattedReport = reportContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
-                // 🟢 準備 PDF 專用的 HTML 結構
+                // 🟢 讀取 Logo 並轉換為 base64 (最安全的 PDF 嵌入方式，無視網路延遲)
+                let logoBase64 = '';
+                try {
+                    const logoPath = path.join(__dirname, 'gygs_galaxy_logo.png');
+                    if (fs.existsSync(logoPath)) {
+                        const logoData = fs.readFileSync(logoPath);
+                        logoBase64 = `data:image/png;base64,${logoData.toString('base64')}`;
+                    }
+                } catch (err) {
+                    console.error("⚠️ 讀取 Logo 發生錯誤:", err);
+                }
+
+                // 🟢 準備 PDF 專用的 HTML 結構與進階 CSS 斷頁管理
                 const pdfHtmlContent = `
                 <!DOCTYPE html>
                 <html lang="zh-TW">
                 <head>
                     <meta charset="UTF-8">
                     <style>
-                        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; padding: 40px; background-color: #ffffff; }
-                        h2 { color: #8e44ad; text-align: center; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 5px; }
-                        .subtitle { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 30px; }
-                        .content { background-color: #f8fafc; padding: 30px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; text-align: justify; }
-                        strong { color: #1e293b; }
+                        /* 基本排版設定 */
+                        body { 
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+                            line-height: 1.8; 
+                            color: #333; 
+                            padding: 30px 40px; 
+                            background-color: #ffffff; 
+                        }
+                        
+                        /* Logo 與標題區塊 */
+                        .header-section { text-align: center; margin-bottom: 40px; }
+                        .logo-img { max-width: 220px; border-radius: 12px; margin-bottom: 15px; }
+                        h1.main-title { color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 5px; font-size: 26px; }
+                        .subtitle { color: #64748b; font-size: 14px; }
+                        
+                        /* 內文樣式 */
+                        .content { font-size: 15px; text-align: justify; color: #1e293b; }
+                        .content strong { color: #000000; }
+                        
+                        /* 🟢 斷頁管理 (Page Break Management) - 防止段落與標題被切斷 */
+                        h2 { 
+                            color: #3b82f6; 
+                            border-bottom: 1px solid #e2e8f0; 
+                            padding-bottom: 8px; 
+                            margin-top: 35px; 
+                            page-break-after: avoid; /* 防止標題在頁面最底部孤立 */
+                            break-after: avoid; 
+                        }
+                        h3, h4 { 
+                            color: #0f172a; 
+                            margin-top: 25px; 
+                            page-break-after: avoid; 
+                            break-after: avoid; 
+                        }
+                        p, li, ul, ol { 
+                            page-break-inside: avoid; /* 防止單一段落或列表從中間被切成兩半 */
+                            break-inside: avoid; 
+                            margin-bottom: 15px;
+                        }
                     </style>
                 </head>
                 <body>
-                    <h2>gygs.ca 專屬人生戰略導航</h2>
-                    <div class="subtitle">先天命盤大批・流年專屬藍圖</div>
-                    <div class="content">${formattedReport}</div>
+                    <div class="header-section">
+                        ${logoBase64 ? `<img src="${logoBase64}" class="logo-img" alt="gygs.ca Logo">` : ''}
+                        <h1 class="main-title">gygs.ca 專屬人生戰略導航</h1>
+                        <div class="subtitle">先天命盤大批・流年專屬藍圖</div>
+                    </div>
+                    
+                    <div class="content">
+                        ${formattedReport}
+                    </div>
                 </body>
                 </html>
                 `;
@@ -243,14 +294,18 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 console.log(`📄 正在生成 PDF 報告...`);
                 const browser = await puppeteer.launch({ 
                     headless: "new", 
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'] // 確保在伺服器環境順利運行
+                    args: ['--no-sandbox', '--disable-setuid-sandbox']
                 });
                 const page = await browser.newPage();
                 await page.setContent(pdfHtmlContent, { waitUntil: 'networkidle0' });
+                
                 const pdfBuffer = await page.pdf({ 
                     format: 'A4', 
                     printBackground: true, 
-                    margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' } 
+                    margin: { top: '30px', bottom: '40px', left: '30px', right: '30px' },
+                    displayHeaderFooter: true,
+                    headerTemplate: '<div></div>', // 隱藏預設標頭
+                    footerTemplate: '<div style="font-size: 10px; text-align: center; width: 100%; color: #94a3b8;">gygs.ca - 專屬人生戰略導航 | 頁碼 <span class="pageNumber"></span> / <span class="totalPages"></span></div>' // 加入頁碼頁尾
                 });
                 await browser.close();
 
