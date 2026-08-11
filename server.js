@@ -5,6 +5,7 @@ const path = require('path');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
 const crypto = require('crypto'); // 🟢 用來驗證 Lemon Squeezy 的安全簽章
+const puppeteer = require('puppeteer'); // 🟢 100% 免費的 in-house PDF 生成引擎
 
 // 🟢 引入 RAG AI 命理檢索大腦
 const { generateMasterResponse } = require('./ragService');
@@ -171,7 +172,7 @@ app.post('/api/checkout', async (req, res) => {
 });
 
 // ==========================================
-// 🟢 Lemon Squeezy Webhook (含翻譯大師語言與五庫全書 Email 版型)
+// 🟢 Lemon Squeezy Webhook (含 PDF 動態生成與寄送)
 // ==========================================
 app.post('/api/webhook/lemon', async (req, res) => {
     const signature = req.get('X-Signature');
@@ -216,33 +217,70 @@ app.post('/api/webhook/lemon', async (req, res) => {
             generateMasterResponse(finalPromptForAI, 'full').then(async (reportContent) => {
                 let formattedReport = reportContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
+                // 🟢 準備 PDF 專用的 HTML 結構
+                const pdfHtmlContent = `
+                <!DOCTYPE html>
+                <html lang="zh-TW">
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; padding: 40px; background-color: #ffffff; }
+                        h2 { color: #8e44ad; text-align: center; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 5px; }
+                        .subtitle { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 30px; }
+                        .content { background-color: #f8fafc; padding: 30px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; text-align: justify; }
+                        strong { color: #1e293b; }
+                    </style>
+                </head>
+                <body>
+                    <h2>gygs.ca 專屬人生戰略導航</h2>
+                    <div class="subtitle">先天命盤大批・流年專屬藍圖</div>
+                    <div class="content">${formattedReport}</div>
+                </body>
+                </html>
+                `;
+
+                // 🟢 使用 Puppeteer 產生記憶體內的 PDF Buffer
+                console.log(`📄 正在生成 PDF 報告...`);
+                const browser = await puppeteer.launch({ 
+                    headless: "new", 
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'] // 確保在伺服器環境順利運行
+                });
+                const page = await browser.newPage();
+                await page.setContent(pdfHtmlContent, { waitUntil: 'networkidle0' });
+                const pdfBuffer = await page.pdf({ 
+                    format: 'A4', 
+                    printBackground: true, 
+                    margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' } 
+                });
+                await browser.close();
+
                 const mailOptions = {
                     from: `"gygs.ca 人生導航" <${process.env.EMAIL_USER}>`,
                     to: customerEmail,
                     subject: '【gygs.ca】五庫全書・專屬命理戰略解析報告已完成',
                     html: `
                         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 750px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
-                            <div style="text-align: center; border-bottom: 2px solid #8e44ad; padding-bottom: 15px;">
-                                <h2 style="color: #8e44ad; margin: 0; font-size: 24px;">先天命盤大批・流年專屬藍圖</h2>
-                                <p style="font-size: 14px; color: #64748b; margin-top: 5px;">融合《滴天髓》・《三命通會》・《子平真詮》・《窮通寶鑑》・《紫微斗數全書》</p>
-                            </div>
-                            
-                            <p style="font-size: 16px; margin-top: 20px;">親愛的朋友，您好：</p>
-                            <p style="font-size: 16px;">感謝您的付費解鎖。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖：</p>
-                            
-                            <div style="background-color: #f8fafc; padding: 30px; border-radius: 12px; margin: 30px 0; border: 1px solid #e2e8f0; color: #1e293b; font-size: 15px; text-align: justify;">
-                                ${formattedReport}
-                            </div>
-                            
+                            <p style="font-size: 16px;">親愛的朋友，您好：</p>
+                            <p style="font-size: 16px;">感謝您的耐心等候。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖。</p>
+                            <p style="font-size: 16px; color: #8e44ad; font-weight: bold;">
+                                👉 您的專屬戰略報告已轉換為高畫質 PDF 檔，請見本信件附件。
+                            </p>
                             <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
                                 願這份集結古人智慧的藍圖，能為您的下一步提供清晰的視野與無懼的力量。<br><br>
                                 <strong>gygs.ca 團隊 敬上</strong>
                             </p>
                         </div>
-                    `
+                    `,
+                    attachments: [
+                        {
+                            filename: 'gygs_strategy_report.pdf',
+                            content: pdfBuffer,
+                            contentType: 'application/pdf'
+                        }
+                    ]
                 };
                 await transporter.sendMail(mailOptions);
-                console.log(`📩 報告已成功寄送給：${customerEmail}`);
+                console.log(`📩 報告及 PDF 附件已成功寄送給：${customerEmail}`);
             }).catch(err => console.error("背景生成或寄信失敗:", err));
 
         } else {
