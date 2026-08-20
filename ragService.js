@@ -203,7 +203,7 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
 }
 
 // ==========================================
-// 核心路由生成區 (🟢 模組化三階段生成 + 極端確定性參數)
+// 核心路由生成區 (🟢 模組化三階段生成 + 還原語料庫識別參數)
 // ==========================================
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
@@ -237,7 +237,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
         
-        // 🔴 關鍵修復：將 Temperature 與 TopP 降至 0.1，強制 AI 使用數學邏輯，消除任何幻覺與隨機性
+        // 🔴 關鍵修復：將參數還原回 0.5 與 0.9，釋放 LLM 對傳統命理經典語料庫的模式識別能力
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
             safetySettings: [
@@ -247,8 +247,8 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
                 { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
             ],
             generationConfig: { 
-                temperature: 0.1,  // 鎖定絕對邏輯
-                topP: 0.1,         // 消除機率分支
+                temperature: 0.5,  // 釋放傳統命理學共識網路
+                topP: 0.9,
                 maxOutputTokens: 8192 
             }
         });
