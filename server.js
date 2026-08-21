@@ -215,17 +215,21 @@ app.post('/api/webhook/lemon', async (req, res) => {
 
             generateMasterResponse(finalPromptForAI, 'full').then(async (reportContent) => {
                 
-                // 🟢 將 Markdown 轉換為真實的 HTML DOM 元素，以便 Puppeteer 能夠精準捕捉並防止斷頁
+                // 🟢 階層化 DOM 轉換
                 let htmlFormattedReport = reportContent
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/^#### (.*$)/gim, '<h4>$1</h4>') // 支援 1.1.1 第三層標題
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')  // 支援 1.1 第二層標題
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')   // 支援 1. 第一層標題
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
                 
                 htmlFormattedReport = `<p>${htmlFormattedReport}</p>`
-                    .replace(/<p><\/p>/g, '') // 移除空段落
-                    .replace(/<br><\/p>/g, '</p>'); // 修正結尾換行
+                    .replace(/<p><\/p>/g, '') 
+                    .replace(/<br><\/p>/g, '</p>'); 
+
+                // 🟢 斷頁防護黑科技：強制將標題與其後緊接的段落綁定，絕對不會跨頁斷開[cite: 1]
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h[234]>.*?<\/h[234]>\s*<p>.*?<\/p>)/gis, '<div style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
                 
                 // 讀取 Logo 並轉換為 base64
                 let logoBase64 = '';
@@ -246,7 +250,6 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 <head>
                     <meta charset="UTF-8">
                     <style>
-                        /* 全局清除預設邊距，將控制權完全交給 Puppeteer 的 margin 設定 */
                         html, body { 
                             margin: 0 !important; 
                             padding: 0 !important; 
@@ -255,17 +258,37 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             background-color: #ffffff;
                         }
                         
-                        /* 首頁封面區塊 */
+                        /* 🟢 首頁封面區塊：Flexbox 左右並排佈局[cite: 1] */
                         .cover-page {
-                            text-align: center;
-                            padding-top: 40px;
-                            padding-bottom: 60px;
-                            margin-bottom: 40px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 20px;
+                            padding-top: 10px;
+                            padding-bottom: 25px;
+                            margin-bottom: 35px;
                             border-bottom: 2px solid #8e44ad;
                         }
-                        .logo-img { max-width: 180px; border-radius: 12px; margin-bottom: 20px; }
-                        h1.main-title { color: #8e44ad; margin-bottom: 5px; font-size: 28px; letter-spacing: 1px; }
-                        .subtitle { color: #64748b; font-size: 15px; font-weight: bold; }
+                        .logo-img { 
+                            max-width: 90px; /* 將 Logo 大幅縮小 */
+                            border-radius: 8px; 
+                        }
+                        .title-group {
+                            text-align: left;
+                        }
+                        h1.main-title { 
+                            color: #8e44ad; 
+                            margin: 0 0 5px 0; 
+                            font-size: 26px; 
+                            letter-spacing: 1px; 
+                            border: none;
+                            padding: 0;
+                        }
+                        .subtitle { 
+                            color: #64748b; 
+                            font-size: 15px; 
+                            font-weight: bold; 
+                        }
                         
                         /* 內文與斷頁管理 (Page Break Management) */
                         .content-container { 
@@ -281,22 +304,22 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             padding-bottom: 6px; 
                             margin-top: 40px; 
                             margin-bottom: 15px; 
-                            page-break-after: avoid; 
-                            break-after: avoid; 
                         }
                         h3 { 
                             color: #3b82f6; 
                             font-size: 16px;
                             margin-top: 25px; 
                             margin-bottom: 10px; 
-                            page-break-after: avoid; 
-                            break-after: avoid; 
+                        }
+                        h4 {
+                            color: #0f172a; 
+                            font-size: 15px;
+                            margin-top: 20px; 
+                            margin-bottom: 8px;
                         }
                         p, li { 
                             margin-top: 0; 
                             margin-bottom: 15px; 
-                            page-break-inside: avoid; 
-                            break-inside: avoid; 
                         }
                         strong { color: #000000; font-weight: 600; }
                     </style>
@@ -304,8 +327,10 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 <body>
                     <div class="cover-page">
                         ${logoBase64 ? `<img src="${logoBase64}" class="logo-img" alt="gygs.ca Logo">` : ''}
-                        <h1 class="main-title">gygs.ca 人生戰略導航</h1>
-                        <div class="subtitle">先天命盤大批・流年專屬藍圖</div>
+                        <div class="title-group">
+                            <h1 class="main-title">gygs.ca 人生戰略導航</h1>
+                            <div class="subtitle">先天命盤大批・流年專屬藍圖</div>
+                        </div>
                     </div>
                     
                     <div class="content-container">
@@ -341,7 +366,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 const pdfBuffer = await page.pdf({ 
                     format: 'A4', 
                     printBackground: true, 
-                    margin: { top: '80px', bottom: '80px', left: '50px', right: '50px' }, // 釋放空間給頁首與頁尾
+                    margin: { top: '80px', bottom: '80px', left: '50px', right: '50px' }, 
                     displayHeaderFooter: true,
                     headerTemplate: headerTemplate,
                     footerTemplate: footerTemplate

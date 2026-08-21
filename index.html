@@ -183,8 +183,9 @@
                             <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
                         </div>
 
+                        <!-- 🟢 更新為 $4.99 USD -->
                         <button id="checkout-btn" class="btn btn-glow w-100 py-3 fw-bold fs-5 mt-2" type="button">
-                            💳 支付 $4.99 取得完整戰略藍圖
+                            💳 支付 $4.99 USD 取得完整戰略藍圖
                         </button>
                         <div class="text-muted small mt-3">支援 Apple Pay, Google Pay 與全球信用卡 (由 Lemon Squeezy 安全處理)</div>
                     </div>
@@ -277,7 +278,6 @@
         daySelect.addEventListener('change', syncDate);
         updateDays();
 
-        // 🟢 依賴外部 questionsData.js
         const questionCategory = document.getElementById('questionCategory');
         const questionSelect = document.getElementById('question');
 
