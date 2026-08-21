@@ -4,48 +4,209 @@ const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@googl
 
 const fs = require('fs');
 const path = require('path');
-const { Solar } = require('lunar-javascript');
+const moment = require('moment-timezone');
+const cityTimezones = require('city-timezones');
+const { Solar, Lunar } = require('lunar-javascript');
 const { astro } = require('iztro');
+
 const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
-
-// 🟢 引入分離的 Prompt 模組
 const { getPromptPart1, getPromptPart2, getPromptPart3 } = require('./promptTemplates.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-function getCityOffset(cityName) {
-    for (const country in locationsData) {
-        const cityObj = locationsData[country].find(c => c.name === cityName);
-        if (cityObj) return cityObj.offset;
-    }
-    return null;
-}
+// =========================================================================
+// 1. 物理經緯度與真太陽時 (True Solar Time) 核心數學計算引擎
+// =========================================================================
 
-const shiRanges = {
-    "子時": { start: 23, end: 1 }, "丑時": { start: 1, end: 3 }, "寅時": { start: 3, end: 5 },
-    "卯時": { start: 5, end: 7 }, "辰時": { start: 7, end: 9 }, "巳時": { start: 9, end: 11 },
-    "午時": { start: 11, end: 13 }, "未時": { start: 13, end: 15 }, "申時": { start: 15, end: 17 },
-    "酉時": { start: 17, end: 19 }, "戌時": { start: 19, end: 21 }, "亥時": { start: 21, end: 23 }
+const shiTimeMap = {
+    "子時": { hour: 0, minute: 0, index: 0 },
+    "丑時": { hour: 2, minute: 0, index: 1 },
+    "寅時": { hour: 4, minute: 0, index: 2 },
+    "卯時": { hour: 6, minute: 0, index: 3 },
+    "辰時": { hour: 8, minute: 0, index: 4 },
+    "巳時": { hour: 10, minute: 0, index: 5 },
+    "午時": { hour: 12, minute: 0, index: 6 },
+    "未時": { hour: 14, minute: 0, index: 7 },
+    "申時": { hour: 16, minute: 0, index: 8 },
+    "酉時": { hour: 18, minute: 0, index: 9 },
+    "戌時": { hour: 20, minute: 0, index: 10 },
+    "亥時": { hour: 22, minute: 0, index: 11 }
 };
 
-function calculateLocalWatchTime(cityName, shiName) {
-    const offset = getCityOffset(cityName);
-    const shi = shiRanges[shiName];
-    if (offset === null || !shi) return null;
+function getCityCoordinates(cityName) {
+    if (typeof locationsData !== 'undefined') {
+        for (const country in locationsData) {
+            const cityObj = locationsData[country].find(c => c.name === cityName || cityName.includes(c.name));
+            if (cityObj && cityObj.offset !== undefined) {
+                return { offsetMinutes: cityObj.offset, timezone: null };
+            }
+        }
+    }
 
-    const formatTime = (hour, offsetMins) => {
-        let totalMins = hour * 60 - offsetMins; 
-        if (totalMins < 0) totalMins += 24 * 60;
-        let h = Math.floor(totalMins / 60) % 24;
-        let m = totalMins % 60;
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    };
-    return `${formatTime(shi.start, offset)} - ${formatTime(shi.end, offset)}`;
+    const cityLookup = cityTimezones.lookupViaCity(cityName);
+    if (cityLookup && cityLookup.length > 0) {
+        const cityInfo = cityLookup[0];
+        const tz = cityInfo.timezone;
+        const now = moment().tz(tz);
+        const standardMeridian = (now.utcOffset() / 60) * 15;
+        const lngDiff = cityInfo.lng - standardMeridian;
+        const offsetMinutes = Math.round(lngDiff * 4);
+        return { offsetMinutes, timezone: tz };
+    }
+
+    return { offsetMinutes: 0, timezone: 'UTC' };
 }
+
+function calculateTrueSolarTime(year, month, day, shiName, cityName) {
+    const shiConfig = shiTimeMap[shiName] || { hour: 12, minute: 0, index: 6 };
+    const { offsetMinutes } = getCityCoordinates(cityName);
+
+    let baseHour = shiConfig.hour;
+    let baseMinute = shiConfig.minute + offsetMinutes;
+
+    let calYear = parseInt(year, 10);
+    let calMonth = parseInt(month, 10);
+    let calDay = parseInt(day, 10);
+
+    let totalMinutes = baseHour * 60 + baseMinute;
+    if (totalMinutes < 0) {
+        totalMinutes += 1440;
+        const prevDay = moment(`${calYear}-${calMonth}-${calDay}`, 'YYYY-MM-DD').subtract(1, 'days');
+        calYear = prevDay.year();
+        calMonth = prevDay.month() + 1;
+        calDay = prevDay.date();
+    } else if (totalMinutes >= 1440) {
+        totalMinutes -= 1440;
+        const nextDay = moment(`${calYear}-${calMonth}-${calDay}`, 'YYYY-MM-DD').add(1, 'days');
+        calYear = nextDay.year();
+        calMonth = nextDay.month() + 1;
+        calDay = nextDay.date();
+    }
+
+    const solarHour = Math.floor(totalMinutes / 60);
+    const solarMinute = totalMinutes % 60;
+
+    let solarShiIndex = Math.floor((solarHour + 1) / 2) % 12;
+
+    return {
+        year: calYear,
+        month: calMonth,
+        day: calDay,
+        hour: solarHour,
+        minute: solarMinute,
+        solarShiIndex,
+        offsetMinutes
+    };
+}
+
+// =========================================================================
+// 2. 本地確定性八字與紫微斗數排盤 (In-House Math API)
+// =========================================================================
+
+const shiNames = ["子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
+
+function getDayMasterElement(dayGan) {
+    const elements = { "甲":"木", "乙":"木", "丙":"火", "丁":"火", "戊":"土", "己":"土", "庚":"金", "辛":"金", "壬":"水", "癸":"水" };
+    return elements[dayGan] || "未知";
+}
+
+function calculateBoneWeight(yearIndex, month, day, shiIndex) {
+    const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
+    const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
+    const dayW = [0, 5,10,8,15,16,15,8,16,8,16,9,17,8,17,10,8,9,18,5,15,10,9,8,9,15,18,7,8,16,6];
+    const shiW = [16, 6, 7, 10, 9, 16, 10, 8, 8, 9, 6, 6];
+    
+    let total = yearW[yearIndex] + monthW[month] + dayW[day] + (shiW[shiIndex] || 0);
+    return Math.floor(total / 10) + "兩" + (total % 10) + "錢";
+}
+
+function getBoneWeightPoem(weightStr, gender) {
+    if (boneWeightPoems[gender] && boneWeightPoems[gender][weightStr]) {
+        return boneWeightPoems[gender][weightStr];
+    }
+    return `骨重${weightStr}，此命局自有天地之機，詳見下方核心解析。`; 
+}
+
+function generateDeterministicFactData(userData, currentDateStr) {
+    try {
+        if (!userData.year || !userData.month || !userData.day) {
+            return "【提示：無法獲取完整出生日期】";
+        }
+
+        const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city);
+
+        const solarDate = Solar.fromYmdHms(tst.year, tst.month, tst.day, tst.hour, tst.minute, 0);
+        const lunarDate = solarDate.getLunar();
+        const lunarDateStr = `${lunarDate.getYearInGanZhi()}年 ${lunarDate.getMonthInChinese()}月 ${lunarDate.getDayInChinese()}日`;
+        
+        const bazi = lunarDate.getEightChar();
+        const baziString = `年柱：${bazi.getYear()}，月柱：${bazi.getMonth()}，日柱：${bazi.getDay()}，時柱：${bazi.getTime()}`;
+        const dayMasterElement = getDayMasterElement(bazi.getDay().charAt(0));
+        const zodiacSign = solarDate.getXingZuo() + "座";
+
+        const yearIndex = (lunarDate.getYear() - 1984) % 60;
+        const normalizedYearIndex = yearIndex < 0 ? yearIndex + 60 : yearIndex;
+        const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunarDate.getMonth()), lunarDate.getDay(), tst.solarShiIndex);
+        const genderStr = userData.gender === '男' ? '男命' : '女命';
+        const weightPoem = getBoneWeightPoem(weightStr, genderStr);
+
+        const dateStrForIztro = `${tst.year}-${tst.month}-${tst.day}`;
+        const genderForIztro = userData.gender === '男' ? 'male' : 'female';
+        const astrolabe = astro.bySolar(dateStrForIztro, tst.solarShiIndex, genderForIztro, true, 'zh-CN');
+
+        let palacesString = "";
+        if (astrolabe && astrolabe.palaces) {
+            astrolabe.palaces.forEach(p => {
+                let stars = [];
+                if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
+                if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
+                if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
+                palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
+            });
+        }
+
+        return `
+[系統時空校正基準]
+- 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
+- 輸入鐘錶時間：${userData.year}年${userData.month}月${userData.day}日 ${userData.shi}
+- 真太陽時校正結果：${tst.year}年${tst.month}月${tst.day}日 ${String(tst.hour).padStart(2, '0')}:${String(tst.minute).padStart(2, '0')} (${shiNames[tst.solarShiIndex]}，經度誤差偏移 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘)
+- 農曆對應：${lunarDateStr}
+- 性別：${genderStr}
+- 當前時空基準：${currentDateStr}
+
+[家庭現狀]
+- 婚姻狀態：${userData.marriage}
+- 子女狀況：${userData.children}
+
+[系統底層四柱八字 (不可篡改數據)]
+- 西洋星座：${zodiacSign}
+- 八字干支：${baziString}
+- 日元五行屬性：${dayMasterElement}
+- 袁天罡稱骨：${weightStr} (${genderStr})
+- 專屬讖語：「${weightPoem}」
+
+[系統底層紫微斗數 (不可篡改數據)]
+- 五行局：${astrolabe.fiveElementsClass || '未知'}
+- 命主：${astrolabe.soul || '未知'}
+- 身主：${astrolabe.body || '未知'}
+- 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
+- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮
+- 十二宮位星曜配置：
+${palacesString}
+`;
+    } catch (e) {
+        console.error("排盤運算失敗:", e);
+        return "【系統提示：本地排盤計算發生異常】";
+    }
+}
+
+// =========================================================================
+// 3. 輔助解析與 RAG 向量檢索
+// =========================================================================
 
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
@@ -61,7 +222,7 @@ function extractUserData(question) {
     return {
         country: cityMatch ? cityMatch[1].trim() : null,
         city: cityMatch ? cityMatch[2].trim() : null,
-        shi: shiMatch ? shiMatch[1] + "時" : null,
+        shi: shiMatch ? shiMatch[1] + "時" : "子時",
         year: dateMatch ? dateMatch[1] : null,
         month: dateMatch ? parseInt(dateMatch[2], 10) : null,
         day: dateMatch ? parseInt(dateMatch[3], 10) : null,
@@ -86,105 +247,14 @@ function getRagFocus(questionStr) {
     }
 }
 
-function getDayMasterElement(dayGan) {
-    const elements = { "甲":"木", "乙":"木", "丙":"火", "丁":"火", "戊":"土", "己":"土", "庚":"金", "辛":"金", "壬":"水", "癸":"水" };
-    return elements[dayGan] || "未知";
-}
-
-function calculateBoneWeight(yearIndex, month, day, shiZhi) {
-    const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
-    const monthW = [0, 6,7,18,9,5,16,9,15,18,8,9,5];
-    const dayW = [0, 5,10,8,15,16,15,8,16,8,16,9,17,8,17,10,8,9,18,5,15,10,9,8,9,15,18,7,8,16,6];
-    const shiW = { "子":16, "丑":6, "寅":7, "卯":10, "辰":9, "巳":16, "午":10, "未":8, "申":8, "酉":9, "戌":6, "亥":6 };
-    
-    let total = yearW[yearIndex] + monthW[month] + dayW[day] + (shiW[shiZhi] || 0);
-    return Math.floor(total / 10) + "兩" + (total % 10) + "錢";
-}
-
-function getBoneWeightPoem(weightStr, gender) {
-    if (boneWeightPoems[gender] && boneWeightPoems[gender][weightStr]) return boneWeightPoems[gender][weightStr];
-    return `骨重${weightStr}，此命局自有天地之機，詳見下方核心解析。`; 
-}
-
-const shiToIndex = { "子": 0, "丑": 1, "寅": 2, "卯": 3, "辰": 4, "巳": 5, "午": 6, "未": 7, "申": 8, "酉": 9, "戌": 10, "亥": 11 };
-
-function generateExactChartText(userData, currentDateStr) {
-    try {
-        if (!userData.year || !userData.month || !userData.day) return "【提示：無法獲取完整日期】";
-
-        const timeIndex = shiToIndex[userData.shi ? userData.shi.charAt(0) : "子"] || 0;
-        const gender = userData.gender === '男' ? 'male' : 'female';
-        const dateStr = `${userData.year}-${userData.month}-${userData.day}`;
-        
-        const astrolabe = astro.bySolar(dateStr, timeIndex, gender, true, 'zh-CN');
-        const hourMapping = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
-        const exactHour = hourMapping[timeIndex];
-        const solarWithTime = Solar.fromYmdHms(parseInt(userData.year), parseInt(userData.month), parseInt(userData.day), exactHour, 0, 0);
-        const lunar = solarWithTime.getLunar();
-        
-        const lunarDateStr = `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInChinese()}月 ${lunar.getDayInChinese()}日`;
-        const baziWithTime = lunar.getEightChar();
-        const zodiacSign = solarWithTime.getXingZuo() + "座"; 
-        const baziString = `年柱：${baziWithTime.getYear()}，月柱：${baziWithTime.getMonth()}，日柱：${baziWithTime.getDay()}，時柱：${baziWithTime.getTime()}`;
-
-        const dayGan = baziWithTime.getDay().charAt(0);
-        const baziElement = getDayMasterElement(dayGan);
-        
-        const yearIndex = (lunar.getYear() - 1984) % 60;
-        const normalizedYearIndex = yearIndex < 0 ? yearIndex + 60 : yearIndex; 
-        const weightStr = calculateBoneWeight(normalizedYearIndex, Math.abs(lunar.getMonth()), lunar.getDay(), userData.shi.charAt(0));
-        const genderStr = userData.gender === '男' ? '男命' : '女命';
-        const weightPoem = getBoneWeightPoem(weightStr, genderStr);
-
-        let palacesString = "";
-        if (astrolabe && astrolabe.palaces) {
-            astrolabe.palaces.forEach(p => {
-                let stars = [];
-                if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
-                if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
-                if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
-                palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
-            });
-        }
-
-        return `
-[基本資訊]
-- 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
-- 出生公曆：${userData.year}年${userData.month}月${userData.day}日
-- 出生農曆：${lunarDateStr}
-- 出生時辰：${userData.shi} (${exactHour === 0 ? 23 : exactHour - 1}:00 - ${exactHour === 0 ? 0 : exactHour}:59)
-- 性別：${genderStr}
-- 當前時空基準：${currentDateStr}
-
-[家庭現狀]
-- 婚姻狀態：${userData.marriage}
-- 子女狀況：${userData.children}
-
-[系統底層四柱八字]
-- 西洋星座：${zodiacSign}
-- 八字干支：${baziString}
-- 八字五行屬性：${baziElement}
-- 袁天罡稱骨：${weightStr} (${genderStr})
-- 專屬讖語：「${weightPoem}」
-
-[系統底層紫微斗數]
-- 五行局：${astrolabe.fiveElementsClass || '未知'}
-- 命主：${astrolabe.soul || '未知'}
-- 身主：${astrolabe.body || '未知'}
-- 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
-- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮
-- 十二宮位星曜：
-${palacesString}
-`;
-    } catch (e) { return "【系統提示：排盤引擎計算發生異常】"; }
-}
-
 async function generateEmbeddings(text) {
     try {
         const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
         const result = await embeddingModel.embedContent(text);
         return result.embedding.values;
-    } catch (error) { return null; }
+    } catch (error) {
+        return null;
+    }
 }
 
 function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userEmail) {
@@ -192,25 +262,33 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
         timestamp: new Date().toISOString(),
         email: userEmail || "anonymous",
         demographics: {
-            country: userData.country, city: userData.city, birthYear: userData.year,
-            gender: userData.gender, maritalStatus: userData.marriage, children: userData.children
+            country: userData.country,
+            city: userData.city,
+            birthYear: userData.year,
+            gender: userData.gender,
+            maritalStatus: userData.marriage,
+            children: userData.children
         },
-        question: actualQuestion, report_length: finalAiText.length, ai_report: finalAiText
+        question: actualQuestion,
+        report_length: finalAiText.length,
+        ai_report: finalAiText
     };
+
     fs.appendFile(path.join(__dirname, 'analytics_log.jsonl'), JSON.stringify(logEntry) + '\n', (err) => {
         if (err) console.error("⚠️ Failed to write to analytics log:", err);
     });
 }
 
-// ==========================================
-// 核心路由生成區 (🟢 模組化三階段生成 + 還原語料庫識別參數)
-// ==========================================
+// =========================================================================
+// 4. 核心路由生成區 (三階段確定性架構)
+// =========================================================================
+
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
         const today = new Date();
         const currentDateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
-        const age = userData.year ? today.getFullYear() - parseInt(userData.year) : '未知';
+        const age = userData.year ? today.getFullYear() - parseInt(userData.year, 10) : '未知';
         
         let extractedEmail = userEmail || (question.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/) || [])[1];
 
@@ -218,16 +296,19 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             let teaserResponse = generateUniqueTeaser(userData.year, userData.month, userData.day, userData.shi, userData.gender, userData.country, userData.actualQuestion);
             let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>`;
             if (userData.city && userData.shi) {
-                const watchTime = calculateLocalWatchTime(userData.city, userData.shi);
-                if (watchTime) timeWarning += `系統偵測您的出生地為「${userData.city}」。當地真正的「${userData.shi}」對應鐘錶時間為 <strong style="color:#38bdf8;">${watchTime}</strong>。請於解鎖前確認您確實出生於此時間段內。`;
-                else timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。`;
+                const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city);
+                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度完成真太陽時校正（時差偏差 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘，實際定盤時辰為「${shiNames[tst.solarShiIndex]}」）。解鎖後將以此天文標準生成 3000 字專屬報告。`;
+            } else {
+                timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。`;
             }
             return teaserResponse + timeWarning;
         }
 
-        const exactChartData = generateExactChartText(userData, currentDateStr);
+        console.log("⚡ [1/5] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
+        const exactFactData = generateDeterministicFactData(userData, currentDateStr);
+
+        console.log("🔍 [2/5] 檢索 Pinecone 向量庫古籍知識...");
         let contexts = "";
-        
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
         if (queryEmbedding) {
@@ -236,10 +317,18 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         }
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
-        
-        // 🔴 關鍵修復：將參數還原回 0.5 與 0.9，釋放 LLM 對傳統命理經典語料庫的模式識別能力
+
+        const systemInstruction = `你是一位精通東方哲學與現代商業戰略的首席決策顧問。
+【任務核心】
+你的任務不是計算排盤，而是基於 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改客觀數據」，進行高維度的戰略解讀與決策指引。
+【執行準則】
+1. 嚴格遵守 <FactData> 內給出的八字干支、五行、稱骨與紫微十二宮星曜，嚴禁篡改任何星曜或八字。
+2. 溫暖、專業、賦能，將古籍智慧轉換為現代職場、商業投資與人際關係的實戰策略。
+3. 嚴格遵循給定的排版格式。`;
+
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
+            systemInstruction: systemInstruction,
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -247,28 +336,27 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
                 { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
             ],
             generationConfig: { 
-                temperature: 0.5,  // 釋放傳統命理學共識網路
-                topP: 0.9,
+                temperature: 0.3, 
+                topP: 0.8,
                 maxOutputTokens: 8192 
             }
         });
 
-        // 第一階段
-        const promptPart1 = getPromptPart1(age, userData, exactChartData, ragFocusText, contexts);
+        console.log("📝 [3/5] 生成階段一：系統定盤與格局判定...");
+        const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText, contexts);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
 
-        // 第二階段
-        const promptPart2 = getPromptPart2(aiTextPart1, exactChartData, userData, contexts);
+        console.log("📝 [4/5] 生成階段二：神煞調候與核心宮位深度解析...");
+        const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts);
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
 
-        // 第三階段
+        console.log("📝 [5/5] 生成階段三：十年運勢與專屬破局行動指南...");
         const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, userData);
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
-        // 組合報告
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart3}`;
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         const startIndex = finalAiText.indexOf('## 壹');
@@ -278,7 +366,8 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         return finalAiText;
 
     } catch (error) {
-        console.error("RAG 發生錯誤:", error); throw error;
+        console.error("RAG 流程發生錯誤:", error);
+        throw error;
     }
 }
 

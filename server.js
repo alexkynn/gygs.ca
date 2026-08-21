@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs'); // 🟢 新增：用來讀取 Logo 檔案
+const fs = require('fs');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
@@ -173,7 +173,7 @@ app.post('/api/checkout', async (req, res) => {
 });
 
 // ==========================================
-// 🟢 Lemon Squeezy Webhook (含 PDF 動態生成與寄送)
+// 🟢 Lemon Squeezy Webhook (含高階 PDF 動態生成與寄送)
 // ==========================================
 app.post('/api/webhook/lemon', async (req, res) => {
     const signature = req.get('X-Signature');
@@ -214,9 +214,20 @@ app.post('/api/webhook/lemon', async (req, res) => {
             res.status(200).send('Webhook received');
 
             generateMasterResponse(finalPromptForAI, 'full').then(async (reportContent) => {
-                let formattedReport = reportContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 
-                // 🟢 讀取 Logo 並轉換為 base64 (最安全的 PDF 嵌入方式，無視網路延遲)
+                // 🟢 將 Markdown 轉換為真實的 HTML DOM 元素，以便 Puppeteer 能夠精準捕捉並防止斷頁
+                let htmlFormattedReport = reportContent
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>');
+                
+                htmlFormattedReport = `<p>${htmlFormattedReport}</p>`
+                    .replace(/<p><\/p>/g, '') // 移除空段落
+                    .replace(/<br><\/p>/g, '</p>'); // 修正結尾換行
+                
+                // 讀取 Logo 並轉換為 base64
                 let logoBase64 = '';
                 try {
                     const logoPath = path.join(__dirname, 'gygs_galaxy_logo.png');
@@ -228,70 +239,83 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     console.error("⚠️ 讀取 Logo 發生錯誤:", err);
                 }
 
-                // 🟢 準備 PDF 專用的 HTML 結構與進階 CSS 斷頁管理
+                // 🟢 高階列印專用 CSS (Screen & Print 混合優化)
                 const pdfHtmlContent = `
                 <!DOCTYPE html>
                 <html lang="zh-TW">
                 <head>
                     <meta charset="UTF-8">
                     <style>
-                        /* 基本排版設定 */
-                        body { 
-                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+                        /* 全局清除預設邊距，將控制權完全交給 Puppeteer 的 margin 設定 */
+                        html, body { 
+                            margin: 0 !important; 
+                            padding: 0 !important; 
+                            font-family: 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+                            color: #1e293b; 
+                            background-color: #ffffff;
+                        }
+                        
+                        /* 首頁封面區塊 */
+                        .cover-page {
+                            text-align: center;
+                            padding-top: 40px;
+                            padding-bottom: 60px;
+                            margin-bottom: 40px;
+                            border-bottom: 2px solid #8e44ad;
+                        }
+                        .logo-img { max-width: 180px; border-radius: 12px; margin-bottom: 20px; }
+                        h1.main-title { color: #8e44ad; margin-bottom: 5px; font-size: 28px; letter-spacing: 1px; }
+                        .subtitle { color: #64748b; font-size: 15px; font-weight: bold; }
+                        
+                        /* 內文與斷頁管理 (Page Break Management) */
+                        .content-container { 
+                            font-size: 14.5px; 
                             line-height: 1.8; 
-                            color: #333; 
-                            padding: 30px 40px; 
-                            background-color: #ffffff; 
+                            text-align: justify; 
                         }
                         
-                        /* Logo 與標題區塊 */
-                        .header-section { text-align: center; margin-bottom: 40px; }
-                        .logo-img { max-width: 220px; border-radius: 12px; margin-bottom: 15px; }
-                        h1.main-title { color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 5px; font-size: 26px; }
-                        .subtitle { color: #64748b; font-size: 14px; }
-                        
-                        /* 內文樣式 */
-                        .content { font-size: 15px; text-align: justify; color: #1e293b; }
-                        .content strong { color: #000000; }
-                        
-                        /* 🟢 斷頁管理 (Page Break Management) - 防止段落與標題被切斷 */
                         h2 { 
-                            color: #3b82f6; 
+                            color: #8e44ad; 
+                            font-size: 19px;
                             border-bottom: 1px solid #e2e8f0; 
-                            padding-bottom: 8px; 
-                            margin-top: 35px; 
-                            page-break-after: avoid; /* 防止標題在頁面最底部孤立 */
-                            break-after: avoid; 
-                        }
-                        h3, h4 { 
-                            color: #0f172a; 
-                            margin-top: 25px; 
+                            padding-bottom: 6px; 
+                            margin-top: 40px; 
+                            margin-bottom: 15px; 
                             page-break-after: avoid; 
                             break-after: avoid; 
                         }
-                        p, li, ul, ol { 
-                            page-break-inside: avoid; /* 防止單一段落或列表從中間被切成兩半 */
-                            break-inside: avoid; 
-                            margin-bottom: 15px;
+                        h3 { 
+                            color: #3b82f6; 
+                            font-size: 16px;
+                            margin-top: 25px; 
+                            margin-bottom: 10px; 
+                            page-break-after: avoid; 
+                            break-after: avoid; 
                         }
+                        p, li { 
+                            margin-top: 0; 
+                            margin-bottom: 15px; 
+                            page-break-inside: avoid; 
+                            break-inside: avoid; 
+                        }
+                        strong { color: #000000; font-weight: 600; }
                     </style>
                 </head>
                 <body>
-                    <div class="header-section">
+                    <div class="cover-page">
                         ${logoBase64 ? `<img src="${logoBase64}" class="logo-img" alt="gygs.ca Logo">` : ''}
-                        <h1 class="main-title">gygs.ca 專屬人生戰略導航</h1>
+                        <h1 class="main-title">gygs.ca 人生戰略導航</h1>
                         <div class="subtitle">先天命盤大批・流年專屬藍圖</div>
                     </div>
                     
-                    <div class="content">
-                        ${formattedReport}
+                    <div class="content-container">
+                        ${htmlFormattedReport}
                     </div>
                 </body>
                 </html>
                 `;
 
-                // 🟢 使用 Puppeteer 產生記憶體內的 PDF Buffer
-                console.log(`📄 正在生成 PDF 報告...`);
+                console.log(`📄 正在生成精裝版 PDF 報告...`);
                 const browser = await puppeteer.launch({ 
                     headless: "new", 
                     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -299,13 +323,28 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 const page = await browser.newPage();
                 await page.setContent(pdfHtmlContent, { waitUntil: 'networkidle0' });
                 
+                // 🟢 注入動態精美頁首與頁尾
+                const headerTemplate = `
+                    <div style="width: 100%; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 9px; color: #94a3b8; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+                        <span style="font-weight: bold; color: #8e44ad; letter-spacing: 0.5px;">gygs.ca</span>
+                        <span style="letter-spacing: 0.5px;">專屬人生戰略導航</span>
+                    </div>
+                `;
+                
+                const footerTemplate = `
+                    <div style="width: 100%; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 9px; color: #94a3b8; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 4px;">
+                        <span style="letter-spacing: 0.5px;">高度機密・嚴禁未授權轉載</span>
+                        <span style="letter-spacing: 0.5px;">頁碼 <span class="pageNumber"></span> / <span class="totalPages"></span></span>
+                    </div>
+                `;
+
                 const pdfBuffer = await page.pdf({ 
                     format: 'A4', 
                     printBackground: true, 
-                    margin: { top: '30px', bottom: '40px', left: '30px', right: '30px' },
+                    margin: { top: '80px', bottom: '80px', left: '50px', right: '50px' }, // 釋放空間給頁首與頁尾
                     displayHeaderFooter: true,
-                    headerTemplate: '<div></div>', // 隱藏預設標頭
-                    footerTemplate: '<div style="font-size: 10px; text-align: center; width: 100%; color: #94a3b8;">gygs.ca - 專屬人生戰略導航 | 頁碼 <span class="pageNumber"></span> / <span class="totalPages"></span></div>' // 加入頁碼頁尾
+                    headerTemplate: headerTemplate,
+                    footerTemplate: footerTemplate
                 });
                 await browser.close();
 
@@ -335,7 +374,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     ]
                 };
                 await transporter.sendMail(mailOptions);
-                console.log(`📩 報告及 PDF 附件已成功寄送給：${customerEmail}`);
+                console.log(`📩 報告及精裝 PDF 附件已成功寄送給：${customerEmail}`);
             }).catch(err => console.error("背景生成或寄信失敗:", err));
 
         } else {
