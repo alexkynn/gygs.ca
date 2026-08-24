@@ -126,7 +126,7 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
-                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填) (Marital Status - Optional)</label>
+                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填) (Marital Status)</label>
                             <select class="form-select" id="marriageStatus">
                                 <option value="未提供" selected>未提供 / 保密</option>
                                 <option value="單身">單身 / 未婚</option>
@@ -136,7 +136,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-light">子女狀況 (選填) (Children - Optional)</label>
+                            <label class="form-label text-light">子女狀況 (選填) (Children)</label>
                             <div class="d-flex gap-2">
                                 <select class="form-select text-center" id="childrenBoy">
                                     <option value="0" selected>0 男</option><option value="1">1 男</option><option value="2">2 男</option><option value="3">3 男</option><option value="4">4 男</option><option value="5">5 男</option><option value="6">6 男</option><option value="7">7 男</option><option value="8">8 男</option><option value="9">9 男</option>
@@ -145,6 +145,33 @@
                                     <option value="0" selected>0 女</option><option value="1">1 女</option><option value="2">2 女</option><option value="3">3 女</option><option value="4">4 女</option><option value="5">5 女</option><option value="6">6 女</option><option value="7">7 女</option><option value="8">8 女</option><option value="9">9 女</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- 🟢 新增 MBTI 選項 -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label for="mbtiStatus" class="form-label text-info fw-bold">🧠 附加診斷：MBTI 心理測驗類型 (選填) (MBTI Type - Optional)</label>
+                            <select class="form-select border-info" id="mbtiStatus">
+                                <option value="未提供" selected>未提供 / 不清楚 (Not Sure / Let AI Algorithm Decide)</option>
+                                <option value="INTJ">INTJ (建築師)</option>
+                                <option value="INTP">INTP (邏輯學家)</option>
+                                <option value="ENTJ">ENTJ (指揮官)</option>
+                                <option value="ENTP">ENTP (辯論家)</option>
+                                <option value="INFJ">INFJ (提倡者)</option>
+                                <option value="INFP">INFP (調停者)</option>
+                                <option value="ENFJ">ENFJ (主人公)</option>
+                                <option value="ENFP">ENFP (競選者)</option>
+                                <option value="ISTJ">ISTJ (物流師)</option>
+                                <option value="ISFJ">ISFJ (守衛者)</option>
+                                <option value="ESTJ">ESTJ (總經理)</option>
+                                <option value="ESFJ">ESFJ (執政官)</option>
+                                <option value="ISTP">ISTP (鑑賞家)</option>
+                                <option value="ISFP">ISFP (探險家)</option>
+                                <option value="ESTP">ESTP (企業家)</option>
+                                <option value="ESFP">ESFP (表演者)</option>
+                            </select>
+                            <div class="form-text text-secondary mt-1">提供 MBTI 將為您解鎖 Section 7 深度交叉分析。若未提供，AI 將依據命格進行盲測推演。</div>
                         </div>
                     </div>
 
@@ -175,17 +202,17 @@
                     <div id="analysis-text" class="text-light-50 lh-lg mb-4 p-3 rounded" style="background-color: #1f2937; border-left: 4px solid #38bdf8; font-size: 1.05rem;"></div>
 
                     <div id="unlock-section" class="p-4 rounded text-center mt-3" style="background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);">
-                        <h5 class="text-white mb-2">🔓 立即解鎖 3000 字五庫全書大批報告</h5>
-                        <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》、《紫微斗數全書》進行五書合參深度推演，為您的專屬問題提供極度精密的避險與進攻戰略。</p>
+                        <h5 class="text-white mb-2">🔓 立即解鎖 8,000+ 字五庫全書大批報告</h5>
+                        <p class="text-secondary small mb-4">大師將為您調閱《滴天髓》、《紫微斗數全書》等五書進行深度推演，並為您開啟 <strong>Saju-MBTI 心理與命理深度交叉分析模組</strong>。</p>
                         
                         <div class="mb-3 text-start">
-                            <label for="checkout-email" class="form-label text-light small">請輸入接收 PDF/Email 報告的信箱 (Email to receive full report)：</label>
+                            <label for="checkout-email" class="form-label text-light small">請輸入接收精裝 PDF 報告的信箱 (Email to receive full report)：</label>
                             <input type="email" id="checkout-email" class="form-control py-3 bg-dark border-secondary text-light" placeholder="your@email.com" required>
                         </div>
 
-                        <!-- 🟢 更新為 $4.99 USD -->
+                        <!-- 🟢 升級為 $9.99 USD -->
                         <button id="checkout-btn" class="btn btn-glow w-100 py-3 fw-bold fs-5 mt-2" type="button">
-                            💳 支付 $4.99 USD 取得完整戰略藍圖
+                            💳 支付 $9.99 USD 取得完整戰略藍圖
                         </button>
                         <div class="text-muted small mt-3">支援 Apple Pay, Google Pay 與全球信用卡 (由 Lemon Squeezy 安全處理)</div>
                     </div>
@@ -308,7 +335,7 @@
                 const unlockSection = document.getElementById('unlock-section');
                 unlockSection.innerHTML = `
                     <h5 class="text-success mb-3" style="font-weight: 800;">✅ 付款成功！大師正在為您撰寫報告</h5>
-                    <p class="text-light mb-1">您的專屬 3000 字戰略藍圖正在由 AI 宗師進行五庫全書運算。</p>
+                    <p class="text-light mb-1">您的專屬 8000 字戰略藍圖與 MBTI 交叉分析正在進行運算。</p>
                     <p class="text-secondary small">約 1~2 分鐘內將寄送至您的信箱：<strong>${state.email}</strong><br>（若未收到，請檢查垃圾郵件匣）</p>
                 `;
                 window.history.replaceState(null, null, window.location.pathname);
@@ -343,8 +370,9 @@
         const questionText = document.getElementById('question').value;
         const marriageVal = document.getElementById('marriageStatus').value;
         const childrenVal = getChildrenStatusString();
+        const mbtiVal = document.getElementById('mbtiStatus').value;
 
-        const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}, 婚姻:${marriageVal}, 子女:${childrenVal}\n【來訪者提問】：${questionText}`;
+        const formattedQuestion = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeLabel}, 性別:${genderLabel}, 婚姻:${marriageVal}, 子女:${childrenVal}, MBTI:${mbtiVal}\n【來訪者提問】：${questionText}`;
 
         try {
             const response = await fetch('/api/ask', {
@@ -381,8 +409,9 @@
         const question = document.getElementById('question').value;
         const marriageVal = document.getElementById('marriageStatus').value;
         const childrenVal = getChildrenStatusString();
+        const mbtiVal = document.getElementById('mbtiStatus').value;
         
-        const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}, 婚姻:${marriageVal}, 子女:${childrenVal}`;
+        const birthData = `出生地:${country}-${city}, 日期:${date}, 時辰:${timeIndex}, 性別:${gender}, 婚姻:${marriageVal}, 子女:${childrenVal}, MBTI:${mbtiVal}`;
 
         try {
             const response = await fetch('/api/checkout', {

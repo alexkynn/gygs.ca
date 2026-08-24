@@ -18,10 +18,6 @@ const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// =========================================================================
-// 1. 物理經緯度與真太陽時 (True Solar Time) 核心數學計算引擎
-// =========================================================================
-
 const shiTimeMap = {
     "子時": { hour: 0, minute: 0, index: 0 },
     "丑時": { hour: 2, minute: 0, index: 1 },
@@ -102,10 +98,6 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName) {
         offsetMinutes
     };
 }
-
-// =========================================================================
-// 2. 本地確定性八字與紫微斗數排盤 (In-House Math API)
-// =========================================================================
 
 const shiNames = ["子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
 
@@ -204,10 +196,6 @@ ${palacesString}
     }
 }
 
-// =========================================================================
-// 3. 輔助解析與 RAG 向量檢索
-// =========================================================================
-
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
     const shiMatch = question.match(/時辰[:：]?(.)時/);
@@ -215,6 +203,7 @@ function extractUserData(question) {
     const genderMatch = question.match(/性別[:：]?(男|女)/);
     const marriageMatch = question.match(/婚姻[:：]?([^,\n]+)/);
     const childrenMatch = question.match(/子女[:：]?([^,\n]+)/);
+    const mbtiMatch = question.match(/MBTI[:：]?([^,\n]+)/);
     
     const questionTextMatch = question.match(/提問:(.*)/) || question.match(/【來訪者提問】：(.*)/);
     const actualQuestion = questionTextMatch ? questionTextMatch[1].trim() : question;
@@ -229,6 +218,7 @@ function extractUserData(question) {
         gender: genderMatch ? genderMatch[1] : "女命",
         marriage: marriageMatch ? marriageMatch[1].trim() : "未提供",
         children: childrenMatch ? childrenMatch[1].trim() : "未提供",
+        mbti: mbtiMatch ? mbtiMatch[1].trim() : "未提供",
         actualQuestion: actualQuestion
     };
 }
@@ -267,7 +257,8 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
             birthYear: userData.year,
             gender: userData.gender,
             maritalStatus: userData.marriage,
-            children: userData.children
+            children: userData.children,
+            mbti: userData.mbti
         },
         question: actualQuestion,
         report_length: finalAiText.length,
@@ -280,7 +271,7 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
 }
 
 // =========================================================================
-// 4. 核心路由生成區 (三階段確定性架構)
+// 4. 核心路由生成區 (🟢 高效 3 階段架構)
 // =========================================================================
 
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
@@ -297,7 +288,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>`;
             if (userData.city && userData.shi) {
                 const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city);
-                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度完成真太陽時校正（時差偏差 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘，實際定盤時辰為「${shiNames[tst.solarShiIndex]}」）。解鎖後將以此天文標準生成 3000 字專屬報告。`;
+                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度完成真太陽時校正（時差偏差 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘，實際定盤時辰為「${shiNames[tst.solarShiIndex]}」）。解鎖後將以此天文標準生成專屬報告。`;
             } else {
                 timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。`;
             }
@@ -318,13 +309,15 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        const systemInstruction = `你是一位精通東方哲學與現代商業戰略的首席決策顧問。
+        // 🟢 極度強化的 System Instruction：強制執行排版與細節指令
+        const systemInstruction = `你是一位精通東方哲學與現代商業戰略的首席決策顧問兼心理學家。
 【任務核心】
-你的任務不是計算排盤，而是基於 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改客觀數據」，進行高維度的戰略解讀與決策指引。
-【執行準則】
-1. 嚴格遵守 <FactData> 內給出的八字干支、五行、稱骨與紫微十二宮星曜，嚴禁篡改任何星曜或八字。
-2. 溫暖、專業、賦能，將古籍智慧轉換為現代職場、商業投資與人際關係的實戰策略。
-3. 嚴格遵循給定的排版格式。`;
+基於 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，進行高維度戰略解讀。
+【絕對執行準則 (不可省略任何細節)】
+1. 嚴格遵守 <FactData> 的星曜與八字，嚴禁篡改或憑空發明。
+2. 凡是 Prompt 中標示（【必須...】）的要求，包含命身主、正變格判定、行為套利、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
+3. 你的解讀必須極度深湛、詳盡，每一段落都必須提供具體的現代職場或商業套利指導。
+4. 嚴格遵循指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。`;
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
@@ -342,24 +335,24 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             }
         });
 
-        console.log("📝 [3/5] 生成階段一：系統定盤與格局判定...");
-        const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText, contexts);
+        console.log("📝 [3/5] 生成階段一：系統定盤與神煞調候 (Sections 1-3)...");
+        const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
 
-        console.log("📝 [4/5] 生成階段二：神煞調候與核心宮位深度解析...");
+        console.log("📝 [4/5] 生成階段二：12宮位全景與 10 年運勢 (Sections 4-5)...");
         const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts);
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
 
-        console.log("📝 [5/5] 生成階段三：十年運勢與專屬破局行動指南...");
+        console.log("🧠 [5/5] 生成階段三：行動指南與 Saju-MBTI (Sections 6-7)...");
         const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, userData);
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart3}`;
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
-        const startIndex = finalAiText.indexOf('## 壹');
+        const startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
         
         logTransactionForAnalytics(userData, userData.actualQuestion, finalAiText, extractedEmail);
