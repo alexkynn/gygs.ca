@@ -13,7 +13,6 @@ const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
 const { getPromptPart1, getPromptPart2, getPromptPart3 } = require('./promptTemplates.js');
-// 🟢 引入全新五行演算法引擎
 const { calculateYongShen } = require('./baziCalculator.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
@@ -59,18 +58,27 @@ function getCityCoordinates(cityName) {
     return { offsetMinutes: 0, timezone: 'UTC' };
 }
 
-function calculateTrueSolarTime(year, month, day, shiName, cityName) {
+// 🟢 支援雙軌並行 (Hybrid Input) 計算：若有提供 exactTime，將優先使用其分鐘數
+function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) {
     const shiConfig = shiTimeMap[shiName] || { hour: 12, minute: 0, index: 6 };
     const { offsetMinutes } = getCityCoordinates(cityName);
 
     let baseHour = shiConfig.hour;
-    let baseMinute = shiConfig.minute + offsetMinutes;
+    let baseMinute = shiConfig.minute;
+
+    // 如果使用者提供了精確時間，覆蓋預設的時辰基準點
+    if (exactTime && exactTime !== "未提供" && exactTime.includes(":")) {
+        const parts = exactTime.split(":");
+        baseHour = parseInt(parts[0], 10);
+        baseMinute = parseInt(parts[1], 10);
+    }
 
     let calYear = parseInt(year, 10);
     let calMonth = parseInt(month, 10);
     let calDay = parseInt(day, 10);
 
-    let totalMinutes = baseHour * 60 + baseMinute;
+    let totalMinutes = baseHour * 60 + baseMinute + offsetMinutes;
+    
     if (totalMinutes < 0) {
         totalMinutes += 1440;
         const prevDay = moment(`${calYear}-${calMonth}-${calDay}`, 'YYYY-MM-DD').subtract(1, 'days');
@@ -97,7 +105,8 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName) {
         hour: solarHour,
         minute: solarMinute,
         solarShiIndex,
-        offsetMinutes
+        offsetMinutes,
+        providedExactTime: (exactTime && exactTime !== "未提供") ? exactTime : null
     };
 }
 
@@ -131,7 +140,7 @@ function generateDeterministicFactData(userData, currentDateStr) {
             return "【提示：無法獲取完整出生日期】";
         }
 
-        const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city);
+        const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city, userData.exactTime);
 
         const solarDate = Solar.fromYmdHms(tst.year, tst.month, tst.day, tst.hour, tst.minute, 0);
         const lunarDate = solarDate.getLunar();
@@ -140,7 +149,6 @@ function generateDeterministicFactData(userData, currentDateStr) {
         const bazi = lunarDate.getEightChar();
         const baziString = `年柱：${bazi.getYear()}，月柱：${bazi.getMonth()}，日柱：${bazi.getDay()}，時柱：${bazi.getTime()}`;
         
-        // 🟢 執行演算法，計算絕對喜用神與強弱分數
         const calculatedBazi = calculateYongShen(
             bazi.getYear().charAt(0), bazi.getYear().charAt(1),
             bazi.getMonth().charAt(0), bazi.getMonth().charAt(1),
@@ -171,10 +179,12 @@ function generateDeterministicFactData(userData, currentDateStr) {
             });
         }
 
+        const inputTimeDisplay = userData.exactTime !== '未提供' ? userData.exactTime : userData.shi;
+
         return `
 [系統時空校正基準]
 - 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
-- 輸入鐘錶時間：${userData.year}年${userData.month}月${userData.day}日 ${userData.shi}
+- 輸入鐘錶時間：${userData.year}年${userData.month}月${userData.day}日 ${inputTimeDisplay}
 - 真太陽時校正結果：${tst.year}年${tst.month}月${tst.day}日 ${String(tst.hour).padStart(2, '0')}:${String(tst.minute).padStart(2, '0')} (${shiNames[tst.solarShiIndex]}，經度誤差偏移 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘)
 - 農曆對應：${lunarDateStr}
 - 性別：${genderStr}
@@ -211,6 +221,7 @@ ${palacesString}
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
     const shiMatch = question.match(/時辰[:：]?(.)時/);
+    const exactTimeMatch = question.match(/精確時間[:：]?([^,\n]+)/); // 🟢 擷取精確時間
     const dateMatch = question.match(/日期[:：]?(\d{4})-(\d{2})-(\d{2})/);
     const genderMatch = question.match(/性別[:：]?(男|女)/);
     const marriageMatch = question.match(/婚姻[:：]?([^,\n]+)/);
@@ -224,6 +235,7 @@ function extractUserData(question) {
         country: cityMatch ? cityMatch[1].trim() : null,
         city: cityMatch ? cityMatch[2].trim() : null,
         shi: shiMatch ? shiMatch[1] + "時" : "子時",
+        exactTime: exactTimeMatch ? exactTimeMatch[1].trim() : "未提供",
         year: dateMatch ? dateMatch[1] : null,
         month: dateMatch ? parseInt(dateMatch[2], 10) : null,
         day: dateMatch ? parseInt(dateMatch[3], 10) : null,
@@ -270,7 +282,8 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
             gender: userData.gender,
             maritalStatus: userData.marriage,
             children: userData.children,
-            mbti: userData.mbti
+            mbti: userData.mbti,
+            exactTime: userData.exactTime
         },
         question: actualQuestion,
         report_length: finalAiText.length,
@@ -283,7 +296,7 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
 }
 
 // =========================================================================
-// 4. 核心路由生成區 (🟢 高效 3 階段架構)
+// 4. 核心路由生成區
 // =========================================================================
 
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
@@ -299,8 +312,9 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             let teaserResponse = generateUniqueTeaser(userData.year, userData.month, userData.day, userData.shi, userData.gender, userData.country, userData.actualQuestion);
             let timeWarning = `\n\n<br><strong>【系統專業提示：真太陽時精密校正】</strong><br>`;
             if (userData.city && userData.shi) {
-                const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city);
-                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度完成真太陽時校正（時差偏差 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘，實際定盤時辰為「${shiNames[tst.solarShiIndex]}」）。解鎖後將以此天文標準生成專屬報告。`;
+                const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city, userData.exactTime);
+                const inputTimeDisplay = userData.exactTime !== '未提供' ? userData.exactTime : userData.shi;
+                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度完成真太陽時校正（時差偏差 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘）。您輸入的時間「${inputTimeDisplay}」，實際定盤基準將為「${shiNames[tst.solarShiIndex]}」。解鎖後將以此天文標準生成專屬報告。`;
             } else {
                 timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。`;
             }
@@ -321,13 +335,12 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
-        // 🟢 極度強化的 System Instruction：強制執行排版與細節指令
         const systemInstruction = `你是一位精通東方哲學與現代商業戰略的首席決策顧問兼心理學家。
 【任務核心】
 基於 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，進行高維度戰略解讀。
 【絕對執行準則 (不可省略任何細節)】
 1. 嚴格遵守 <FactData> 的星曜與八字，嚴禁篡改或憑空發明。
-2. 凡是 Prompt 中標示（【必須...】）的要求，包含命身主、正變格判定、行為套利、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
+2. 凡是 Prompt 中標示（【必須...】）的要求，包含生肖星座、命身主、正變格判定、行為套利、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
 3. 你的解讀必須極度深湛、詳盡，每一段落都必須提供具體的現代職場或商業套利指導。
 4. 嚴格遵循指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。`;
 
