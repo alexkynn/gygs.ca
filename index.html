@@ -85,8 +85,9 @@
                         </div>
                     </div>
 
+                    <!-- 🟢 重新排版的出生日期與時辰 -->
                     <div class="row mb-3">
-                        <div class="col-md-5 mb-3 mb-md-0">
+                        <div class="col-md-6 mb-3 mb-md-0">
                             <label class="form-label text-light">出生西曆日期 (Gregorian Date of Birth)</label>
                             <div class="row g-2">
                                 <div class="col-4"><select class="form-select select-compact" id="birthYear" required><option value="" disabled selected>年</option></select></div>
@@ -96,7 +97,7 @@
                             <input type="hidden" id="date">
                         </div>
 
-                        <div class="col-md-4 mb-3 mb-md-0">
+                        <div class="col-md-6">
                             <label for="timeIndex" class="form-label text-light">出生時辰 (Time of Birth)</label>
                             <select class="form-select mb-2" id="timeIndex" required>
                                 <option value="" disabled selected>請選擇時辰</option>
@@ -124,18 +125,18 @@
                             </div>
                             <div class="form-text text-secondary mt-1" style="font-size: 0.75rem; line-height: 1.3;">若生於時辰交界，強烈建議選填「精確分鐘」以便進行真太陽時精準校正。</div>
                         </div>
+                    </div>
 
-                        <div class="col-md-3">
+                    <!-- 🟢 移至下方的性別與婚姻/子女狀況 -->
+                    <div class="row mb-3">
+                        <div class="col-md-3 mb-3 mb-md-0">
                             <div class="form-label text-light">性別 (Gender)</div>
                             <div class="d-flex gap-3 pt-1">
                                 <div class="form-check"><input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked><label class="form-check-label text-light" for="gender-male">男</label></div>
                                 <div class="form-check"><input class="form-check-input" type="radio" name="gender" id="gender-female" value="female"><label class="form-check-label text-light" for="gender-female">女</label></div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="col-md-4 mb-3 mb-md-0">
                             <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填) (Marital Status)</label>
                             <select class="form-select" id="marriageStatus">
                                 <option value="未提供" selected>未提供 / 保密</option>
@@ -145,7 +146,7 @@
                                 <option value="喪偶">喪偶</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label class="form-label text-light">子女狀況 (選填) (Children)</label>
                             <div class="d-flex gap-2">
                                 <select class="form-select text-center" id="childrenBoy">
