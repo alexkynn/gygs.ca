@@ -13,6 +13,8 @@ const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
 const { getPromptPart1, getPromptPart2, getPromptPart3 } = require('./promptTemplates.js');
+// 🟢 引入全新五行演算法引擎
+const { calculateYongShen } = require('./baziCalculator.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
@@ -137,7 +139,15 @@ function generateDeterministicFactData(userData, currentDateStr) {
         
         const bazi = lunarDate.getEightChar();
         const baziString = `年柱：${bazi.getYear()}，月柱：${bazi.getMonth()}，日柱：${bazi.getDay()}，時柱：${bazi.getTime()}`;
-        const dayMasterElement = getDayMasterElement(bazi.getDay().charAt(0));
+        
+        // 🟢 執行演算法，計算絕對喜用神與強弱分數
+        const calculatedBazi = calculateYongShen(
+            bazi.getYear().charAt(0), bazi.getYear().charAt(1),
+            bazi.getMonth().charAt(0), bazi.getMonth().charAt(1),
+            bazi.getDay().charAt(0), bazi.getDay().charAt(1),
+            bazi.getTime().charAt(0), bazi.getTime().charAt(1)
+        );
+
         const zodiacSign = solarDate.getXingZuo() + "座";
 
         const yearIndex = (lunarDate.getYear() - 1984) % 60;
@@ -177,7 +187,9 @@ function generateDeterministicFactData(userData, currentDateStr) {
 [系統底層四柱八字 (不可篡改數據)]
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
-- 日元五行屬性：${dayMasterElement}
+- 系統判定日元強度：${calculatedBazi.strength} (生扶指數: ${calculatedBazi.supportScore}, 克洩指數: ${calculatedBazi.drainScore})
+- 絕對最喜用神：${calculatedBazi.yongShen}
+- 絕對最忌五行：${calculatedBazi.jiShen}
 - 袁天罡稱骨：${weightStr} (${genderStr})
 - 專屬讖語：「${weightPoem}」
 
