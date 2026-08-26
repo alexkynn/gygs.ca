@@ -55,7 +55,7 @@ app.use(express.static(__dirname));
 // 🌟 共用的 Gemini 大腦函數 (只負責網頁即時對話生成)
 async function generateLifeBlueprint(country, city, date, timeIndex, gender, question) {
     const genderZh = gender === 'male' ? '男' : (gender === 'female' ? '女' : gender);
-    const systemInstruction = `你是一位頂級的東方命理大師兼首席人生教練。精通『紫微斗數』與『四柱八字』。
+    const systemInstruction = `你是一位頂級的東方命理大師兼首席人生教練。精通『紫微斗數』與『四柱八字』，同時也是 Saju-MBTI (命理與心理學交叉分析) 的頂尖專家。
     
 【你的底層運算邏輯：紫八合一】
 將八字五行與紫微斗數完美混合計算。若來訪者在南半球，需自動進行節氣調候校正。
@@ -63,7 +63,7 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 【你的表達守則】
 1. 溫暖、專業、賦能：拒絕宿命論。
 2. 極度具體：遇到高峰或低谷，『必須』明確點出具體的「年份」或「歲數區間」。
-3. 嚴謹詳實：請給出超過 3000 字的深度解析，排版清晰。`;
+3. 嚴謹詳實：請給出超過 8000 字的深度解析，排版清晰。`;
 
     const safetySettings = [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -86,13 +86,13 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 探索訴求：${question}
 
 結構要求：
-一、 紫八合一核心總評
-二、 十二宮位全景深度解析
-三、 專屬姻緣與子息報告
-四、 事業版圖與高峰預測
-五、 財富軌跡與週期報告
-六、 健康預警系統
-七、 人生教練的最終指引`;
+一、 基本資訊與先天定盤（含真太陽時、八字視角與紫微視角總論）
+二、 八字格局與專屬開運密碼（含五行喜忌剖析與行為套利策略）
+三、 四柱神煞詳解與調候樞紐分析
+四、 紫微斗數全景與十二宮位深度解析（需涵蓋命身宮及其他十宮之具體指引）
+五、 未來 10 年運勢推演（需包含週期定調與黑天鵝風險警示）
+六、 大師戰略行動指南（針對探索訴求的專屬破局方案、關鍵時間節點與避險戰略）
+七、 Saju-MBTI 心理與命理深度交叉分析（性格助力與命理共鳴、認知盲區與專屬溝通執行套利策略）`;
 
     const result = await model.generateContent(prompt);
     return result.response.text();
