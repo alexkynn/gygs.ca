@@ -12,7 +12,8 @@ const { astro } = require('iztro');
 const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
-const { getPromptPart1, getPromptPart2, getPromptPart3 } = require('./promptTemplates.js');
+// 🟢 引入全新 4 階段 Prompt (包含 currentDateStr)
+const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4 } = require('./promptTemplates.js');
 const { calculateYongShen } = require('./baziCalculator.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
@@ -58,7 +59,6 @@ function getCityCoordinates(cityName) {
     return { offsetMinutes: 0, timezone: 'UTC' };
 }
 
-// 🟢 支援雙軌並行 (Hybrid Input) 計算：若有提供 exactTime，將優先使用其分鐘數
 function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) {
     const shiConfig = shiTimeMap[shiName] || { hour: 12, minute: 0, index: 6 };
     const { offsetMinutes } = getCityCoordinates(cityName);
@@ -66,7 +66,6 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) 
     let baseHour = shiConfig.hour;
     let baseMinute = shiConfig.minute;
 
-    // 如果使用者提供了精確時間，覆蓋預設的時辰基準點
     if (exactTime && exactTime !== "未提供" && exactTime.includes(":")) {
         const parts = exactTime.split(":");
         baseHour = parseInt(parts[0], 10);
@@ -156,6 +155,15 @@ function generateDeterministicFactData(userData, currentDateStr) {
             bazi.getTime().charAt(0), bazi.getTime().charAt(1)
         );
 
+        // 🟢 產生未來 10 年的流年干支 (10-Year Annual Pillars Array)
+        const currentYear = new Date().getFullYear();
+        let future10Years = "";
+        for (let i = 0; i < 10; i++) {
+            let targetYear = currentYear + i;
+            let tempLunar = Lunar.fromYmd(targetYear, 1, 1); // 取得該年的干支
+            future10Years += `- ${targetYear}年: ${tempLunar.getYearInGanZhi()}年\n`;
+        }
+
         const zodiacSign = solarDate.getXingZuo() + "座";
 
         const yearIndex = (lunarDate.getYear() - 1984) % 60;
@@ -203,6 +211,9 @@ function generateDeterministicFactData(userData, currentDateStr) {
 - 袁天罡稱骨：${weightStr} (${genderStr})
 - 專屬讖語：「${weightPoem}」
 
+[未來 10 年客觀流年干支 (預測依據)]
+${future10Years}
+
 [系統底層紫微斗數 (不可篡改數據)]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
 - 命主：${astrolabe.soul || '未知'}
@@ -221,7 +232,7 @@ ${palacesString}
 function extractUserData(question) {
     const cityMatch = question.match(/出生地:([^-]+)-([^,]+)/);
     const shiMatch = question.match(/時辰[:：]?(.)時/);
-    const exactTimeMatch = question.match(/精確時間[:：]?([^,\n]+)/); // 🟢 擷取精確時間
+    const exactTimeMatch = question.match(/精確時間[:：]?([^,\n]+)/); 
     const dateMatch = question.match(/日期[:：]?(\d{4})-(\d{2})-(\d{2})/);
     const genderMatch = question.match(/性別[:：]?(男|女)/);
     const marriageMatch = question.match(/婚姻[:：]?([^,\n]+)/);
@@ -296,12 +307,13 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
 }
 
 // =========================================================================
-// 4. 核心路由生成區
+// 4. 核心路由生成區 (🟢 升級為抗截斷的 4 階段架構)
 // =========================================================================
 
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
         const today = new Date();
+        // 🟢 產生當前日期的字串，強制定調時間錨點
         const currentDateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
         const userData = extractUserData(question);
         const age = userData.year ? today.getFullYear() - parseInt(userData.year, 10) : '未知';
@@ -321,10 +333,10 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             return teaserResponse + timeWarning;
         }
 
-        console.log("⚡ [1/5] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
+        console.log("⚡ [1/6] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
         const exactFactData = generateDeterministicFactData(userData, currentDateStr);
 
-        console.log("🔍 [2/5] 檢索 Pinecone 向量庫古籍知識...");
+        console.log("🔍 [2/6] 檢索 Pinecone 向量庫古籍知識...");
         let contexts = "";
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
@@ -340,7 +352,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 基於 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，進行高維度戰略解讀。
 【絕對執行準則 (不可省略任何細節)】
 1. 嚴格遵守 <FactData> 的星曜與八字，嚴禁篡改或憑空發明。
-2. 凡是 Prompt 中標示（【必須...】）的要求，包含生肖星座、命身主、正變格判定、行為套利、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
+2. 凡是 Prompt 中標示（【必須...】）的要求，包含生肖星座、時間錨點、正變格判定、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
 3. 你的解讀必須極度深湛、詳盡，每一段落都必須提供具體的現代職場或商業套利指導。
 4. 嚴格遵循指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。`;
 
@@ -360,22 +372,28 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             }
         });
 
-        console.log("📝 [3/5] 生成階段一：系統定盤與神煞調候 (Sections 1-3)...");
-        const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText);
+        console.log("📝 [3/6] 生成階段一：系統定盤與神煞調候 (Sections 1-3)...");
+        const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText, currentDateStr);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
 
-        console.log("📝 [4/5] 生成階段二：12宮位全景與 10 年運勢 (Sections 4-5)...");
-        const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts);
+        console.log("📝 [4/6] 生成階段二：十二宮位全景 (Section 4)...");
+        const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr);
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
 
-        console.log("🧠 [5/5] 生成階段三：行動指南與 Saju-MBTI (Sections 6-7)...");
-        const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, userData);
+        console.log("📈 [5/6] 生成階段三：運勢推演與時間戰略 (Sections 5-6)...");
+        const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, userData, contexts, currentDateStr);
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
-        let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart3}`;
+        console.log("🧠 [6/6] 生成階段四：Saju-MBTI 心理分析 (Section 7)...");
+        const promptPart4 = getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, userData, currentDateStr);
+        const resultPart4 = await model.generateContent(promptPart4);
+        let aiTextPart4 = resultPart4.response.text().trim();
+
+        // 🟢 最終組裝 4 階段內容
+        let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart3}\n\n${aiTextPart4}`;
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         const startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);

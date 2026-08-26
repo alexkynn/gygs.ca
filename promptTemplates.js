@@ -1,8 +1,8 @@
-function getPromptPart1(age, userData, exactFactData, ragFocusText) {
+function getPromptPart1(age, userData, exactFactData, ragFocusText, currentDateStr) {
     return `
 請根據 <FactData> 中的底層排盤數據，撰寫命理報告的【第一階段】。
 
-【客製化設定】命主年齡 ${age} 歲，性別 ${userData.gender}。婚姻：「${userData.marriage}」，子女：「${userData.children}」。
+【客製化設定】命主年齡 ${age} 歲，性別 ${userData.gender}。婚姻：「${userData.marriage}」，子女：「${userData.children}」。當前時間為：${currentDateStr}。
 【數據鐵律】必須字字不漏採用 <FactData> 中的干支與星曜，絕對禁止擅自篡改。
 【開運鐵律】吉利數字與顏色必須對應推導出的「最喜用神」(木=3,8; 火=2,7; 土=5,0; 金=4,9; 水=1,6)。
 【節省 Token 指令】你「只能」撰寫第 1 至第 3 大段。寫完 3.2 後立刻停止。絕對禁止任何開場白或結語！
@@ -41,7 +41,7 @@ ${ragFocusText}
 `;
 }
 
-function getPromptPart2(aiTextPart1, exactFactData, userData, contexts) {
+function getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr) {
     return `
 你是一位頂級東方命理戰略家。請接續撰寫報告的【第二階段】。
 
@@ -50,7 +50,7 @@ ${aiTextPart1}
 
 【節省 Token 鐵律】：
 1. 你的第一行輸出必須直接是「## 4. 紫微斗數全景與十二宮位深度解析」。
-2. 嚴禁總結前文。你「只能」撰寫第 4 至第 5 大段，寫完後立刻停止。
+2. 嚴禁總結前文。你「只能」撰寫第 4 大段，寫完 4.12 後立刻停止。
 3. 【客觀事實錨定】：分析紫微宮位時，只能基於 <FactData> 內明確出現的星曜進行解析。
 
 <FactData>
@@ -78,32 +78,30 @@ ${exactFactData}
 #### 4.11 福德宮（精神內耗、潛意識與晚年福分）
 #### 4.12 父母宮（長輩緣、原生家庭與體制庇護）
 
-## 5. 未來 10 年運勢推演（含黑天鵝風險警示）
-（【鐵律】：禁用區塊符號。未來十年每一年都「必須」加上括號標註「週期定調（如：【爆發期】、【盤整期】、【防守期】等）」！）
-（【極度重要】：明確標示出這十年中哪一年是極度高危的「黑天鵝年（Black Swan）」，並給出防守策略。）
-（格式範例：2026年 | 80分 | 【破局爆發期】事業出現重大轉折，利於高風險進攻。）
-
 【Pinecone 檢索文獻】：
 ${contexts}
 `;
 }
 
-function getPromptPart3(aiTextPart1, aiTextPart2, userData) {
+function getPromptPart3(aiTextPart1, aiTextPart2, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第三階段】。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第三階段】。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行戰略延伸）：
 ${aiTextPart1}
 ${aiTextPart2}
 
-【MBTI 狀態】：${userData.mbti}
-
-【節省 Token 與邏輯鐵律】：
-1. 第一行輸出必須直接是「## 6. 大師戰略行動指南」。
-2. 嚴禁總結前文。你「只能」撰寫第 6 至第 7 大段。寫完後即完成報告，嚴禁寫任何結語或問候。
-3. 【交叉驗證指令】：Section 7 的心理推論必須與前文 (Section 1-6) 的「絕對最喜用神」與「絕對最忌五行」保持 100% 數據一致，絕不可產生矛盾。
+【節省 Token 與時間錨點鐵律】：
+1. 第一行輸出必須直接是「## 5. 未來 10 年運勢推演（含黑天鵝風險警示）」。
+2. 嚴禁總結前文。你「只能」撰寫第 5 至第 6 大段。寫完 6.4 後立刻停止。
+3. 【絕對時間錨點】：當前系統時間為 ${currentDateStr}。所有的運勢推演、計畫與關鍵時間節點，【絕對必須】從 ${currentDateStr} 所在的「今年」與「這個月份」作為起點開始往後推算！嚴禁從過去的年份開始寫。
 
 請「嚴格按照以下結構」接續撰寫：
+
+## 5. 未來 10 年運勢推演（含黑天鵝風險警示）
+（【鐵律】：禁用區塊符號。必須從 ${currentDateStr} 所在的今年開始算起，連續推演 10 年。未來十年每一年都「必須」加上括號標註「週期定調（如：【爆發期】、【盤整期】、【防守期】等）」！）
+（【極度重要】：明確標示出這十年中哪一年是極度高危的「黑天鵝年（Black Swan）」，並給出防守策略。）
+（格式範例：2026年 | 80分 | 【破局爆發期】事業出現重大轉折，利於高風險進攻。）
 
 ## 6. 大師戰略行動指南（針對「${userData.actualQuestion}」的專屬破局方案）
 （必須佔據極大篇幅，針對具體提問給出深度解答：）
@@ -111,11 +109,34 @@ ${aiTextPart2}
 ### 6.1 核心癥結剖析
 （為什麼會遇到這個問題？優勢在哪？致命傷是什麼？）
 ### 6.2 關鍵時間節點（未來 12-24 個月）
-（明確指出「進攻黃金期（幾月）」與「防守避險期（幾月）」。）
+（明確指出「進攻黃金期（幾月）」與「防守避險期（幾月）」。【時間鐵律】：必須以當前時間 ${currentDateStr} 的「這個月」作為起點，開始往後 12-24 個月進行推演，不可給出已經過去的月份。）
 ### 6.3 進攻與避險戰略
 （條列 3 項極度務實的現代行動建議。「該主動做什麼」與「絕對要避免什麼」。）
 ### 6.4 五行環境與心理調校
 （結合最喜用神，給出環境風水、穿搭顏色或心態調整建議。）
+
+【Pinecone 檢索文獻】：
+${contexts}
+`;
+}
+
+function getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, userData, currentDateStr) {
+    return `
+你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第四階段】。
+
+【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行心理學延伸）：
+${aiTextPart1}
+${aiTextPart2}
+${aiTextPart3}
+
+【MBTI 狀態】：${userData.mbti}
+
+【邏輯鐵律】：
+1. 第一行輸出必須直接是「## 7. Saju-MBTI 心理與命理深度交叉分析」。
+2. 嚴禁總結前文。你「只能」撰寫第 7 大段。寫完後即完成報告，嚴禁寫任何結語或問候。
+3. 【交叉驗證指令】：Section 7 的心理推論必須與前文的「絕對最喜用神」與「絕對最忌五行」保持 100% 數據一致，絕不可產生矛盾。
+
+請「嚴格按照以下結構」接續撰寫：
 
 ## 7. Saju-MBTI 心理與命理深度交叉分析
 
@@ -125,14 +146,14 @@ ${aiTextPart2}
 若已有類型，請直接寫出該 MBTI 的「前兩大榮格認知功能（如 Te, Fi, Ni, Se 等）」，並將其與原局最強的「十神」或「紫微主星」進行一對一精準映射。）
 
 ### 7.2 認知助力與結構共鳴 (Synergy)
-（【數據錨定】：具體說明該 MBTI 的認知功能優勢，如何自然而然地「驅動」命主去使用 <FactData> 中的【絕對最喜用神】，進而放大命盤吉星的效應。）
+（【數據錨定】：具體說明該 MBTI 的認知功能優勢，如何自然而然地「驅動」命主去使用前文推算出的【絕對最喜用神】，進而放大命盤吉星的效應。）
 
 ### 7.3 認知盲區與命理摩擦 (Friction)
-（【數據錨定】：精準點出該 MBTI 認知功能的死角（盲點），如何容易觸發 <FactData> 中的【絕對最忌五行】，導致前文提及的「黑天鵝風險」爆發，並給出明確的防禦機制。）
+（【數據錨定】：精準點出該 MBTI 認知功能的死角（盲點），如何容易觸發命盤中的【絕對最忌五行】，導致前文提及的「黑天鵝風險」爆發，並給出明確的防禦機制。）
 
 ### 7.4 專屬溝通與執行套利策略
 （針對該 MBTI 的資訊處理習慣，給出量身打造的職場溝通與決策執行手冊。）
 `;
 }
 
-module.exports = { getPromptPart1, getPromptPart2, getPromptPart3 };
+module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4 };
