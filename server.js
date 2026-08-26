@@ -228,8 +228,11 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     .replace(/<p><\/p>/g, '') 
                     .replace(/<br><\/p>/g, '</p>'); 
 
-                // 🟢 斷頁防護黑科技：將 <h4> 標題與其附屬內容打包在同一個 div，防止子章節拆分 (例如 2.3.2, 6.4.2)
-                htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[234]>|$)/gi, '<div style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
+                // 🟢 修復標題與內文分離問題：移除標題周圍干擾斷頁的 <br> 與 <p> 標籤，確保標題與內文緊密相連
+                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<br>/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<\/p><p>/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/<p>(<h[234]>)/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<\/p>/gi, '$1');
                 
                 // 🟢 加入官方報告運算終了聲明
                 htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
@@ -281,7 +284,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                         /* 內文排版 */
                         .content-container { font-size: 14.5px; line-height: 1.8; text-align: justify; }
                         
-                        /* 七大章節嚴格斷頁系統 */
+                        /* 🟢 七大章節嚴格斷頁系統 */
                         h2 { 
                             color: #8e44ad; 
                             font-size: 20px;
@@ -291,13 +294,15 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             margin-bottom: 20px; 
                             page-break-before: always; 
                             break-before: page; 
+                            page-break-after: avoid; 
+                            break-after: avoid;
                         }
                         .content-container h2:first-of-type {
                             page-break-before: avoid;
                             break-before: avoid;
                         }
                         
-                        /* 🟢 防止藍色/深色標題單獨留在頁面底部 */
+                        /* 🟢 防止藍色與深色子標題與內文分離 (解決 6.3 與 6.3.1 分離問題) */
                         h3 { 
                             color: #3b82f6; 
                             font-size: 17px;
@@ -314,10 +319,16 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             page-break-after: avoid; 
                             break-after: avoid;
                         }
-                        /* 移除段落的 page-break-inside 限制，允許長段落 (如 Section 5) 正常跨頁 */
-                        p, li { 
+                        
+                        /* 移除段落的 page-break-inside 限制，允許長段落自然跨頁，徹底解決 Section 5 的 90% 空白頁問題 */
+                        p { 
                             margin-top: 0; 
                             margin-bottom: 15px; 
+                            orphans: 3;
+                            widows: 3;
+                        }
+                        li { 
+                            margin-bottom: 8px; 
                         }
                         strong { color: #000000; font-weight: 600; }
                     </style>
