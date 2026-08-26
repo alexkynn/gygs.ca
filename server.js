@@ -228,8 +228,11 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     .replace(/<p><\/p>/g, '') 
                     .replace(/<br><\/p>/g, '</p>'); 
 
-                // 🟢 斷頁防護黑科技：確保子標題與緊接的段落不被拆分
-                htmlFormattedReport = htmlFormattedReport.replace(/(<h[34]>.*?<\/h[34]>\s*<p>.*?<\/p>)/gis, '<div style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
+                // 🟢 斷頁防護黑科技：將 <h4> 標題與其附屬內容打包在同一個 div，防止子章節拆分 (例如 2.3.2, 6.4.2)
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[234]>|$)/gi, '<div style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
+                
+                // 🟢 加入官方報告運算終了聲明
+                htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
                 
                 // 讀取 Logo 並轉換為 base64
                 let logoBase64 = '';
@@ -258,81 +261,63 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             background-color: #ffffff;
                         }
                         
-                        /* 🟢 首頁封面區塊：嚴格強迫斷頁、Flexbox 左右並排佈局縮小 Logo */
+                        /* 🟢 首頁封面區塊 */
                         .cover-page {
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             gap: 20px;
-                            padding-top: 20vh; /* 將封面推至視覺中心 */
+                            padding-top: 20vh;
                             padding-bottom: 25px;
                             margin-bottom: 0;
-                            page-break-after: always; /* 確保首頁封面獨占一頁 */
+                            page-break-after: always;
                             break-after: page;
                         }
-                        .logo-img { 
-                            max-width: 90px; 
-                            border-radius: 8px; 
-                        }
-                        .title-group {
-                            text-align: left;
-                        }
-                        h1.main-title { 
-                            color: #8e44ad; 
-                            margin: 0 0 5px 0; 
-                            font-size: 28px; 
-                            letter-spacing: 1px; 
-                            border: none;
-                            padding: 0;
-                        }
-                        .subtitle { 
-                            color: #64748b; 
-                            font-size: 16px; 
-                            font-weight: bold; 
-                        }
+                        .logo-img { max-width: 90px; border-radius: 8px; }
+                        .title-group { text-align: left; }
+                        h1.main-title { color: #8e44ad; margin: 0 0 5px 0; font-size: 28px; letter-spacing: 1px; border: none; padding: 0; }
+                        .subtitle { color: #64748b; font-size: 16px; font-weight: bold; }
                         
                         /* 內文排版 */
-                        .content-container { 
-                            font-size: 14.5px; 
-                            line-height: 1.8; 
-                            text-align: justify; 
-                        }
+                        .content-container { font-size: 14.5px; line-height: 1.8; text-align: justify; }
                         
-                        /* 🟢 七大章節嚴格斷頁系統：確保每一大章節都在新的一頁開始 */
+                        /* 七大章節嚴格斷頁系統 */
                         h2 { 
                             color: #8e44ad; 
                             font-size: 20px;
                             border-bottom: 1px solid #e2e8f0; 
                             padding-bottom: 6px; 
-                            margin-top: 0; /* 斷頁後頂部歸零 */
+                            margin-top: 0; 
                             margin-bottom: 20px; 
-                            page-break-before: always; /* 強制所有 h2 都在新頁首 */
+                            page-break-before: always; 
                             break-before: page; 
                         }
-                        /* 確保第一章緊接封面後斷頁，不會產生雙重空白頁 */
                         .content-container h2:first-of-type {
                             page-break-before: avoid;
                             break-before: avoid;
                         }
                         
+                        /* 🟢 防止藍色/深色標題單獨留在頁面底部 */
                         h3 { 
                             color: #3b82f6; 
                             font-size: 17px;
                             margin-top: 25px; 
                             margin-bottom: 10px; 
+                            page-break-after: avoid; 
+                            break-after: avoid;
                         }
                         h4 {
                             color: #0f172a; 
                             font-size: 15px;
                             margin-top: 20px; 
                             margin-bottom: 8px;
+                            page-break-after: avoid; 
+                            break-after: avoid;
                         }
-                        /* 🟢 強制段落與列表不跨頁斷開 */
+                        /* 移除段落的 page-break-inside 限制，允許長段落 (如 Section 5) 正常跨頁 */
                         p, li { 
                             margin-top: 0; 
                             margin-bottom: 15px; 
-                            page-break-inside: avoid;
-                            break-inside: avoid;
                         }
                         strong { color: #000000; font-weight: 600; }
                     </style>

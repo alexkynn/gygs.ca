@@ -43,14 +43,14 @@ ${ragFocusText}
 
 function getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第二階段】。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第二階段】（紫微前六宮）。
 
 【第一部分內容參考】（請保持八字喜用神的一致性）：
 ${aiTextPart1}
 
 【節省 Token 鐵律】：
 1. 你的第一行輸出必須直接是「## 4. 紫微斗數全景與十二宮位深度解析」。
-2. 嚴禁總結前文。你「只能」撰寫第 4 大段，寫完 4.12 後立刻停止。
+2. 嚴禁總結前文。你「只能」撰寫 4.1 至 4.6 大段，寫完 4.6 後立刻停止。請為下半部保留運算空間。
 3. 【客觀事實錨定】：分析紫微宮位時，只能基於 <FactData> 內明確出現的星曜進行解析。
 
 <FactData>
@@ -64,13 +64,37 @@ ${exactFactData}
 請「嚴格按照以下結構」接續撰寫：
 
 ## 4. 紫微斗數全景與十二宮位深度解析
-（請從下方文獻中比對，鑑定命主是否符合特殊大格。接著，必須對命盤中的「十二宮位」進行逐一解析，並融合家庭現狀給出實際建議：）
+（請從下方文獻中比對，鑑定命主是否符合特殊大格。接著，對命盤中的前六個宮位進行逐一解析，並融合家庭現狀給出實際建議：）
 #### 4.1 命宮（先天格局與核心特質：詳細解析星曜組合，深度剖析先天的性格優勢與天賦盲區）
 #### 4.2 身宮（後天發展與後半生走向：點出身宮寄託之宮位，詳細說明中年後的人生重心轉移與實質追求）
 #### 4.3 兄弟宮與交友/奴僕宮（人際網絡、下屬與合夥）
 #### 4.4 夫妻宮（配偶特質、合夥與婚姻綜效）
 #### 4.5 子女宮（子息緣分、晚輩助力與財庫放大）
 #### 4.6 財帛宮（現金流、主動收入還是偏財投機？如何防守？）
+
+【Pinecone 檢索文獻】：
+${contexts}
+`;
+}
+
+function getPromptPart3(aiTextPart1, aiTextPart2, exactFactData, userData, contexts, currentDateStr) {
+    return `
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第三階段】（紫微後六宮）。
+
+【前半段紫微宮位參考】（請保持解讀邏輯的連貫性）：
+${aiTextPart2}
+
+【節省 Token 鐵律】：
+1. 你的第一行輸出必須直接是「#### 4.7 疾厄宮（健康預警、身心耗損與致命傷）」。絕對不可重複寫「## 4. 紫微斗數全景...」大標題！
+2. 嚴禁總結前文。你「只能」撰寫 4.7 至 4.12 大段，寫完 4.12 後立刻停止。
+3. 【客觀事實錨定】：分析紫微宮位時，只能基於 <FactData> 內明確出現的星曜進行解析。
+
+<FactData>
+${exactFactData}
+</FactData>
+
+請「嚴格按照以下結構」接續撰寫：
+
 #### 4.7 疾厄宮（健康預警、身心耗損與致命傷）
 #### 4.8 遷移宮（外部擴張、外出吉凶與地理/跨界紅利）
 #### 4.9 官祿宮（事業軌跡、適合獨立作戰還是高管合夥？突破口在哪？）
@@ -83,13 +107,13 @@ ${contexts}
 `;
 }
 
-function getPromptPart3(aiTextPart1, aiTextPart2, userData, contexts, currentDateStr) {
+function getPromptPart4(aiTextPart1, aiTextSection4, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第三階段】。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第四階段】（運勢與戰略）。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行戰略延伸）：
 ${aiTextPart1}
-${aiTextPart2}
+${aiTextSection4}
 
 【節省 Token 與時間錨點鐵律】：
 1. 第一行輸出必須直接是「## 5. 未來 10 年運勢推演（含黑天鵝風險警示）」。
@@ -111,7 +135,7 @@ ${aiTextPart2}
 ### 6.2 關鍵時間節點（未來 12-24 個月）
 （明確指出「進攻黃金期（幾月）」與「防守避險期（幾月）」。【時間鐵律】：必須以當前時間 ${currentDateStr} 的「這個月」作為起點，開始往後 12-24 個月進行推演，不可給出已經過去的月份。）
 ### 6.3 進攻與避險戰略
-（條列 3 項極度務實的現代行動建議。「該主動做什麼」與「絕對要避免什麼」。）
+（【排版鐵律】：條列 3 項極度務實的現代行動建議。必須使用 #### 6.3.1, #### 6.3.2, #### 6.3.3 作為子標題，絕對不可只寫 1. 2. 3.。「該主動做什麼」與「絕對要避免什麼」。）
 ### 6.4 五行環境與心理調校
 （結合最喜用神，給出環境風水、穿搭顏色或心態調整建議。）
 
@@ -120,14 +144,14 @@ ${contexts}
 `;
 }
 
-function getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, userData, currentDateStr) {
+function getPromptPart5(aiTextPart1, aiTextSection4, aiTextPart4, userData, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第四階段】。
+你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第五階段】。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行心理學延伸）：
 ${aiTextPart1}
-${aiTextPart2}
-${aiTextPart3}
+${aiTextSection4}
+${aiTextPart4}
 
 【MBTI 狀態】：${userData.mbti}
 
@@ -156,4 +180,4 @@ ${aiTextPart3}
 `;
 }
 
-module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4 };
+module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5 };
