@@ -217,9 +217,9 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 
                 // 🟢 階層化 DOM 轉換
                 let htmlFormattedReport = reportContent
-                    .replace(/^#### (.*$)/gim, '<h4>$1</h4>') // 支援 1.1.1 第三層標題
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')  // 支援 1.1 第二層標題
-                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')   // 支援 1. 第一層標題
+                    .replace(/^#### (.*$)/gim, '<h4>$1</h4>') // 1.1.1
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')  // 1.1
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')   // 1.
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
@@ -228,8 +228,8 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     .replace(/<p><\/p>/g, '') 
                     .replace(/<br><\/p>/g, '</p>'); 
 
-                // 🟢 斷頁防護黑科技：強制將標題與其後緊接的段落綁定，絕對不會跨頁斷開[cite: 1]
-                htmlFormattedReport = htmlFormattedReport.replace(/(<h[234]>.*?<\/h[234]>\s*<p>.*?<\/p>)/gis, '<div style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
+                // 🟢 斷頁防護黑科技：確保子標題與緊接的段落不被拆分
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h[34]>.*?<\/h[34]>\s*<p>.*?<\/p>)/gis, '<div style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
                 
                 // 讀取 Logo 並轉換為 base64
                 let logoBase64 = '';
@@ -243,7 +243,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     console.error("⚠️ 讀取 Logo 發生錯誤:", err);
                 }
 
-                // 🟢 高階列印專用 CSS (Screen & Print 混合優化)
+                // 🟢 高階列印專用 CSS
                 const pdfHtmlContent = `
                 <!DOCTYPE html>
                 <html lang="zh-TW">
@@ -258,19 +258,20 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             background-color: #ffffff;
                         }
                         
-                        /* 🟢 首頁封面區塊：Flexbox 左右並排佈局[cite: 1] */
+                        /* 🟢 首頁封面區塊：嚴格強迫斷頁、Flexbox 左右並排佈局縮小 Logo */
                         .cover-page {
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             gap: 20px;
-                            padding-top: 10px;
+                            padding-top: 20vh; /* 將封面推至視覺中心 */
                             padding-bottom: 25px;
-                            margin-bottom: 35px;
-                            border-bottom: 2px solid #8e44ad;
+                            margin-bottom: 0;
+                            page-break-after: always; /* 確保首頁封面獨占一頁 */
+                            break-after: page;
                         }
                         .logo-img { 
-                            max-width: 90px; /* 將 Logo 大幅縮小 */
+                            max-width: 90px; 
                             border-radius: 8px; 
                         }
                         .title-group {
@@ -279,35 +280,44 @@ app.post('/api/webhook/lemon', async (req, res) => {
                         h1.main-title { 
                             color: #8e44ad; 
                             margin: 0 0 5px 0; 
-                            font-size: 26px; 
+                            font-size: 28px; 
                             letter-spacing: 1px; 
                             border: none;
                             padding: 0;
                         }
                         .subtitle { 
                             color: #64748b; 
-                            font-size: 15px; 
+                            font-size: 16px; 
                             font-weight: bold; 
                         }
                         
-                        /* 內文與斷頁管理 (Page Break Management) */
+                        /* 內文排版 */
                         .content-container { 
                             font-size: 14.5px; 
                             line-height: 1.8; 
                             text-align: justify; 
                         }
                         
+                        /* 🟢 七大章節嚴格斷頁系統：確保每一大章節都在新的一頁開始 */
                         h2 { 
                             color: #8e44ad; 
-                            font-size: 19px;
+                            font-size: 20px;
                             border-bottom: 1px solid #e2e8f0; 
                             padding-bottom: 6px; 
-                            margin-top: 40px; 
-                            margin-bottom: 15px; 
+                            margin-top: 0; /* 斷頁後頂部歸零 */
+                            margin-bottom: 20px; 
+                            page-break-before: always; /* 強制所有 h2 都在新頁首 */
+                            break-before: page; 
                         }
+                        /* 確保第一章緊接封面後斷頁，不會產生雙重空白頁 */
+                        .content-container h2:first-of-type {
+                            page-break-before: avoid;
+                            break-before: avoid;
+                        }
+                        
                         h3 { 
                             color: #3b82f6; 
-                            font-size: 16px;
+                            font-size: 17px;
                             margin-top: 25px; 
                             margin-bottom: 10px; 
                         }
@@ -317,9 +327,12 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             margin-top: 20px; 
                             margin-bottom: 8px;
                         }
+                        /* 🟢 強制段落與列表不跨頁斷開 */
                         p, li { 
                             margin-top: 0; 
                             margin-bottom: 15px; 
+                            page-break-inside: avoid;
+                            break-inside: avoid;
                         }
                         strong { color: #000000; font-weight: 600; }
                     </style>
@@ -380,7 +393,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     html: `
                         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 750px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
                             <p style="font-size: 16px;">親愛的朋友，您好：</p>
-                            <p style="font-size: 16px;">感謝您的耐心等候。我們的 AI 命理大腦已自向量資料庫中提取五大古籍之精髓，結合真太陽時校正，並為您運算了專屬的開運密碼與 10 年運勢曲線圖。</p>
+                            <p style="font-size: 16px;">感謝您的耐心等候。您的 8,000+ 字戰略藍圖與 Saju-MBTI 交叉分析已運算完畢。</p>
                             <p style="font-size: 16px; color: #8e44ad; font-weight: bold;">
                                 👉 您的專屬戰略報告已轉換為高畫質 PDF 檔，請見本信件附件。
                             </p>
