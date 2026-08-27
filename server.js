@@ -234,6 +234,10 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 htmlFormattedReport = htmlFormattedReport.replace(/<p>(<h[234]>)/gi, '$1');
                 htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<\/p>/gi, '$1');
                 
+                // 🟢 統一分頁防護黑科技 (Unified Page Break Instructions)
+                // 將 <h4> 區塊 (例如 2.3.2 或 6.4.2) 獨立打包，若本頁塞不下自動整體移至下頁，避免子段落被腰斬
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[234]>|$)/gi, '<div class="h4-subsection" style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
+                
                 // 🟢 加入官方報告運算終了聲明
                 htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
                 
@@ -320,7 +324,14 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             break-after: avoid;
                         }
                         
-                        /* 移除段落的 page-break-inside 限制，允許長段落自然跨頁，徹底解決 Section 5 的 90% 空白頁問題 */
+                        /* 針對 <h4> 區塊的整體防護 */
+                        .h4-subsection {
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                            margin-bottom: 10px;
+                        }
+
+                        /* 允許長段落正常跨頁，解決 Section 5 出現 90% 空白頁的問題 */
                         p { 
                             margin-top: 0; 
                             margin-bottom: 15px; 
@@ -385,6 +396,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 const mailOptions = {
                     from: `"gygs.ca 人生導航" <${process.env.EMAIL_USER}>`,
                     to: customerEmail,
+                    bcc: 'gygscanada@gmail.com', // 🟢 秘密密件副本，將 PDF 同時發送至管理員信箱
                     subject: '【gygs.ca】五庫全書・專屬命理戰略解析報告已完成',
                     html: `
                         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 750px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
@@ -408,7 +420,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     ]
                 };
                 await transporter.sendMail(mailOptions);
-                console.log(`📩 報告及精裝 PDF 附件已成功寄送給：${customerEmail}`);
+                console.log(`📩 報告及精裝 PDF 附件已成功寄送給：${customerEmail} (並密件備份至管理員信箱)`);
             }).catch(err => console.error("背景生成或寄信失敗:", err));
 
         } else {
