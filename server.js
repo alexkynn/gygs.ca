@@ -63,7 +63,7 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 【你的表達守則】
 1. 溫暖、專業、賦能：拒絕宿命論。
 2. 極度具體：遇到高峰或低谷，『必須』明確點出具體的「年份」或「歲數區間」。
-3. 嚴謹詳實：請給出超過 8000 字的深度解析，排版清晰。`;
+3. 嚴謹詳實：請給出超過 10000 字的深度解析，排版清晰。`;
 
     const safetySettings = [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -401,7 +401,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     html: `
                         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.8; color: #333; max-width: 750px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
                             <p style="font-size: 16px;">親愛的朋友，您好：</p>
-                            <p style="font-size: 16px;">感謝您的耐心等候。您的 8,000+ 字戰略藍圖與 Saju-MBTI 交叉分析已運算完畢。</p>
+                            <p style="font-size: 16px;">感謝您的耐心等候。您的 10,000+ 字戰略藍圖與 Saju-MBTI 交叉分析已運算完畢。</p>
                             <p style="font-size: 16px; color: #8e44ad; font-weight: bold;">
                                 👉 您的專屬戰略報告已轉換為高畫質 PDF 檔，請見本信件附件。
                             </p>
