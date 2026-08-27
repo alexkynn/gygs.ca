@@ -34,6 +34,7 @@
         option { color: #e2e8f0; background-color: #1f2937; padding: 5px 0; }
         .disclaimer-box { font-size: 0.75rem; color: #6b7280; background-color: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1.25rem; margin-top: 2rem; line-height: 1.6; text-align: justify; }
         .select-compact { padding-left: 0.5rem; padding-right: 1.5rem; }
+        .hover-white:hover { color: #f8fafc !important; transition: color 0.2s ease; } /* Footer 連結的 Hover 效果 */
         @media (max-width: 768px) {
             .main-title { font-size: 1.75rem; }
             header h4 { font-size: 1.15rem; }
@@ -231,19 +232,67 @@
         </div>
     </div>
 
+    <!-- 🟢 免責聲明 -->
     <div class="row">
         <div class="col-12">
-            <div class="disclaimer-box">
-                <strong>Disclaimer & Limitation of Liability:</strong><br>
-                All information, analysis, algorithms, and strategic concepts provided by gygs.ca—including but not limited to AI-generated reports and consultation services—are solely for educational, informational, and personal planning purposes. They do not constitute certified financial, investment, legal, accounting, medical, or professional advice. The dual-engine macro/micro framework is a theoretical data model and should not be relied upon as the sole basis for making trading, investment, or life-altering decisions. Users are entirely responsible for their own actions and risk management. The creators, developers, analysts, and operators associated with gygs.ca shall not be held liable for any direct, indirect, incidental, consequential, or financial losses arising from the use or interpretation of this platform. Past historical correlations or algorithm results do not guarantee future performance or specific outcomes.
-                <br><br>
+            <div class="disclaimer-box mb-5">
                 <strong>免責聲明與責任限制：</strong><br>
                 gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 AI 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
             </div>
         </div>
     </div>
 
+    <!-- 🟢 Footer 區塊 -->
+    <footer class="text-center pb-4">
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <a href="#" class="text-secondary text-decoration-none small hover-white" data-bs-toggle="modal" data-bs-target="#aboutModal">關於我們</a>
+            <span class="text-secondary small">|</span>
+            <a href="#" class="text-secondary text-decoration-none small hover-white" data-bs-toggle="modal" data-bs-target="#privacyModal">隱私權政策</a>
+            <span class="text-secondary small">|</span>
+            <a href="mailto:info@gygs.ca?subject=gygs.ca%20意見回饋" class="text-secondary text-decoration-none small hover-white">意見回饋</a>
+        </div>
+        <div class="text-muted small">&copy; 2026 gygs.ca. 保留所有權利。</div>
+    </footer>
+
+</div> <!-- Container End -->
+
+<!-- 🟢 關於我們 Modal -->
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered text-light">
+        <div class="modal-content" style="background-color: #1f2937; border: 1px solid #374151;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-info fw-bold" id="aboutModalLabel">關於我們 (About Us)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-secondary" style="font-size: 0.95rem; line-height: 1.6;">
+                gygs.ca 致力於打造專屬的人生戰略導航系統。我們結合了《紫微斗數全書》、《滴天髓》等五大命理古籍的宏觀智慧，與現代 Saju-MBTI 心理學深度分析，旨在為現代人提供高維度的事業、財務與人生決策指南。<br><br>我們相信，透過東方哲學的大數據模型與客觀的心理分析，每個人都能在充滿不確定性的現代社會中，找到屬於自己的破局之道與最佳時空紅利。
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- 🟢 隱私權政策 Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered text-light">
+        <div class="modal-content" style="background-color: #1f2937; border: 1px solid #374151;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-info fw-bold" id="privacyModalLabel">隱私權政策 (Privacy Policy)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-secondary" style="font-size: 0.95rem; line-height: 1.6;">
+                <strong>嚴格的數據保護承諾：</strong><br><br>
+                gygs.ca 極度重視您的隱私與數據安全。您所輸入的任何個人資料（包括出生地、時間、婚姻狀況、電子郵件等），僅會被系統用於當次的排盤計算與 AI 報告生成。<br><br>
+                我們承諾：<br>
+                1. 絕不將您的個人資料出售、出租或分享給任何第三方廣告商。<br>
+                2. 系統運算完畢且報告寄出後，您的核心生辰資訊不會作為公開用途。<br>
+                3. 在付款與傳輸過程中，我們使用業界標準的高階加密技術（如 Lemon Squeezy 安全通道）來保護您的敏感資訊。
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS for Modals -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {

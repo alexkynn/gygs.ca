@@ -68,7 +68,7 @@ ${contexts}
 
 function getPromptPart3(aiTextPart1, aiTextPart2, exactFactData, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第三階段】（紫微前六宮）。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第三階段】（紫微宮位 1-4）。
 
 【第一及第二部分內容參考】（請保持解讀邏輯的一致性）：
 ${aiTextPart1}
@@ -76,8 +76,8 @@ ${aiTextPart2}
 
 【節省 Token 與強制完賽鐵律】：
 1. 你的第一行輸出必須直接是「## 4. 紫微斗數全景與十二宮位深度解析」。
-2. 嚴禁總結前文。你「必須且只能」撰寫 4.1 至 4.6 大段。
-3. 【強制完賽指令】：請自行調控字數與篇幅，絕對不可在 4.4 或 4.5 提早截斷！你必須確保「#### 4.6 財帛宮」完整產出後才可停止。請為下半部保留運算空間。
+2. 嚴禁總結前文。你「必須且只能」撰寫 4.1 至 4.4 大段。
+3. 【強制完賽指令】：請自行調控字數與篇幅，絕對不可提早截斷！你必須確保「#### 4.4 夫妻宮」完整產出後才可停止。請為下半部保留運算空間。
 4. 【客觀事實錨定】：分析紫微宮位時，只能基於 <FactData> 內明確出現的星曜進行解析。
 
 <FactData>
@@ -91,13 +91,11 @@ ${exactFactData}
 請「嚴格按照以下結構」接續撰寫：
 
 ## 4. 紫微斗數全景與十二宮位深度解析
-（請從下方文獻中比對，鑑定命主是否符合特殊大格。接著，對命盤中的前六個宮位進行逐一解析，並融合家庭現狀給出實際建議：）
+（請從下方文獻中比對，鑑定命主是否符合特殊大格。接著，對命盤中的宮位進行逐一解析，並融合家庭現狀給出實際建議：）
 #### 4.1 命宮（先天格局與核心特質：詳細解析星曜組合，深度剖析先天的性格優勢與天賦盲區）
 #### 4.2 身宮（後天發展與後半生走向：點出身宮寄託之宮位，詳細說明中年後的人生重心轉移與實質追求）
 #### 4.3 兄弟宮與交友/奴僕宮（人際網絡、下屬與合夥）
 #### 4.4 夫妻宮（配偶特質、合夥與婚姻綜效）
-#### 4.5 子女宮（子息緣分、晚輩助力與財庫放大）
-#### 4.6 財帛宮（現金流、主動收入還是偏財投機？如何防守？）
 
 【Pinecone 檢索文獻】：
 ${contexts}
@@ -106,14 +104,43 @@ ${contexts}
 
 function getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, exactFactData, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第四階段】（紫微後六宮）。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第四階段】（紫微宮位 5-8）。
 
 【前半段紫微宮位參考】（請保持解讀邏輯的連貫性）：
 ${aiTextPart3}
 
 【節省 Token 與強制完賽鐵律】：
-1. 你的第一行輸出必須直接是「#### 4.7 疾厄宮（健康預警、身心耗損與致命傷）」。絕對不可重複寫「## 4. 紫微斗數全景...」大標題！
-2. 嚴禁總結前文。你「必須且只能」撰寫 4.7 至 4.12 大段。
+1. 你的第一行輸出必須直接是「#### 4.5 子女宮（子息緣分、晚輩助力與財庫放大）」。絕對不可重複寫「## 4. 紫微斗數全景...」大標題！
+2. 嚴禁總結前文。你「必須且只能」撰寫 4.5 至 4.8 大段。
+3. 【強制完賽指令】：請自行調控字數與篇幅，絕對不可提早截斷！你必須確保「#### 4.8 遷移宮」完整產出後才可停止。
+4. 【客觀事實錨定】：分析紫微宮位時，只能基於 <FactData> 內明確出現的星曜進行解析。
+
+<FactData>
+${exactFactData}
+</FactData>
+
+請「嚴格按照以下結構」接續撰寫：
+
+#### 4.5 子女宮（子息緣分、晚輩助力與財庫放大）
+#### 4.6 財帛宮（現金流、主動收入還是偏財投機？如何防守？）
+#### 4.7 疾厄宮（健康預警、身心耗損與致命傷）
+#### 4.8 遷移宮（外部擴張、外出吉凶與地理/跨界紅利）
+
+【Pinecone 檢索文獻】：
+${contexts}
+`;
+}
+
+function getPromptPart5(aiTextPart3, aiTextPart4, exactFactData, userData, contexts, currentDateStr) {
+    return `
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第五階段】（紫微宮位 9-12）。
+
+【前半段紫微宮位參考】（請保持解讀邏輯的連貫性）：
+${aiTextPart4}
+
+【節省 Token 與強制完賽鐵律】：
+1. 你的第一行輸出必須直接是「#### 4.9 官祿宮（事業軌跡、適合獨立作戰還是高管合夥？突破口在哪？）」。絕對不可重複寫大標題！
+2. 嚴禁總結前文。你「必須且只能」撰寫 4.9 至 4.12 大段。
 3. 【強制完賽指令】：請自行調控字數與篇幅，絕對不可提早截斷！你必須確保「#### 4.12 父母宮」完整產出後才可停止。
 4. 【客觀事實錨定】：分析紫微宮位時，只能基於 <FactData> 內明確出現的星曜進行解析。
 
@@ -123,8 +150,6 @@ ${exactFactData}
 
 請「嚴格按照以下結構」接續撰寫：
 
-#### 4.7 疾厄宮（健康預警、身心耗損與致命傷）
-#### 4.8 遷移宮（外部擴張、外出吉凶與地理/跨界紅利）
 #### 4.9 官祿宮（事業軌跡、適合獨立作戰還是高管合夥？突破口在哪？）
 #### 4.10 田宅宮（資產根基、不動產緣分與家庭庫藏）
 #### 4.11 福德宮（精神內耗、潛意識與晚年福分）
@@ -135,9 +160,9 @@ ${contexts}
 `;
 }
 
-function getPromptPart5(aiTextPart1, aiTextPart2, aiTextSection4, userData, contexts, currentDateStr) {
+function getPromptPart6(aiTextPart1, aiTextPart2, aiTextSection4, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第五階段】（未來 10 年運勢推演）。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第六階段】（未來 10 年運勢推演）。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行戰略延伸）：
 ${aiTextPart1}
@@ -161,14 +186,14 @@ ${contexts}
 `;
 }
 
-function getPromptPart6(aiTextPart1, aiTextSection4, aiTextPart5, userData, contexts, currentDateStr) {
+function getPromptPart7(aiTextPart1, aiTextSection4, aiTextPart6, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第六階段】（大師戰略行動指南）。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第七階段】（大師戰略行動指南）。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行戰略延伸）：
 ${aiTextPart1}
 ${aiTextSection4}
-${aiTextPart5}
+${aiTextPart6}
 
 【節省 Token 與強制完賽鐵律】：
 1. 第一行輸出必須直接是「## 6. 大師戰略行動指南（針對「${userData.actualQuestion}」的專屬破局方案）」。
@@ -194,14 +219,14 @@ ${contexts}
 `;
 }
 
-function getPromptPart7(aiTextPart1, aiTextSection4, aiTextPart6, userData, currentDateStr) {
+function getPromptPart8(aiTextPart1, aiTextSection4, aiTextPart7, userData, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第七階段】。
+你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第八階段】。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行心理學延伸）：
 ${aiTextPart1}
 ${aiTextSection4}
-${aiTextPart6}
+${aiTextPart7}
 
 【MBTI 狀態】：${userData.mbti}
 
@@ -230,4 +255,4 @@ ${aiTextPart6}
 `;
 }
 
-module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7 };
+module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7, getPromptPart8 };
