@@ -12,7 +12,6 @@ const { astro } = require('iztro');
 const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
-// 🟢 引入抗截斷的 7 階段 Prompt
 const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7 } = require('./promptTemplates.js');
 const { calculateYongShen } = require('./baziCalculator.js');
 
@@ -155,12 +154,11 @@ function generateDeterministicFactData(userData, currentDateStr) {
             bazi.getTime().charAt(0), bazi.getTime().charAt(1)
         );
 
-        // 🟢 產生未來 10 年的流年干支 (10-Year Annual Pillars Array)
         const currentYear = new Date().getFullYear();
         let future10Years = "";
         for (let i = 0; i < 10; i++) {
             let targetYear = currentYear + i;
-            let tempLunar = Lunar.fromYmd(targetYear, 1, 1); // 取得該年的干支
+            let tempLunar = Lunar.fromYmd(targetYear, 1, 1);
             future10Years += `- ${targetYear}年: ${tempLunar.getYearInGanZhi()}年\n`;
         }
 
@@ -282,28 +280,39 @@ async function generateEmbeddings(text) {
     }
 }
 
+// 🟢 支援本機與 Google Sheets 雙軌即時同步
 function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userEmail) {
-    const logEntry = {
+    const payload = {
         timestamp: new Date().toISOString(),
         email: userEmail || "anonymous",
-        demographics: {
-            country: userData.country,
-            city: userData.city,
-            birthYear: userData.year,
-            gender: userData.gender,
-            maritalStatus: userData.marriage,
-            children: userData.children,
-            mbti: userData.mbti,
-            exactTime: userData.exactTime
-        },
-        question: actualQuestion,
-        report_length: finalAiText.length,
-        ai_report: finalAiText
+        country: userData.country || "",
+        city: userData.city || "",
+        birthYear: userData.year || "",
+        gender: userData.gender || "",
+        maritalStatus: userData.marriage || "",
+        children: userData.children || "",
+        mbti: userData.mbti || "",
+        exactTime: userData.exactTime || "",
+        question: actualQuestion || "",
+        report_length: finalAiText ? finalAiText.length : 0
     };
 
-    fs.appendFile(path.join(__dirname, 'analytics_log.jsonl'), JSON.stringify(logEntry) + '\n', (err) => {
+    // 1. 本地備份日誌
+    fs.appendFile(path.join(__dirname, 'analytics_log.jsonl'), JSON.stringify(payload) + '\n', (err) => {
         if (err) console.error("⚠️ Failed to write to analytics log:", err);
     });
+
+    // 2. 自動傳送至 Google Sheets Webhook (零 Token 消耗)
+    const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    if (webhookUrl && webhookUrl.startsWith('https://script.google.com')) {
+        fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(res => res.json())
+          .then(data => console.log("📊 [Analytics] 數據已成功同步至 Google Sheets:", data.result))
+          .catch(err => console.error("⚠️ [Analytics] Google Sheets Webhook 同步失敗:", err));
+    }
 }
 
 // =========================================================================
@@ -377,7 +386,6 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         let aiTextPart1 = resultPart1.response.text().trim();
 
         console.log("📝 [4/9] 生成階段二：時空軌跡與神煞套利 (Section 3)...");
-        // 🟢 將 contexts 傳入 getPromptPart2
         const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr);
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
