@@ -35,16 +35,17 @@ ${ragFocusText}
 `;
 }
 
-function getPromptPart2(aiTextPart1, exactFactData, userData, currentDateStr) {
+function getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr) {
     return `
 你是一位頂級東方命理戰略家。請接續撰寫報告的【第二階段】。
 
 【第一部分內容參考】（請保持八字喜用神與格局的一致性）：
 ${aiTextPart1}
 
-【節省 Token 鐵律】：
+【節省 Token 與文獻過濾鐵律】：
 1. 你的第一行輸出必須直接是「## 3. 四柱神煞詳解與時空軌跡」。
 2. 嚴禁總結前文。你「只能」撰寫第 3 大段，寫完 3.3 後立刻停止。
+3. 【文獻使用鐵律】：本段為純粹的「八字命理」專區，請僅從下方 Pinecone 文獻中提取與「八字、調候、神煞」相關的知識來輔助推演，絕對禁止在此段混入「紫微斗數」的星曜或格局名稱！
 
 <FactData>
 ${exactFactData}
@@ -56,9 +57,12 @@ ${exactFactData}
 ### 3.1 四柱時空軌跡與大運節點
 （將八字四柱映射至人生四大階段：年柱(0-15歲)原生家庭與早年基礎、月柱(16-30歲)青年奮鬥與父母影響、日柱(31-45歲)中年核心與婚姻動態、時柱(46歲以後)晚年財富與子息傳承。精確分析各階段的起伏軌跡。）
 ### 3.2 調候樞紐與心理底色
-（請嚴格依據命主八字與「絕對最喜用神」，分析其出生季節帶來的「心理氣候」。如生於寒冬者是否過於防禦？生於炎夏者是否過於急躁？給出環境與心理調候的戰略指引。）
+（請嚴格依據命主八字與「絕對最喜用神」，並參考下方古籍文獻，分析其出生季節帶來的「心理氣候」。如生於寒冬者是否過於防禦？生於炎夏者是否過於急躁？給出環境與心理調候的戰略指引。）
 ### 3.3 四柱神煞與現代套利
-（挑選命局中 3-5 個最具代表性的神煞，將其轉化為現代商業與避險的槓桿工具。例如將「天乙貴人」解讀為機構背書，「驛馬」解讀為跨國市場等，寫成通順白話文並給出極度務實的套利解讀。）
+（挑選命局中 3-5 個最具代表性的神煞，參考古籍定義，將其轉化為現代商業與避險的槓桿工具。例如將「天乙貴人」解讀為機構背書，「驛馬」解讀為跨國市場等，寫成通順白話文並給出極度務實的套利解讀。）
+
+【Pinecone 檢索文獻】：
+${contexts}
 `;
 }
 
@@ -133,7 +137,7 @@ ${contexts}
 
 function getPromptPart5(aiTextPart1, aiTextPart2, aiTextSection4, userData, contexts, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家。請接續撰寫報告的【第五階段】（運勢與戰略）。
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第五階段】（未來 10 年運勢推演）。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行戰略延伸）：
 ${aiTextPart1}
@@ -142,8 +146,8 @@ ${aiTextSection4}
 
 【節省 Token 與時間錨點鐵律】：
 1. 第一行輸出必須直接是「## 5. 未來 10 年運勢推演（含黑天鵝風險警示）」。
-2. 嚴禁總結前文。你「只能」撰寫第 5 至第 6 大段。寫完 6.4 後立刻停止。
-3. 【絕對時間錨點】：當前系統時間為 ${currentDateStr}。所有的運勢推演、計畫與關鍵時間節點，【絕對必須】從 ${currentDateStr} 所在的「今年」與「這個月份」作為起點開始往後推算！嚴禁從過去的年份開始寫。
+2. 嚴禁總結前文。你「只能」撰寫第 5 大段。寫完 10 年推演後立刻停止。請為下半部保留運算空間。
+3. 【絕對時間錨點】：當前系統時間為 ${currentDateStr}。所有的運勢推演，【絕對必須】從 ${currentDateStr} 所在的「今年」作為起點開始往後推算 10 年！嚴禁從過去的年份開始寫。
 
 請「嚴格按照以下結構」接續撰寫：
 
@@ -151,6 +155,27 @@ ${aiTextSection4}
 （【格式鐵律】：禁用區塊符號。必須從 ${currentDateStr} 所在的今年開始算起，連續推演 10 年。未來十年每一年都「必須」將年份加粗（如 **2026年**），並加上括號標註「週期定調（如：【爆發期】、【防守期】等）」！）
 （【極度重要】：明確標示出這十年中哪一年是極度高危的「黑天鵝年（Black Swan）」，並給出防守策略。）
 （格式範例：**2026年** | 80分 | 【破局爆發期】事業出現重大轉折，利於高風險進攻。）
+
+【Pinecone 檢索文獻】：
+${contexts}
+`;
+}
+
+function getPromptPart6(aiTextPart1, aiTextSection4, aiTextPart5, userData, contexts, currentDateStr) {
+    return `
+你是一位頂級東方命理戰略家。請接續撰寫報告的【第六階段】（大師戰略行動指南）。
+
+【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行戰略延伸）：
+${aiTextPart1}
+${aiTextSection4}
+${aiTextPart5}
+
+【節省 Token 與強制完賽鐵律】：
+1. 第一行輸出必須直接是「## 6. 大師戰略行動指南（針對「${userData.actualQuestion}」的專屬破局方案）」。
+2. 嚴禁總結前文。你「只能」撰寫第 6 大段。
+3. 【強制完賽指令】：請自行調控字數與篇幅，絕對不可提早截斷！你必須確保「### 6.4 五行環境與心理調校」完整產出後才可停止。
+
+請「嚴格按照以下結構」接續撰寫：
 
 ## 6. 大師戰略行動指南（針對「${userData.actualQuestion}」的專屬破局方案）
 （必須佔據極大篇幅，針對具體提問給出深度解答：）
@@ -169,15 +194,14 @@ ${contexts}
 `;
 }
 
-function getPromptPart6(aiTextPart1, aiTextPart2, aiTextSection4, aiTextPart5, userData, currentDateStr) {
+function getPromptPart7(aiTextPart1, aiTextSection4, aiTextPart6, userData, currentDateStr) {
     return `
-你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第六階段】。
+你是一位頂級東方命理戰略家兼現代心理學分析師。請接續撰寫報告的【第七階段】。
 
 【前半部報告參考】（請基於前文的喜用神與黑天鵝風險進行心理學延伸）：
 ${aiTextPart1}
-${aiTextPart2}
 ${aiTextSection4}
-${aiTextPart5}
+${aiTextPart6}
 
 【MBTI 狀態】：${userData.mbti}
 
@@ -206,4 +230,4 @@ ${aiTextPart5}
 `;
 }
 
-module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6 };
+module.exports = { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7 };
