@@ -117,10 +117,10 @@ function generateUniqueTeaser(year, month, day, shi, gender, country, actualQues
         `👉 面對未來的挑戰，您需要的是精準的戰略地圖。解鎖完整報告，獲取您專屬的流年避險與資產配置指南。`
     ];
 
-    // Select the methodology and closing using different parts of the hash to ensure variety
+    // Select the methodology and closing using safe math addition to ensure variety and prevent negative indexes
     const mid1 = focusText;
-    const mid2 = methodologies[(seed >> 1) % methodologies.length];
-    const close = closings[(seed >> 2) % closings.length];
+    const mid2 = methodologies[(seed + 17) % methodologies.length];
+    const close = closings[(seed + 31) % closings.length];
 
     // Combine them into the final teaser
     return `${openings[seed % openings.length]}\n\n${mid1}\n\n${mid2}\n\n${close}`;
