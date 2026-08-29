@@ -1,163 +1,129 @@
-// ==========================================
-// 零 Token 懸念模版引擎 (融入五大古籍精髓)
-// 天干(10) x 地支(12) x 月(12) x 旬(3) x 時(12) x 性(2) x 提問(5) x 半球(2)
-// ==========================================
+// A simple hashing function to create a deterministic seed based on user input
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return Math.abs(hash);
+}
 
-// 1. 天干模組 (年份尾數定天干 -> 引用《滴天髓》十干精解)
-const yearStemBase = {
-    4: "依《滴天髓》所云：『甲木參天，脫胎要火』。您命造天干透出『甲木』，先天帶有參天大樹般的傲骨與向上生長之不屈意志。",
-    5: "依《滴天髓》所云：『乙木雖柔，刲羊解牛』。您命造天干透出『乙木』，外在展現如藤蘿般極強的柔韌適應力與圓融手腕。",
-    6: "依《滴天髓》所云：『丙火猛烈，欺霜侮雪』。您命造天干透出『丙火』，自帶太陽般的光明磊落，氣場奔放且極具感染力。",
-    7: "依《滴天髓》所云：『丁火柔中，內性昭融』。您命造天干透出『丁火』，性格中閃爍著星光般的細膩智慧與洞察人心的敏銳。",
-    8: "依《滴天髓》所云：『戊土固重，既中且正』。您命造天干透出『戊土』，給人如高山岩壁般穩重、可靠且難以撼動的信任感。",
-    9: "依《滴天髓》所云：『己土卑濕，中正蓄藏』。您命造天干透出『己土』，帶有田園沃土般的包容力，善於孕育資源與整合人脈。",
-    0: "依《滴天髓》所云：『庚金帶煞，剛健為最』。您命造天干透出『庚金』，行事作風如刀劍般銳利果斷，充滿肅殺與開創之威。",
-    1: "依《滴天髓》所云：『辛金軟弱，溫潤而清』。您命造天干透出『辛金』，氣質如珠玉般精緻剔透，追求完美且注重細節與質感。",
-    2: "依《滴天髓》所云：『壬水通河，能洩金氣』。您命造天干透出『壬水』，胸襟如江河般浩蕩奔流，思維宏大且不拘泥於世俗常規。",
-    3: "依《滴天髓》所云：『癸水至弱，達於天津』。您命造天干透出『癸水』，心思如雨露般綿密無聲，具備極高的直覺與滲透力。"
-};
+function generateUniqueTeaser(year, month, day, shi, gender, country, actualQuestion) {
+    // Create a unique seed based on the user's specific data
+    const seedString = `${year}-${month}-${day}-${shi}-${country}-${actualQuestion}`;
+    const seed = hashString(seedString);
 
-// 2. 紫微太歲模組 (地支/生肖 -> 引用《三命通會》十二支神韻)
-const yearZodiacBase = {
-    0: "配合《三命通會》之理，地支坐『子水』，暗藏極強的深沉智慧與靈動。", 
-    1: "配合《三命通會》之理，地支坐『丑土』，命格中自帶堅韌不拔、厚積薄發的底氣。", 
-    2: "配合《三命通會》之理，地支坐『寅木』，賦予了您不畏艱險、極具開創的先鋒能量。", 
-    3: "配合《三命通會》之理，地支坐『卯木』，透出您敏捷機變、善於在變局中尋找生機的天賦。", 
-    4: "配合《三命通會》之理，地支坐『辰土』，象徵著天羅地網中藏有蛟龍變幻、不甘平庸的龐大格局。", 
-    5: "配合《三命通會》之理，地支坐『巳火』，賦予了您心思縝密、且具備強大爆發力的先天特質。", 
-    6: "配合《三命通會》之理，地支坐『午火』，命格中自帶離火之威，光明磊落且極具領導氣場。", 
-    7: "配合《三命通會》之理，地支坐『未土』，暗藏著您溫和外表下，極度執著且包容萬物的能量。", 
-    8: "配合《三命通會》之理，地支坐『申金』，賦予了您極強的適應力與果斷的執行力，如利刃出鞘。", 
-    9: "配合《三命通會》之理，地支坐『酉金』，象徵您命格中帶有追求極致完美、心思剔透的本質。", 
-    10: "配合《三命通會》之理，地支坐『戌土』，賦予了您忠誠堅守、於逆境中浴火重生的宿命力量。", 
-    11: "配合《三命通會》之理，地支坐『亥水』，象徵著您具備極高的悟性與深不見底的靈性天賦。"  
-};
-
-// 3. 月令調候模組 (月份 -> 引用《窮通寶鑑》寒暖燥濕)
-const monthClimateBase = {
-    2: "《窮通寶鑑》以調候為尊，您生於寅月孟春，餘寒未盡，命局極需火來發榮，", 
-    3: "《窮通寶鑑》以調候為尊，您生於卯月仲春，木氣乘旺，格局重在金木交戰之制衡，", 
-    4: "《窮通寶鑑》以調候為尊，您生於辰月季春，土氣敷佈，格局喜木疏土以顯生機，",
-    5: "《窮通寶鑑》以調候為尊，您生於巳月孟夏，火炎土燥，命局極度渴望水來調候潤澤，", 
-    6: "《窮通寶鑑》以調候為尊，您生於午月仲夏，陽極生陰，命格成敗繫於水火既濟之妙，", 
-    7: "《窮通寶鑑》以調候為尊，您生於未月季夏，氣退枯焦，格局需水潤金生方能成器，",
-    8: "《窮通寶鑑》以調候為尊，您生於申月孟秋，金水相涵，氣勢清銳，需火鍛鍊方成大器，", 
-    9: "《窮通寶鑑》以調候為尊，您生於酉月仲秋，金白水清，命局最喜火來提煉以耀其光，", 
-    10: "《窮通寶鑑》以調候為尊，您生於戌月季秋，土燥金藏，格局喜木疏水潤以通其氣，",
-    11: "《窮通寶鑑》以調候為尊，您生於亥月孟冬，水冷金寒，命局唯有丙丁火照耀方見生機，", 
-    12: "《窮通寶鑑》以調候為尊，您生於子月仲冬，一陽初生，寒氣極盛，格局成敗全看暖局之神，", 
-    1: "《窮通寶鑑》以調候為尊，您生於丑月季冬，寒凝凍結，命局極需陽氣解凍方能破繭而出，"
-};
-
-// 4. 月份三旬模組 (日期，上中下旬，3種)
-const dayPhaseBase = {
-    "上旬": "且適逢節氣交接之上旬，五行氣場中蘊含著蓄勢待發的衝勁與變革之力。",
-    "中旬": "且正值當月氣場最純之中旬，提綱中帶著極強的定力與不妥協的純粹能量。",
-    "下旬": "且處於月令氣化之下旬，您的命局具備極佳的過渡、整合與承先啟後之能。"
-};
-
-// 5. 南北半球模組 (國家地理，2種)
-const hemisphereBase = {
-    "北半球": "在時空佈局上，承接北半球正統星象順行之氣，",
-    "南半球": "在時空佈局上，因降生於南半球，八字需行寒暖調候反轉之理，命格更顯不凡，"
-};
-
-// 6. 出生時辰歸宿模組 (時辰 -> 引用《紫微斗數全書》排盤定宮樞紐)
-const hourBase = {
-    "子": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於子時，斗數命宮受極陰之氣孕育，潛意識中充滿強烈探索慾。",
-    "丑": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於丑時，地氣初動，賦予了您不畏寂寞、默默耕耘的定力。",
-    "寅": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於寅時，三陽開泰，內心深處始終保持著破舊立新的猛虎之志。",
-    "卯": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於卯時，朝氣蓬勃，面對人生抉擇時總能保有仁慈與柔韌。",
-    "辰": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於辰時，天羅地網，潛藏著極強的掌控慾與扭轉乾坤的魄力。",
-    "巳": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於巳時，陽氣鼎盛，具備極強的邏輯分析與暗處運籌帷幄之能。",
-    "午": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於午時，離火當空，潛意識與晚運皆透著不願屈居人下的自尊。",
-    "未": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於未時，日斜陽燥，能在複雜的人際與環境中找到平衡的太極點。",
-    "申": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於申時，金氣初成，內心如同百煉之鋼，總能展現冷靜殺斷力。",
-    "酉": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於酉時，太陰漸生，對美感與人性的敏銳度極高，心思澄澈。",
-    "戌": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於戌時，萬物歸庫，充滿了守護領地的忠誠與看透世俗的豁達。",
-    "亥": "《紫微斗數全書》視時辰為排盤定宮之鑰：降生於亥時，水歸大海，內心世界極度廣闊，具備不可思議的直覺靈性。"
-};
-
-// 7. 性別與大運模組 (2種)
-const genderBase = {
-    "男命": "以乾造推演大運，歲運流轉自帶剛健不息之象。",
-    "女命": "以坤造推演大運，歲運更迭透出柔韌包容之德。"
-};
-
-// 8. 權威結尾模組 (引導解鎖 5 大古籍 RAG 報告)
-const categoryHooks = {
-    "事業": "結合上述根基，命局星曜顯示您的事業正處於『破局與重組』的關鍵交界。系統即將為您檢索《子平真詮》與《紫微斗數全書》，為您點出明年的三大事業轉機與避險指南。",
-    "姻緣": "循此脈絡，您的姻緣宮位正受到近期歲運的強烈牽引。《三命通會》與星盤的交錯顯示，正緣契機往往隱藏在意想不到的月份。系統即將為您揭示下一次紅鸞星動的精確週期。",
-    "財富": "依此五行氣勢，您原局財庫正與流年氣場產生強烈共振。《窮通寶鑑》與紫微財星的交會即將變動您的財富格局。系統將為您指明『食神生財』或『比劫奪財』的防禦與進攻落點。",
-    "人生": "透視這股先天能量，您骨子裡的潛能與當前大運的拉扯，正是猶豫不決的根源。系統即將啟動五大古籍（滴天髓、三命通會、紫微斗數等）進行 RAG 深度檢索，為您徹底解開這道選擇題。",
-    "健康": "回歸五行旺衰，流年煞星的遊走往往在特定月份衝擊您本命的脆弱樞紐。隱患在爆發前早已留下伏筆，系統將透過古籍病理大數據，為您梳理出近期的健康與氣血預警。"
-};
-
-// 🟢 已更新為與 locations.js 相同的雙語格式
-const southernHemisphereCountries = [
-    "澳洲 (Australia)", 
-    "紐西蘭 (New Zealand)", 
-    "巴西 (Brazil)", 
-    "阿根廷 (Argentina)", 
-    "智利 (Chile)", 
-    "南非 (South Africa)", 
-    "秘魯 (Peru)",
-    "玻利維亞 (Bolivia)",
-    "厄瓜多 (Ecuador)",
-    "巴拉圭 (Paraguay)",
-    "烏拉圭 (Uruguay)"
-];
-
-/**
- * 核心引擎：動態編織百萬種獨一無二的 Teaser
- */
-function generateUniqueTeaser(yearStr, monthStr, dayStr, shiStr, genderStr, countryStr, questionStr) {
-    const year = parseInt(yearStr);
-    const month = parseInt(monthStr);
-    const day = parseInt(dayStr);
-
-    if (isNaN(year) || isNaN(month) || isNaN(day)) return "您的專屬命理演算已初步完成。星盤與八字的交互作用顯示，您正處於一個承先啟後的關鍵流年。";
-
-    // 1. 天干
-    const stemDigit = year % 10;
-    const part1 = yearStemBase[stemDigit];
-
-    // 2. 地支/太歲
-    let zodiacIndex = (year - 4) % 12;
-    if (zodiacIndex < 0) zodiacIndex += 12;
-    const part2 = yearZodiacBase[zodiacIndex];
-
-    // 3. 半球判斷
-    const isSouthern = southernHemisphereCountries.includes(countryStr);
-    const part3 = isSouthern ? hemisphereBase["南半球"] : hemisphereBase["北半球"];
-
-    // 4. 月份
-    const part4 = monthClimateBase[month] || monthClimateBase[1]; 
+    // ==========================================
+    // 0. 純 JS 天干地支、生肖與節氣時辰換算 (Zero-Token Astrological Logic)
+    // ==========================================
+    const y = parseInt(year, 10);
+    // 天干 (Heavenly Stems): 1984 was 甲(4)
+    const stemMap = ["庚", "辛", "壬", "癸", "甲", "乙", "丙", "丁", "戊", "己"];
+    const stem = stemMap[y % 10];
     
-    // 5. 月份三旬
-    let phase = "中旬";
-    if (day <= 10) phase = "上旬";
-    else if (day >= 21) phase = "下旬";
-    const part5 = dayPhaseBase[phase];
+    // 地支 (Earthly Branches) & 生肖 (Zodiac): 1984 was 子(4) / 鼠
+    const branchMap = ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"];
+    const zodiacMap = ["猴", "雞", "狗", "豬", "鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊"];
+    const branchIndex = y % 12;
+    const branch = branchMap[branchIndex];
+    const zodiac = zodiacMap[branchIndex];
+    
+    const baziYearStr = `${stem}${branch}`; // e.g., 丙辰
+    const genderTerm = (gender === 'female' || gender.includes('女')) ? '坤造' : '乾造';
 
-    // 6. 時辰
-    let extractedShi = "子";
-    if (shiStr && shiStr.length > 0) extractedShi = shiStr.charAt(0); 
-    const part6 = hourBase[extractedShi] || hourBase["子"];
+    // 季節與五行氣場推算 (以公曆月份粗略劃分)
+    const m = parseInt(month, 10);
+    let seasonDesc = "";
+    if (m >= 2 && m <= 4) seasonDesc = "春季木旺生發";
+    else if (m >= 5 && m <= 7) seasonDesc = "夏季火炎灼熱";
+    else if (m >= 8 && m <= 10) seasonDesc = "秋季金銳肅殺";
+    else seasonDesc = "冬季水寒沉潛";
 
-    // 7. 性別
-    let part7 = genderBase["女命"];
-    if (genderStr && genderStr.includes("男")) part7 = genderBase["男命"];
+    // 時辰能量場推算
+    let timeVibe = "";
+    if (shi.includes("子") || shi.includes("丑") || shi.includes("亥")) timeVibe = "深沉內斂的暗夜之氣";
+    else if (shi.includes("寅") || shi.includes("卯") || shi.includes("辰")) timeVibe = "破曉而出的旭日之氣";
+    else if (shi.includes("巳") || shi.includes("午") || shi.includes("未")) timeVibe = "日正當中的極陽之氣";
+    else timeVibe = "沉澱收斂的夕暮之氣"; // 申, 酉, 戌
 
-    // 8. 提問 (RAG Hook)
-    let part8 = categoryHooks["人生"];
-    if (questionStr.includes("事業") || questionStr.includes("工作")) part8 = categoryHooks["事業"];
-    else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情")) part8 = categoryHooks["姻緣"];
-    else if (questionStr.includes("財運") || questionStr.includes("投資") || questionStr.includes("錢")) part8 = categoryHooks["財富"];
-    else if (questionStr.includes("健康") || questionStr.includes("身體")) part8 = categoryHooks["健康"];
+    // ==========================================
+    // 1. 動態開場白 (Dynamic & Calculated Opening Hooks)
+    // ==========================================
+    const openings = [
+        `【五庫全書系統已鎖定時空座標】\n大師已接收到您（${baziYearStr}年屬${zodiac}，${genderTerm}）在 ${country} 誕生的先天生辰。初步的八字掃描顯示，您生於${seasonDesc}之時，配合「${shi}」${timeVibe}，這在您的命盤中留下了極其深刻的烙印，賦予了您異於常人的思維模式與爆發潛力。`,
+        `【星曜陣列與八字原局已載入】\n我們已精準捕獲您的先天能量場。${baziYearStr} 年的干支排列，遇上${seasonDesc}的節氣，以及專屬於您的「${shi}」，正在系統中勾勒出一幅極具張力的人生軌跡圖。這並不是一個平庸的命格，屬${zodiac}的您充滿著跨界與破局的特質。`,
+        `【命理雙引擎已啟動解析】\n來自 ${country} 的時空數據已成功導入。大師初步排盤發現，作為一名${baziYearStr}年的${genderTerm}，您的紫微命宮與八字日元之間存在著強烈的能量共振。${seasonDesc}與${timeVibe}的交織，註定了您在面對人生重大轉折時，總能展現出驚人的直覺力與韌性。`,
+        `【先天格局掃描完成】\n大師已為您啟動了深度的命盤重組。根據您命局中${seasonDesc}的五行氣場分佈，以及「${shi}」的時空引力，我們發現屬${zodiac}的您底層性格中潛藏著一股尚未完全釋放的『暗流』，這股力量正是您突破現狀的關鍵鑰匙。`,
+        `【命盤天干地支解碼中】\n系統已精準鎖定您${baziYearStr}年的先天基因。在 ${country} 出生的您，承載著${seasonDesc}的天地之氣與「${shi}」${timeVibe}。這種獨特的星象配置，暗示著您具備在逆境中翻盤的罕見格局。`
+    ];
 
-    // 完美織錦合併
-    return `${part1}${part2}<br><br>${part3}${part4}${part5}<br><br>${part6}${part7}<br><br>${part8}`;
+    // ==========================================
+    // 2. 針對性提問解析 (Contextual Analysis)
+    // ==========================================
+    let focusText = "";
+    if (actualQuestion.includes("事業") || actualQuestion.includes("工作") || actualQuestion.includes("創業") || actualQuestion.includes("職涯") || actualQuestion.includes("晉升")) {
+        const careerTexts = [
+            `針對您關於「事業與職涯」的疑惑，系統正深入比對《滴天髓》中的官殺格局。我們發現您作為屬${zodiac}的人，事業天花板遠比您目前所感知的還要高。然而，真正的突破口並不在於盲目擴張，而在於精準的『時機點』與『資源借力』。`,
+            `您對「事業破局」的渴望，恰好呼應了您紫微盤中官祿宮的隱性星曜。要打破目前的僵局，您需要的不是加倍的體力勞動，而是找到命局中最核心的『戰略槓桿支點』。大師正在為您推演這條阻力最小的路徑。`,
+            `關於您在職場與事業上的提問，初步跡象顯示您目前正處於一個重要的能量轉換期。過去的模式正在失效，而新的『印星』智慧套利機會即將浮現。`
+        ];
+        focusText = careerTexts[seed % careerTexts.length];
+    } else if (actualQuestion.includes("財") || actualQuestion.includes("投資") || actualQuestion.includes("資產") || actualQuestion.includes("買房")) {
+        const wealthTexts = [
+            `關於您所關心的「財富與資產佈局」，八字財庫的開合與紫微財帛宮的煞曜分佈，正為我們提供精準的解答。您的命中不僅有財，更隱藏著一條特殊的『非線性偏財套利』路徑。`,
+            `在「財富增長與避險」這條路上，系統初步判定您的命格極具爆發力。但硬幣的另一面是，如何防範黑天鵝風險並在流年大運中精準抄底？這將是大師為您梳理的核心重點。`,
+            `針對您的財務與投資疑惑，大師正在計算您命局中的『絕對最喜用神』。找到您的財富密碼，意味著您將能避開高風險的重資產陷阱，轉向高溢價的輕資產變現。`
+        ];
+        focusText = wealthTexts[seed % wealthTexts.length];
+    } else if (actualQuestion.includes("感情") || actualQuestion.includes("婚姻") || actualQuestion.includes("緣分") || actualQuestion.includes("另一半")) {
+        const loveTexts = [
+            `針對您在「感情與婚姻緣分」上的困惑，大師正透過夫妻宮與八字桃花星的交叉比對為您尋找答案。您在親密關係中所經歷的摩擦，其實是命盤中『業力與性格』碰撞的必然結果。`,
+            `您對「情感歸宿」的探問，觸動了星盤中深層的心理代碼。真正的正緣往往出現在特定的流年大運節點，大師將為您揭示那條通往和諧關係與靈魂共鳴的隱秘軌跡。`,
+            `在您的感情世界中，紫微盤顯示配偶不僅是您的伴侶，更極可能是您財富與運勢的『隱形守護者』。系統正為您解析如何透過情感的調和，進而催旺整體的事業風水。`
+        ];
+        focusText = loveTexts[seed % loveTexts.length];
+    } else if (actualQuestion.includes("健康") || actualQuestion.includes("能量") || actualQuestion.includes("疾病") || actualQuestion.includes("壓力")) {
+        const healthTexts = [
+            `您所關心的「健康與能量」問題，精準對應了您疾厄宮中的核心星曜。初步掃描顯示，您目前的極度壓力與疲憊，更多是來自於內在五行能量的失衡，而非單純的外部勞累。`,
+            `針對您的身心狀況，大師正在結合中醫五行生剋理論進行深度推演。找到您體質中最脆弱的『破口』，並透過物理風水與作息調校來進行防禦，是這份報告的首要任務。`
+        ];
+        focusText = healthTexts[seed % healthTexts.length];
+    } else {
+        const generalTexts = [
+            `針對您提出的深層提問：「${actualQuestion}」，這不僅僅是一個單一事件，而是您十年大運交接期的縮影。大師正在為您梳理這背後的深層因果與專屬破局之道。`,
+            `您所提出的疑惑：「${actualQuestion}」，正是您當前生命週期中最核心的覺醒課題。系統正調閱《紫微斗數全書》與《三命通會》，為您尋找最務實、最能落地的行動指南。`,
+            `這是一個極具戰略深度的提問（「${actualQuestion}」）。表面的困境往往掩蓋了底層的機遇，大師正在透過交叉比對，為您找出隱藏在危機背後的『絕對優勢』。`
+        ];
+        focusText = generalTexts[seed % generalTexts.length];
+    }
+
+    // ==========================================
+    // 3. 演算法與方法論 (Methodology/Process)
+    // ==========================================
+    const methodologies = [
+        `我們絕不提供模稜兩可的宿命論。目前的初步運算已過濾掉無效的雜曜，正專注於定位您命局中的「黑天鵝風險年份」與「黃金爆發期」。這是一場結合東方命理與現代商業戰略的極致推演。`,
+        `紫微斗數的十二宮位與四柱八字的調候系統正在進行高強度的交叉驗證。初步數據顯示，您在未來的 12 至 24 個月內，將迎來一次不可忽視的磁場轉換。該防守還是該進攻？大師即將給出定論。`,
+        `大師正在為您調取 Saju-MBTI 心理與命理的深度交叉分析模組。這不僅能解構您的先天命運，更會透視您的認知盲區，為您量身打造一套現代職場與人生的『防禦與套利手冊』。`,
+        `系統正在利用五庫全書的古籍演算法，對您未來的 10 年流年進行逐年掃描。我們致力於將傳統玄學轉化為極度務實的「現代行為套利策略」，讓您看清格局，走對人生。`,
+        `所有的八字干支與紫微星曜數據已完成矩陣排列。我們發現您的命局中存在一種特殊的『制衡力量』，這股力量一旦被正確引導，將能極大地降低未來的決策失誤率。`
+    ];
+
+    // ==========================================
+    // 4. 行動呼籲 (Call to Action)
+    // ==========================================
+    const closings = [
+        `👉 完整的大批報告將為您提供超過 10,000 字的精確推演與行動藍圖。大師已準備就緒，請解鎖以獲取您的專屬人生戰略導航。`,
+        `👉 命運的樞紐已經顯現。解鎖 10,000+ 字的專屬精裝 PDF 報告，讓大師為您詳細拆解未來的流年軌跡與破局之法。`,
+        `👉 欲了解您的真實天花板、最佳進攻月份及專屬的五行開運密碼，請立即解鎖高達萬字的深度戰略解析。`,
+        `👉 面對未來的挑戰，您需要的是精準的戰略地圖。解鎖完整報告，獲取您專屬的流年避險與資產配置指南。`
+    ];
+
+    // Select the methodology and closing using different parts of the hash to ensure variety
+    const mid1 = focusText;
+    const mid2 = methodologies[(seed >> 1) % methodologies.length];
+    const close = closings[(seed >> 2) % closings.length];
+
+    // Combine them into the final teaser
+    return `${openings[seed % openings.length]}\n\n${mid1}\n\n${mid2}\n\n${close}`;
 }
 
 module.exports = { generateUniqueTeaser };
