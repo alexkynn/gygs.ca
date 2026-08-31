@@ -7,6 +7,7 @@ const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@googl
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const puppeteer = require('puppeteer');
+const { Solar } = require('lunar-javascript'); // 🟢 新增引入：專門用於精算八字大運的星象套件
 
 // 🟢 引入 RAG AI 命理檢索大腦
 const { generateMasterResponse } = require('./ragService');
@@ -207,6 +208,49 @@ app.post('/api/webhook/lemon', async (req, res) => {
                                  .replace('時辰:6', '時辰：午時').replace('時辰:7', '時辰：未時')
                                  .replace('時辰:8', '時辰：申時').replace('時辰:9', '時辰：酉時')
                                  .replace('時辰:10', '時辰：戌時').replace('時辰:11', '時辰：亥時');
+
+            // 🟢 [防幻覺鐵律] 系統層級精算當前大運，強制寫入 FactData 杜絕 AI 瞎猜
+            try {
+                const dateMatch = userBirth.match(/日期:(\d{4})-(\d{2})-(\d{2})/);
+                const timeMatch = userBirth.match(/時辰：(子|丑|寅|卯|辰|巳|午|未|申|酉|戌|亥)時/);
+                const genderMatch = userBirth.match(/性別：(男|女)/);
+
+                if (dateMatch && timeMatch && genderMatch) {
+                    const y = parseInt(dateMatch[1]);
+                    const m = parseInt(dateMatch[2]);
+                    const d = parseInt(dateMatch[3]);
+                    const genderInt = genderMatch[1] === '男' ? 1 : 0;
+                    
+                    const timeMap = { '子':0, '丑':2, '寅':4, '卯':6, '辰':8, '巳':10, '午':12, '未':14, '申':16, '酉':18, '戌':20, '亥':22 };
+                    const h = timeMap[timeMatch[1]];
+
+                    const solar = Solar.fromYmdHms(y, m, d, h, 0, 0);
+                    const lunar = solar.getLunar();
+                    const eightChar = lunar.getEightChar();
+                    const yun = eightChar.getYun(genderInt);
+                    const daYunArr = yun.getDaYun();
+                    
+                    const currentYear = new Date().getFullYear();
+                    let currentDaYun = "未知";
+
+                    // 精確比對當前西曆年份落入哪一個大運區間
+                    for (let i = 0; i < daYunArr.length; i++) {
+                        let dy = daYunArr[i];
+                        if (currentYear >= dy.getStartYear() && currentYear <= dy.getEndYear()) {
+                            currentDaYun = `${dy.getGanZhi()}大運 (${dy.getStartAge()}至${dy.getEndAge()}歲)`;
+                            break;
+                        }
+                    }
+                    
+                    // 將精算結果強制附加於傳給 AI 的底層字串中
+                    userBirth += `\n【系統精算大運】：命主當前所處大運為「${currentDaYun}」`;
+                    
+                    // 終端機驗證 Log (讓你在 Server 控制台確認計算無誤)
+                    console.log(`\n=== 🔍 系統大運精算驗證 ===\n出生年份: ${y} | 性別: ${genderMatch[1]}\n當前年份: ${currentYear}\n計算得出當前大運: ${currentDaYun}\n============================\n`);
+                }
+            } catch (err) {
+                console.error("⚠️ 大運精算失敗，請確認是否已執行 npm install lunar-javascript", err);
+            }
 
             console.log(`✅ 收到付款！準備為 ${customerEmail} 撰寫報告...`);
 
