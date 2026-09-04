@@ -375,7 +375,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 4. 嚴格遵循指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。`;
 
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-1.5-flash',
+            model: 'gemini-3.5-flash',
             systemInstruction: systemInstruction,
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
