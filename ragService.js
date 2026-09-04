@@ -12,8 +12,19 @@ const { astro } = require('iztro');
 const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
-// 🟢 引入抗截斷的 8 階段 Prompt
-const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7, getPromptPart8 } = require('./promptTemplates.js');
+
+// 🟢 引入抗截斷的 9 階段 Prompt (包含最新分離的 Part 9)
+const { 
+    getPromptPart1, 
+    getPromptPart2, 
+    getPromptPart3, 
+    getPromptPart4, 
+    getPromptPart5, 
+    getPromptPart6, 
+    getPromptPart7, 
+    getPromptPart8,
+    getPromptPart9 
+} = require('./promptTemplates.js');
 const { calculateYongShen } = require('./baziCalculator.js');
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
@@ -155,7 +166,7 @@ function generateDeterministicFactData(userData, currentDateStr) {
             bazi.getTime().charAt(0), bazi.getTime().charAt(1)
         );
 
-        // 🟢 產生未來 10 年的流年干支 (10-Year Annual Pillars Array)
+        // 🟢 產生未來 10 年的流年干支
         const currentYear = new Date().getFullYear();
         let future10Years = "";
         for (let i = 0; i < 10; i++) {
@@ -315,7 +326,7 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
 }
 
 // =========================================================================
-// 4. 核心路由生成區 (🟢 8 階段終極防截斷架構)
+// 4. 核心路由生成區 (🟢 9 階段終極防截斷架構)
 // =========================================================================
 
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
@@ -340,10 +351,10 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             return teaserResponse + timeWarning;
         }
 
-        console.log("⚡ [1/10] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
+        console.log("⚡ [1/11] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
         const exactFactData = generateDeterministicFactData(userData, currentDateStr);
 
-        console.log("🔍 [2/10] 檢索 Pinecone 向量庫古籍知識...");
+        console.log("🔍 [2/11] 檢索 Pinecone 向量庫古籍知識...");
         let contexts = "";
         const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
         const queryEmbedding = await generateEmbeddings(enhanceQuery);
@@ -360,11 +371,11 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 【絕對執行準則 (不可省略任何細節)】
 1. 嚴格遵守 <FactData> 的星曜與八字，嚴禁篡改或憑空發明。
 2. 凡是 Prompt 中標示（【必須...】）的要求，包含生肖星座、時間錨點、正變格判定、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
-3. 你的解讀必須極度深湛、詳盡，每一段落都必須提供具體的現代職場或商業套利指導。
+3. 你的解讀必須極度深湛、詳盡，每一段落都必須提供具體的現代職場或生活行動指導。
 4. 嚴格遵循指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。`;
 
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-3.5-flash',
+            model: 'gemini-1.5-flash',
             systemInstruction: systemInstruction,
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -379,51 +390,56 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             }
         });
 
-        console.log("📝 [3/10] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
+        console.log("📝 [3/11] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
         const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText, currentDateStr);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
 
-        console.log("📝 [4/10] 生成階段二：時空軌跡與神煞套利 (Section 3)...");
+        console.log("📝 [4/11] 生成階段二：時空軌跡與神煞套利 (Section 3)...");
         const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr);
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
 
-        console.log("📝 [5/10] 生成階段三：十二宮位 (4.1 - 4.4)...");
+        console.log("📝 [5/11] 生成階段三：十二宮位 (4.1 - 4.3)...");
         const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, exactFactData, userData, contexts, currentDateStr);
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
-        console.log("📝 [6/10] 生成階段四：十二宮位 (4.5 - 4.8)...");
+        console.log("📝 [6/11] 生成階段四：十二宮位 (4.4 - 4.6)...");
         const promptPart4 = getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, exactFactData, userData, contexts, currentDateStr);
         const resultPart4 = await model.generateContent(promptPart4);
         let aiTextPart4 = resultPart4.response.text().trim();
 
-        console.log("📝 [7/10] 生成階段五：十二宮位 (4.9 - 4.12)...");
-        const promptPart5 = getPromptPart5(aiTextPart3, aiTextPart4, exactFactData, userData, contexts, currentDateStr);
+        console.log("📝 [7/11] 生成階段五：十二宮位 (4.7 - 4.9)...");
+        const promptPart5 = getPromptPart5(aiTextPart4, exactFactData, userData, contexts, currentDateStr);
         const resultPart5 = await model.generateContent(promptPart5);
         let aiTextPart5 = resultPart5.response.text().trim();
 
-        // 🟢 完美縫合紫微斗數 12 宮
-        const aiTextSection4 = `${aiTextPart3}\n\n${aiTextPart4}\n\n${aiTextPart5}`;
-
-        console.log("📈 [8/10] 生成階段六：未來 10 年運勢推演 (Section 5)...");
-        const promptPart6 = getPromptPart6(aiTextPart1, aiTextPart2, aiTextSection4, userData, contexts, currentDateStr);
+        console.log("📝 [8/11] 生成階段六：十二宮位 (4.10 - 4.12)...");
+        const promptPart6 = getPromptPart6(aiTextPart5, exactFactData, userData, contexts, currentDateStr);
         const resultPart6 = await model.generateContent(promptPart6);
         let aiTextPart6 = resultPart6.response.text().trim();
 
-        console.log("📈 [9/10] 生成階段七：戰略行動指南 (Section 6)...");
-        const promptPart7 = getPromptPart7(aiTextPart1, aiTextSection4, aiTextPart6, userData, contexts, currentDateStr);
+        // 🟢 完美縫合紫微斗數 12 宮
+        const aiTextSection4 = `${aiTextPart3}\n\n${aiTextPart4}\n\n${aiTextPart5}\n\n${aiTextPart6}`;
+
+        console.log("📈 [9/11] 生成階段七：未來 10 年運勢推演 (Section 5)...");
+        const promptPart7 = getPromptPart7(aiTextPart1, aiTextPart2, aiTextSection4, userData, contexts, currentDateStr);
         const resultPart7 = await model.generateContent(promptPart7);
         let aiTextPart7 = resultPart7.response.text().trim();
 
-        console.log("🧠 [10/10] 生成階段八：Saju-MBTI 心理分析 (Section 7)...");
-        const promptPart8 = getPromptPart8(aiTextPart1, aiTextSection4, aiTextPart7, userData, currentDateStr);
+        console.log("📈 [10/11] 生成階段八：大師專屬行動指南 (Section 6)...");
+        const promptPart8 = getPromptPart8(aiTextPart1, aiTextSection4, aiTextPart7, userData, contexts, currentDateStr);
         const resultPart8 = await model.generateContent(promptPart8);
         let aiTextPart8 = resultPart8.response.text().trim();
 
-        // 🟢 最終組裝 8 階段內容
-        let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextSection4}\n\n${aiTextPart6}\n\n${aiTextPart7}\n\n${aiTextPart8}`;
+        console.log("🧠 [11/11] 生成階段九：Saju-MBTI 心理分析 (Section 7)...");
+        const promptPart9 = getPromptPart9(aiTextPart1, aiTextSection4, aiTextPart8, userData, currentDateStr);
+        const resultPart9 = await model.generateContent(promptPart9);
+        let aiTextPart9 = resultPart9.response.text().trim();
+
+        // 🟢 最終組裝 9 階段內容
+        let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextSection4}\n\n${aiTextPart7}\n\n${aiTextPart8}\n\n${aiTextPart9}`;
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         const startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
