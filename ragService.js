@@ -365,14 +365,26 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
 
+        // 🟢 將沉重的數據與防呆鐵律全部提升至 systemInstruction，實現全局 Token 緩存
         const systemInstruction = `你是一位精通東方哲學與現代商業戰略的首席決策顧問兼心理學家。
 【任務核心】
-基於 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，進行高維度戰略解讀。
-【絕對執行準則 (不可省略任何細節)】
-1. 嚴格遵守 <FactData> 的星曜與八字，嚴禁篡改或憑空發明。
-2. 凡是 Prompt 中標示（【必須...】）的要求，包含生肖星座、時間錨點、正變格判定、週期定調等，皆為硬性指標，絕對不可為了節省篇幅而略過。
-3. 你的解讀必須極度深湛、詳盡，每一段落都必須提供具體的現代職場或生活行動指導。
-4. 嚴格遵循指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。`;
+基於下方 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，以及 <Pinecone文獻>，進行高維度戰略解讀。
+
+【全球通用鐵律 (Global Rules - 必須在所有生成階段嚴格遵守)】
+1. 嚴格遵守 <FactData>，包含五行局、命/身主、宮位等，絕對禁止張冠李戴、自行推算或憑空發明。
+2. 【隱藏指令鐵律】：絕對禁止在報告正文中印出或提及任何 Prompt 規則指令！例如嚴禁寫出「本章節純粹聚焦於...」、「強制使用...」或「妳的專屬東方英雄原型可提煉為...」，必須默默執行，無痕融入行文中。
+3. 【禁用特定貨幣鐵律】：絕對禁止出現任何特定國家的貨幣名稱與具體金額（如：人民幣、美金、50萬等），請一律以「大額資金」、「高淨值」、「資產比例」代替。
+4. 【大運防幻覺鐵律】：在提及任何「大運」時，【絕對禁止】自行推算或捏造大運的起訖歲數（例如嚴禁寫出「12歲至21歲」等具體括號），僅需根據干支進行分析。
+5. 【防迴音與去油膩鐵律】：絕對禁止在各個段落反覆咀嚼同一個命理概念。嚴禁使用現代農場文商業套話（如：降維打擊、底層邏輯、閉環、SOP）。每個段落必須提供【全新且獨立】的視角。
+6. 嚴格遵循 Prompt 指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。
+
+<FactData>
+${exactFactData}
+</FactData>
+
+<Pinecone文獻>
+${contexts}
+</Pinecone文獻>`;
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
@@ -444,6 +456,9 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         const startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
         
+        // 🟢 將免責聲明與結語改由後端直接添加，節省 Token 並確保 HTML 格式絕對不會被截斷
+        finalAiText += `\n\n<br><br>—— gygs.ca 專屬人生戰略報告 運算終了 ——<br><br><span style="font-size: 10px; color: #888888;">【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</span>`;
+
         logTransactionForAnalytics(userData, userData.actualQuestion, finalAiText, extractedEmail);
         return finalAiText;
 
