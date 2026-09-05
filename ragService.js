@@ -188,7 +188,15 @@ function generateDeterministicFactData(userData, currentDateStr) {
         const astrolabe = astro.bySolar(dateStrForIztro, tst.solarShiIndex, genderForIztro, true, 'zh-CN');
 
         let palacesString = "";
+        let bodyPalaceName = "未知"; // 🟢 提取身宮重疊的確切宮位名稱
+
         if (astrolabe && astrolabe.palaces) {
+            // 找出身宮所在的宮位
+            const bodyPalaceObj = astrolabe.palaces.find(p => p.isBodyPalace);
+            if (bodyPalaceObj) {
+                bodyPalaceName = bodyPalaceObj.name; // 例如 "夫妻宮" 或 "財帛宮"
+            }
+
             astrolabe.palaces.forEach(p => {
                 let stars = [];
                 if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
@@ -230,7 +238,7 @@ ${future10Years}
 - 命主：${astrolabe.soul || '未知'}
 - 身主：${astrolabe.body || '未知'}
 - 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
-- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮
+- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮 (重疊於：${bodyPalaceName})
 - 十二宮位星曜配置：
 ${palacesString}
 `;
@@ -374,7 +382,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、宮位等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
 2. 【隱藏指令鐵律】：絕對禁止在報告正文中印出或提及任何 Prompt 規則指令（包含括號內的寫作提示）！例如嚴禁寫出「【絕對禁止商業分析】」、「強制使用...」或「妳的專屬東方英雄原型可提煉為...」，必須默默執行，無痕融入行文中。
 3. 【禁用特定貨幣鐵律】：絕對禁止出現任何特定國家的貨幣名稱與具體金額（如：人民幣、美金、50萬等），請一律以「大額資金」、「高淨值」、「資產比例」代替。
-4. 【大運防幻覺鐵律】：在提及任何「大運」（如辛酉大運）時，【絕對禁止】自行推算、捏造或寫出大運的起訖歲數區間（例如嚴禁寫出「12歲至21歲」等具體年齡段）。違規將導致系統嚴重錯誤！
+4. 【大運防幻覺鐵律】：在提及任何「大運」（如辛酉大運）時，【絕對禁止】自行推算、捏造或寫出大運的起訖歲數區間（例如嚴禁寫出「12歲至21歲」等具體年齡段）。違規將導致系統嚴重錯誤！僅需根據干支分析。
 5. 【防迴音與去油膩鐵律】：絕對禁止反覆咀嚼同一個命理概念。嚴禁使用現代農場文商業套話（如：降維打擊、底層邏輯、閉環、SOP）。
 6. 嚴格遵循 Prompt 指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。
 
@@ -456,6 +464,9 @@ ${contexts}
         const startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
         
+        // 🟢 強制清除 AI 可能擅自生成的結語與免責聲明，防止重複排版
+        finalAiText = finalAiText.replace(/——.*運算終了.*——/g, '').replace(/【免責聲明】.*/g, '');
+
         // 🟢 將免責聲明與結語改由後端直接添加，精準控制排版順序
         finalAiText += `\n\n<br><br>—— gygs.ca 專屬人生戰略報告 運算終了 ——<br><br><span style="font-size: 10px; color: #888888;">【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</span>`;
 
