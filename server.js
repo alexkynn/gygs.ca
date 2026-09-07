@@ -134,7 +134,7 @@ app.post('/api/ask', async (req, res) => {
 app.post('/api/checkout', async (req, res) => {
     try {
         const { email, question, birthData } = req.body;
-        const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+        const response = await fetch('[https://api.lemonsqueezy.com/v1/checkouts](https://api.lemonsqueezy.com/v1/checkouts)', {
             method: 'POST',
             headers: {
                 'Accept': 'application/vnd.api+json',
@@ -148,8 +148,8 @@ app.post('/api/checkout', async (req, res) => {
                         checkout_data: { email: email, custom: { user_question: question, user_birth: birthData } },
                         product_options: {
                             enabled_variants: [parseInt(process.env.LEMON_VARIANT_ID)],
-                            redirect_url: "https://gygs.ca/?status=success",
-                            receipt_link_url: "https://gygs.ca",   
+                            redirect_url: "[https://gygs.ca/?status=success](https://gygs.ca/?status=success)",
+                            receipt_link_url: "[https://gygs.ca](https://gygs.ca)",   
                             receipt_button_text: "返回 gygs.ca 首頁" 
                         }
                     },
@@ -283,10 +283,10 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[234]>|$)/gi, '<div class="h4-subsection" style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
                 
                 // 🟢 加入官方報告運算終了聲明
-htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
-htmlFormattedReport += `<div style="text-align: center; font-size: 10px; color: #888888; margin-top: 10px; page-break-inside: avoid; break-inside: avoid;">【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</div>`;               
+                htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
+                htmlFormattedReport += `<div style="text-align: center; font-size: 10px; color: #a0aec0; margin-top: 12px; padding: 0 20px; line-height: 1.5; page-break-inside: avoid; break-inside: avoid;">【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</div>`;               
 
-// 讀取 Logo 並轉換為 base64
+                // 讀取 Logo 並轉換為 base64
                 let logoBase64 = '';
                 try {
                     const logoPath = path.join(__dirname, 'gygs_galaxy_logo.png');
