@@ -90,7 +90,7 @@ async function generateLifeBlueprint(country, city, date, timeIndex, gender, que
 一、 基本資訊與先天定盤（含真太陽時、八字視角與紫微視角總論）
 二、 八字格局與專屬開運密碼（含五行喜忌剖析與行為套利策略）
 三、 四柱神煞詳解與調候樞紐分析
-四、 紫微斗數全景與十二宮位深度解析（需涵蓋命身宮及其他十宮之具體指引）
+四、 紫微斗數全景與十二宮位深度解析（需涵蓋命身宮及其他十一宮之具體指引）
 五、 未來 10 年運勢推演（需包含週期定調與黑天鵝風險警示）
 六、 大師戰略行動指南（針對探索訴求的專屬破局方案、關鍵時間節點與避險戰略）
 七、 Saju-MBTI 心理與命理深度交叉分析（性格助力與命理共鳴、認知盲區與專屬溝通執行套利策略）`;
@@ -283,9 +283,10 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[234]>|$)/gi, '<div class="h4-subsection" style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
                 
                 // 🟢 加入官方報告運算終了聲明
-                htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
-                
-                // 讀取 Logo 並轉換為 base64
+htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
+htmlFormattedReport += `<div style="text-align: center; font-size: 10px; color: #888888; margin-top: 10px; page-break-inside: avoid; break-inside: avoid;">【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</div>`;               
+
+// 讀取 Logo 並轉換為 base64
                 let logoBase64 = '';
                 try {
                     const logoPath = path.join(__dirname, 'gygs_galaxy_logo.png');
