@@ -1,6 +1,6 @@
 const questionsData = [
     {
-        category: "💼 一、事業與職涯｜Career & Success",
+        category: "💼 1. 事業與職涯｜Career & Success",
         questions: [
             "從八字大運與流年來看，我今年應該轉工、創業跳槽，還是留在原公司守成？ 🔥🔥",
             "我的命格適合自立門戶創業（獨資/合夥），還是適合在大型企業體制內晉升？",
@@ -11,7 +11,7 @@ const questionsData = [
         ]
     },
     {
-        category: "💰 二、財富與資產｜Money & Wealth",
+        category: "💰 2. 財富與資產｜Money & Wealth",
         questions: [
             "從八字財星與紫微財帛宮來看，我的真實財富格局是正財生財，還是偏財爆發型？ 🔥🔥",
             "我的命盤在哪些流年最容易遭遇「劫財」或破財煞星？如何提前做好資產避險？",
@@ -22,7 +22,7 @@ const questionsData = [
         ]
     },
     {
-        category: "❤️ 三、愛情與婚姻｜Love & Marriage",
+        category: "❤️ 3. 愛情與婚姻｜Love & Marriage",
         questions: [
             "從八字桃花與紫微夫妻宮推算，我的正緣與結婚時機最可能在何時出現？ 🔥🔥",
             "我的命盤是否存在夫妻宮化忌或感情相剋？為什麼總遇到爛桃花或溝通瓶頸？",
@@ -33,7 +33,7 @@ const questionsData = [
         ]
     },
     {
-        category: "🏡 四、家庭、移民與居所｜Family, Migration & Home",
+        category: "🏡 4. 家庭、移民與居所｜Family, Migration & Home",
         questions: [
             "從紫微斗數遷移宮與八字用神來看，留居本地還是移民海外更有利於事業財運？ 🔥🔥",
             "根據我的八字五行喜用神，全球哪個地理方位或氣候環境（如加拿大、英國、亞洲）最旺我的運勢？",
@@ -44,7 +44,7 @@ const questionsData = [
         ]
     },
     {
-        category: "⏳ 五、人生時機｜Timing & Turning Points",
+        category: "⏳ 5. 人生時機｜Timing & Turning Points",
         questions: [
             "十年大運交接前後，我未來三年的關鍵流年轉折點與重大機遇在哪裡？ 🔥🔥",
             "依據八字氣運起伏，我目前處於「蓄力伏藏」、「大步轉型」還是「全力收成」階段？",
@@ -55,7 +55,7 @@ const questionsData = [
         ]
     },
     {
-        category: "🧭 六、大師破局｜Master Strategy",
+        category: "🧭 6. 大師破局｜Master Strategy",
         questions: [
             "綜合八字與紫微雙盤同參：未來十年大運，我最應該押注的核心優勢是什麼？ 🔥🔥",
             "深入比對八字格局與紫微星曜配置，我當前最應當優先調整的人生盲點是什麼？",
