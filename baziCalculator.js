@@ -61,15 +61,18 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
     
     let isStrong = supportScore > drainScore;
     let yongShen, jiShen, patternType;
+    let isSpecialPattern = false;
 
     // 3. 識別特殊格局 (Extreme Outlier Patterns) - 能量集中度大於 85% 或小於 15%
     if (supportRatio >= 0.85) {
+        isSpecialPattern = true;
         patternType = "專旺格 (Extreme Strong - Follow Pattern)";
         // 極強格不能克，只能順勢 (喜生扶)
         yongShen = `${parentElement} / ${dmElement} (順勢生扶)`;
         jiShen = `${powerElement} / ${wealthElement} (逆勢克耗)`;
     } 
     else if (supportRatio <= 0.15) {
+        isSpecialPattern = true;
         patternType = "從弱格 (Extreme Weak - Follow Pattern)";
         // 極弱格不能幫，只能棄命從勢 (喜克洩耗)
         yongShen = `${childElement} / ${wealthElement} / ${powerElement} (順勢克洩耗)`;
@@ -89,25 +92,32 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
 
     // 5. 調候機制 (Climate Adjustment Overrides) - 覆蓋常規邏輯
     let climateNote = "";
-    if (['亥', '子', '丑'].includes(monthBranch)) {
-        // 冬月生人，命局寒凍，急需火來調候
-        climateNote = " 【系統調候警示：生於冬月，命局偏寒，首重『火』來暖局】";
-        if (!yongShen.includes('火')) {
-            yongShen = `火 (調候第一優先) + ` + yongShen;
+    
+    // 🟢 核心防禦：只有在「正格」時，才強制進行氣候調候覆蓋。
+    // 若為「從格 (特殊格局)」，則自動封鎖調候反克，避免破壞極端氣勢。
+    if (!isSpecialPattern) {
+        if (['亥', '子', '丑'].includes(monthBranch)) {
+            // 冬月生人，命局寒凍，急需火來調候
+            climateNote = " 【系統調候警示：生於冬月，命局偏寒，首重『火』來暖局】";
+            if (!yongShen.includes('火')) {
+                yongShen = `火 (調候第一優先) + ` + yongShen;
+            }
+            if (!jiShen.includes('水')) {
+                jiShen = `水 (寒氣過重) + ` + jiShen;
+            }
+        } 
+        else if (['巳', '午', '未'].includes(monthBranch)) {
+            // 夏月生人，命局炎熱，急需水來調候
+            climateNote = " 【系統調候警示：生於夏月，命局燥熱，首重『水』來潤局】";
+            if (!yongShen.includes('水')) {
+                yongShen = `水 (調候第一優先) + ` + yongShen;
+            }
+            if (!jiShen.includes('火')) {
+                jiShen = `火 (燥氣過重) + ` + jiShen;
+            }
         }
-        if (!jiShen.includes('水')) {
-            jiShen = `水 (寒氣過重) + ` + jiShen;
-        }
-    } 
-    else if (['巳', '午', '未'].includes(monthBranch)) {
-        // 夏月生人，命局炎熱，急需水來調候
-        climateNote = " 【系統調候警示：生於夏月，命局燥熱，首重『水』來潤局】";
-        if (!yongShen.includes('水')) {
-            yongShen = `水 (調候第一優先) + ` + yongShen;
-        }
-        if (!jiShen.includes('火')) {
-            jiShen = `火 (燥氣過重) + ` + jiShen;
-        }
+    } else {
+        climateNote = " 【系統提示：此為特殊從格，氣勢極端，不適用常規調候反克】";
     }
 
     return {

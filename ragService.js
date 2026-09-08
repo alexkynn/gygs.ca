@@ -76,7 +76,16 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) 
     let calMonth = parseInt(month, 10);
     let calDay = parseInt(day, 10);
 
-    let totalMinutes = baseHour * 60 + baseMinute + offsetMinutes;
+    // 🟢 核心升級：加入均時差 (Equation of Time, EoT) 進行真正精密的真太陽時運算
+    const dateMoment = moment(`${calYear}-${String(calMonth).padStart(2, '0')}-${String(calDay).padStart(2, '0')}`, 'YYYY-MM-DD');
+    const N = dateMoment.dayOfYear();
+    const B_rad = (360 / 365.24) * (N - 81) * (Math.PI / 180);
+    // 均時差公式 (單位: 分鐘)
+    const eotMinutes = 9.87 * Math.sin(2 * B_rad) - 7.53 * Math.cos(B_rad) - 1.5 * Math.sin(B_rad);
+
+    // 將時區經度誤差與均時差同時加入計算
+    const totalOffset = offsetMinutes + eotMinutes;
+    let totalMinutes = Math.round(baseHour * 60 + baseMinute + totalOffset);
     
     if (totalMinutes < 0) {
         totalMinutes += 1440;
@@ -104,7 +113,7 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) 
         hour: solarHour,
         minute: solarMinute,
         solarShiIndex,
-        offsetMinutes,
+        offsetMinutes: Math.round(totalOffset), // 包含 EoT 的總偏差
         providedExactTime: (exactTime && exactTime !== "未提供") ? exactTime : null
     };
 }
@@ -148,6 +157,25 @@ function generateDeterministicFactData(userData, currentDateStr) {
         const bazi = lunarDate.getEightChar();
         const baziString = `年柱：${bazi.getYear()}，月柱：${bazi.getMonth()}，日柱：${bazi.getDay()}，時柱：${bazi.getTime()}`;
         
+        // 🟢 提取四柱神煞 (杜絕 AI 幻覺)
+        let shenShaString = "";
+        try {
+            const getSSNames = (ssList) => {
+                if (!ssList) return '無';
+                const arr = Array.isArray(ssList) ? ssList : Array.from(ssList);
+                if (arr.length === 0) return '無';
+                const names = arr.map(ss => (typeof ss.getName === 'function') ? ss.getName() : (ss.name || ss.toString()));
+                return [...new Set(names)].join('、'); // Remove duplicates
+            };
+            const ySS = getSSNames(bazi.getYearShenSha());
+            const mSS = getSSNames(bazi.getMonthShenSha());
+            const dSS = getSSNames(bazi.getDayShenSha());
+            const tSS = getSSNames(bazi.getTimeShenSha());
+            shenShaString = `年柱神煞：${ySS}，月柱神煞：${mSS}，日柱神煞：${dSS}，時柱神煞：${tSS}`;
+        } catch(e) {
+            shenShaString = "【神煞提取失敗】";
+        }
+        
         const calculatedBazi = calculateYongShen(
             bazi.getYear().charAt(0), bazi.getYear().charAt(1),
             bazi.getMonth().charAt(0), bazi.getMonth().charAt(1),
@@ -177,7 +205,14 @@ function generateDeterministicFactData(userData, currentDateStr) {
         const astrolabe = astro.bySolar(dateStrForIztro, tst.solarShiIndex, genderForIztro, true, 'zh-CN');
 
         let palacesString = "";
+        let bodyPalaceName = "未知";
+
         if (astrolabe && astrolabe.palaces) {
+            const bodyPalaceObj = astrolabe.palaces.find(p => p.isBodyPalace);
+            if (bodyPalaceObj) {
+                bodyPalaceName = bodyPalaceObj.name;
+            }
+
             astrolabe.palaces.forEach(p => {
                 let stars = [];
                 if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
@@ -193,7 +228,7 @@ function generateDeterministicFactData(userData, currentDateStr) {
 [系統時空校正基準]
 - 出生地：${userData.country || '未知'} - ${userData.city || '未知'}
 - 輸入鐘錶時間：${userData.year}年${userData.month}月${userData.day}日 ${inputTimeDisplay}
-- 真太陽時校正結果：${tst.year}年${tst.month}月${tst.day}日 ${String(tst.hour).padStart(2, '0')}:${String(tst.minute).padStart(2, '0')} (${shiNames[tst.solarShiIndex]}，經度誤差偏移 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘)
+- 真太陽時校正結果：${tst.year}年${tst.month}月${tst.day}日 ${String(tst.hour).padStart(2, '0')}:${String(tst.minute).padStart(2, '0')} (${shiNames[tst.solarShiIndex]}，經度與均時差總偏移 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘)
 - 農曆對應：${lunarDateStr}
 - 性別：${genderStr}
 - 當前時空基準：${currentDateStr}
@@ -205,6 +240,7 @@ function generateDeterministicFactData(userData, currentDateStr) {
 [系統底層四柱八字 (不可篡改數據)]
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
+- 四柱神煞配置：${shenShaString}
 - 系統判定日元強度：${calculatedBazi.strength} (生扶指數: ${calculatedBazi.supportScore}, 克洩指數: ${calculatedBazi.drainScore})
 - 絕對最喜用神：${calculatedBazi.yongShen}
 - 絕對最忌五行：${calculatedBazi.jiShen}
@@ -219,7 +255,7 @@ ${future10Years}
 - 命主：${astrolabe.soul || '未知'}
 - 身主：${astrolabe.body || '未知'}
 - 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
-- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮
+- 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮 (重疊於：${bodyPalaceName})
 - 十二宮位星曜配置：
 ${palacesString}
 `;
@@ -333,7 +369,7 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             if (userData.city && userData.shi) {
                 const tst = calculateTrueSolarTime(userData.year, userData.month, userData.day, userData.shi, userData.city, userData.exactTime);
                 const inputTimeDisplay = userData.exactTime !== '未提供' ? userData.exactTime : userData.shi;
-                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度完成真太陽時校正（時差偏差 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘）。您輸入的時間「${inputTimeDisplay}」，實際定盤基準將為「${shiNames[tst.solarShiIndex]}」。解鎖後將以此天文標準生成專屬報告。`;
+                timeWarning += `系統已根據出生地「${userData.city}」之物理經緯度與地球公轉「均時差 (EoT)」完成雙重真太陽時校正（總時差偏移 ${tst.offsetMinutes >= 0 ? '+' : ''}${tst.offsetMinutes} 分鐘）。您輸入的時間「${inputTimeDisplay}」，實際定盤基準將為「${shiNames[tst.solarShiIndex]}」。解鎖後將以此天文標準生成專屬報告。`;
             } else {
                 timeWarning += `本系統將依據您的出生國家與城市啟動「真太陽時」精確校正。`;
             }
