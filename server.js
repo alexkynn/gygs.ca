@@ -200,14 +200,15 @@ app.post('/api/webhook/lemon', async (req, res) => {
             const userQuestion = customData.user_question || "未提供具體提問";
             let userBirth = customData.user_birth || "未提供生辰資料";
 
+            // 🟢 優先替換兩位數的時辰(10,11)，徹底杜絕字串重疊替換的錯誤
             userBirth = userBirth.replace('性別:female', '性別：女命（坤造）')
                                  .replace('性別:male', '性別：男命（乾造）')
+                                 .replace('時辰:10', '時辰：戌時').replace('時辰:11', '時辰：亥時')
                                  .replace('時辰:0', '時辰：子時').replace('時辰:1', '時辰：丑時')
                                  .replace('時辰:2', '時辰：寅時').replace('時辰:3', '時辰：卯時')
                                  .replace('時辰:4', '時辰：辰時').replace('時辰:5', '時辰：巳時')
                                  .replace('時辰:6', '時辰：午時').replace('時辰:7', '時辰：未時')
-                                 .replace('時辰:8', '時辰：申時').replace('時辰:9', '時辰：酉時')
-                                 .replace('時辰:10', '時辰：戌時').replace('時辰:11', '時辰：亥時');
+                                 .replace('時辰:8', '時辰：申時').replace('時辰:9', '時辰：酉時');
 
             // 🟢 [防幻覺鐵律] 系統層級精算當前大運，強制寫入 FactData 杜絕 AI 瞎猜
             try {
@@ -245,7 +246,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     // 將精算結果強制附加於傳給 AI 的底層字串中
                     userBirth += `\n【系統精算大運】：命主當前所處大運為「${currentDaYun}」`;
                     
-                    // 終端機驗證 Log (讓你在 Server 控制台確認計算無誤)
+                    // 終端機驗證 Log
                     console.log(`\n=== 🔍 系統大運精算驗證 ===\n出生年份: ${y} | 性別: ${genderMatch[1]}\n當前年份: ${currentYear}\n計算得出當前大運: ${currentDaYun}\n============================\n`);
                 }
             } catch (err) {
@@ -261,9 +262,11 @@ app.post('/api/webhook/lemon', async (req, res) => {
                 
                 // 🟢 階層化 DOM 轉換
                 let htmlFormattedReport = reportContent
-                    .replace(/^#### (.*$)/gim, '<h4>$1</h4>') // 1.1.1
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')  // 1.1
-                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')   // 1.
+                    .replace(/^#### (.*$)/gim, '<h4>$1</h4>') // 原有 4.1.1 階層
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')  // 1.1 / 4.1 等主要藍色子標題
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')   // 1. 大章節標題
+                    .replace(/^\*\*(20\d{2}年)\*\*(.*$)/gim, '<h5>$1$2</h5>') // 將 5.2 中年份標題轉為 h5 供統一防斷頁處理
+                    .replace(/^\*\*(20\d{2}年.*)\*\*/gim, '<h5>$1</h5>') // 備用年份捕捉規則
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
@@ -273,14 +276,16 @@ app.post('/api/webhook/lemon', async (req, res) => {
                     .replace(/<br><\/p>/g, '</p>'); 
 
                 // 🟢 修復標題與內文分離問題：移除標題周圍干擾斷頁的 <br> 與 <p> 標籤，確保標題與內文緊密相連
-                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<br>/gi, '$1');
-                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<\/p><p>/gi, '$1');
-                htmlFormattedReport = htmlFormattedReport.replace(/<p>(<h[234]>)/gi, '$1');
-                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[234]>)<\/p>/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[2345]>)<br>/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[2345]>)<\/p><p>/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/<p>(<h[2345]>)/gi, '$1');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<\/h[2345]>)<\/p>/gi, '$1');
                 
                 // 🟢 統一分頁防護黑科技 (Unified Page Break Instructions)
-                // 將 <h4> 區塊 (例如 2.3.2 或 6.4.2) 獨立打包，若本頁塞不下自動整體移至下頁，避免子段落被腰斬
-                htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[234]>|$)/gi, '<div class="h4-subsection" style="page-break-inside: avoid; break-inside: avoid;">$1</div>');
+                // 將 <h5> (流年)、<h4>、<h3> (藍色標題) 區塊獨立打包，若本頁塞不下自動整體移至下頁，徹底解決孤兒標題腰斬問題
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h5>[\s\S]*?)(?=<h[2345]>|$)/gi, '<div class="h5-subsection" style="page-break-inside: avoid; break-inside: avoid; margin-bottom: 15px;">$1</div>');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h4>[\s\S]*?)(?=<h[2345]>|$)/gi, '<div class="h4-subsection" style="page-break-inside: avoid; break-inside: avoid; margin-bottom: 15px;">$1</div>');
+                htmlFormattedReport = htmlFormattedReport.replace(/(<h3>[\s\S]*?)(?=<h[2345]>|$)/gi, '<div class="h3-subsection" style="page-break-inside: avoid; break-inside: avoid; margin-bottom: 15px;">$1</div>');
                 
                 // 🟢 加入官方報告運算終了聲明與免責聲明
                 htmlFormattedReport += `<div style="text-align: center; font-weight: bold; color: #8e44ad; font-size: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1; page-break-inside: avoid; break-inside: avoid;">—— gygs.ca 專屬人生戰略報告 運算終了 ——</div>`;
@@ -351,7 +356,7 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             break-before: avoid;
                         }
                         
-                        /* 🟢 防止藍色與深色子標題與內文分離 (解決 6.3 與 6.3.1 分離問題) */
+                        /* 🟢 藍色子標題 (3.x, 4.x, 6.x 等) */
                         h3 { 
                             color: #3b82f6; 
                             font-size: 17px;
@@ -360,6 +365,8 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             page-break-after: avoid; 
                             break-after: avoid;
                         }
+                        
+                        /* 🟢 深色子子標題 (6.3.1 等) */
                         h4 {
                             color: #0f172a; 
                             font-size: 15px;
@@ -369,14 +376,25 @@ app.post('/api/webhook/lemon', async (req, res) => {
                             break-after: avoid;
                         }
                         
-                        /* 針對 <h4> 區塊的整體防護 */
-                        .h4-subsection {
+                        /* 🟢 年份標題專用 (5.2 內年份) */
+                        h5 {
+                            color: #0f172a; 
+                            font-size: 15.5px;
+                            font-weight: bold;
+                            margin-top: 20px; 
+                            margin-bottom: 8px;
+                            page-break-after: avoid; 
+                            break-after: avoid;
+                        }
+                        
+                        /* 針對打包區塊的整體防護 */
+                        .h3-subsection, .h4-subsection, .h5-subsection {
                             page-break-inside: avoid;
                             break-inside: avoid;
                             margin-bottom: 10px;
                         }
 
-                        /* 允許長段落正常跨頁，解決 Section 5 出現 90% 空白頁的問題 */
+                        /* 允許長段落正常跨頁，解決 Section 5 出現大片空白頁的問題 */
                         p { 
                             margin-top: 0; 
                             margin-bottom: 15px; 
