@@ -130,4 +130,71 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
     };
 }
 
-module.exports = { calculateYongShen };
+/**
+ * 🟢 本地神煞字典引擎 (杜絕依賴外部函式庫導致的提取失敗)
+ */
+function calculateShenSha(yearStem, yearBranch, monthStem, monthBranch, dayStem, dayBranch, timeStem, timeBranch) {
+    let stars = new Set();
+    const branches = [yearBranch, monthBranch, dayBranch, timeBranch];
+
+    // 天乙貴人 (Tianyi) - 依據日干
+    const tianyiMap = {
+        '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
+        '乙': ['子', '申'], '己': ['子', '申'],
+        '丙': ['亥', '酉'], '丁': ['亥', '酉'],
+        '壬': ['卯', '巳'], '癸': ['卯', '巳'],
+        '辛': ['寅', '午']
+    };
+    
+    // 文昌貴人 (Wenchang) - 依據日干
+    const wenchangMap = {
+        '甲': '巳', '乙': '午', '丙': '申', '戊': '申',
+        '丁': '酉', '己': '酉', '庚': '亥', '辛': '子',
+        '壬': '寅', '癸': '卯'
+    };
+    
+    // 羊刃 (Yangren) - 依據日干
+    const yangrenMap = {
+        '甲': '卯', '丙': '午', '戊': '午', '庚': '酉', '壬': '子'
+    };
+
+    // 依據地支三合局判斷的神煞
+    const getSanheGroup = (b) => {
+        if (['申', '子', '辰'].includes(b)) return '申子辰';
+        if (['亥', '卯', '未'].includes(b)) return '亥卯未';
+        if (['寅', '午', '戌'].includes(b)) return '寅午戌';
+        if (['巳', '酉', '丑'].includes(b)) return '巳酉丑';
+        return '';
+    };
+
+    const peachMap = { '申子辰': '酉', '亥卯未': '子', '寅午戌': '卯', '巳酉丑': '午' };
+    const huagaiMap = { '申子辰': '辰', '亥卯未': '未', '寅午戌': '戌', '巳酉丑': '丑' };
+    const jiangxingMap = { '申子辰': '子', '亥卯未': '卯', '寅午戌': '午', '巳酉丑': '酉' };
+    const yimaMap = { '申子辰': '寅', '亥卯未': '巳', '寅午戌': '申', '巳酉丑': '亥' };
+
+    const dayGroup = getSanheGroup(dayBranch);
+    const yearGroup = getSanheGroup(yearBranch);
+
+    branches.forEach(branch => {
+        if (tianyiMap[dayStem] && tianyiMap[dayStem].includes(branch)) stars.add('天乙貴人');
+        if (wenchangMap[dayStem] === branch) stars.add('文昌貴人');
+        if (yangrenMap[dayStem] === branch) stars.add('羊刃');
+
+        if (peachMap[dayGroup] === branch || peachMap[yearGroup] === branch) stars.add('咸池桃花');
+        if (huagaiMap[dayGroup] === branch || huagaiMap[yearGroup] === branch) stars.add('華蓋');
+        if (jiangxingMap[dayGroup] === branch || jiangxingMap[yearGroup] === branch) stars.add('將星');
+        if (yimaMap[dayGroup] === branch || yimaMap[yearGroup] === branch) stars.add('驛馬');
+    });
+
+    // 魁罡 (Kuigang) - 僅看日柱
+    const kuigangPillars = ['庚辰', '壬辰', '戊戌', '庚戌'];
+    if (kuigangPillars.includes(dayStem + dayBranch)) stars.add('魁罡');
+
+    // 陰陽差錯 (Yinyang Chacuo) - 僅看日柱
+    const yinyangPillars = ['丙子', '丁丑', '戊寅', '辛卯', '壬辰', '癸巳', '丙午', '丁未', '戊申', '辛酉', '壬戌', '癸亥'];
+    if (yinyangPillars.includes(dayStem + dayBranch)) stars.add('陰陽差錯');
+
+    return Array.from(stars).join('、') || '命局無上述特定神煞';
+}
+
+module.exports = { calculateYongShen, calculateShenSha };

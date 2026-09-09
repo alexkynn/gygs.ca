@@ -14,7 +14,7 @@ const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
 // 🟢 引入 9 階段 Prompt
 const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7, getPromptPart8, getPromptPart9 } = require('./promptTemplates.js');
-const { calculateYongShen } = require('./baziCalculator.js');
+const { calculateYongShen, calculateShenSha } = require('./baziCalculator.js'); // 🟢 引入本地神煞計算
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
@@ -157,24 +157,13 @@ function generateDeterministicFactData(userData, currentDateStr) {
         const bazi = lunarDate.getEightChar();
         const baziString = `年柱：${bazi.getYear()}，月柱：${bazi.getMonth()}，日柱：${bazi.getDay()}，時柱：${bazi.getTime()}`;
         
-        // 🟢 提取四柱神煞 (杜絕 AI 幻覺)
-        let shenShaString = "";
-        try {
-            const getSSNames = (ssList) => {
-                if (!ssList) return '無';
-                const arr = Array.isArray(ssList) ? ssList : Array.from(ssList);
-                if (arr.length === 0) return '無';
-                const names = arr.map(ss => (typeof ss.getName === 'function') ? ss.getName() : (ss.name || ss.toString()));
-                return [...new Set(names)].join('、'); // Remove duplicates
-            };
-            const ySS = getSSNames(bazi.getYearShenSha());
-            const mSS = getSSNames(bazi.getMonthShenSha());
-            const dSS = getSSNames(bazi.getDayShenSha());
-            const tSS = getSSNames(bazi.getTimeShenSha());
-            shenShaString = `年柱神煞：${ySS}，月柱神煞：${mSS}，日柱神煞：${dSS}，時柱神煞：${tSS}`;
-        } catch(e) {
-            shenShaString = "【神煞提取失敗】";
-        }
+        // 🟢 提取四柱神煞 (杜絕 AI 幻覺，改由本地演算法精算)
+        let shenShaString = calculateShenSha(
+            bazi.getYear().charAt(0), bazi.getYear().charAt(1),
+            bazi.getMonth().charAt(0), bazi.getMonth().charAt(1),
+            bazi.getDay().charAt(0), bazi.getDay().charAt(1),
+            bazi.getTime().charAt(0), bazi.getTime().charAt(1)
+        );
         
         const calculatedBazi = calculateYongShen(
             bazi.getYear().charAt(0), bazi.getYear().charAt(1),
