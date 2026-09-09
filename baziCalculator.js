@@ -18,14 +18,92 @@ const GENERATES = { '木': '火', '火': '土', '土': '金', '金': '水', '水
 const GENERATED_BY = { '木': '水', '火': '木', '土': '火', '金': '土', '水': '金' };
 const CONTROLS = { '木': '土', '火': '金', '土': '水', '金': '木', '水': '火' };
 
-/**
- * 企業級五行強弱與調候計算引擎 (支援特殊格局與氣候校正)
- */
+const STEM_PROPS = {
+    '甲': { element: '木', polarity: '+' },
+    '乙': { element: '木', polarity: '-' },
+    '丙': { element: '火', polarity: '+' },
+    '丁': { element: '火', polarity: '-' },
+    '戊': { element: '土', polarity: '+' },
+    '己': { element: '土', polarity: '-' },
+    '庚': { element: '金', polarity: '+' },
+    '辛': { element: '金', polarity: '-' },
+    '壬': { element: '水', polarity: '+' },
+    '癸': { element: '水', polarity: '-' }
+};
+
+const BRANCH_HIDDEN_STEMS = {
+    '子': ['癸'],
+    '丑': ['己', '癸', '辛'],
+    '寅': ['甲', '丙', '戊'],
+    '卯': ['乙'],
+    '辰': ['戊', '乙', '癸'],
+    '巳': ['丙', '庚', '戊'],
+    '午': ['丁', '己'],
+    '未': ['己', '丁', '乙'],
+    '申': ['庚', '壬', '戊'],
+    '酉': ['辛'],
+    '戌': ['戊', '辛', '丁'],
+    '亥': ['壬', '甲']
+};
+
+const FIVE_ELEMENT_ASSETS = {
+    '木': {
+        numbers: '3、8',
+        colors: '綠色、青色、翠色系列',
+        directions: '東方、東南方',
+        industries: '文化教育、出版傳播、生技醫療、永續綠能、設計創新、林業農業'
+    },
+    '火': {
+        numbers: '2、7',
+        colors: '紅色、紫色、粉色系列',
+        directions: '南方',
+        industries: '知識產權(IP)變現、文化傳播、自媒體影視、高端諮詢、科技算力、光電能源'
+    },
+    '土': {
+        numbers: '5、10',
+        colors: '黃色、咖啡色、褐色系列',
+        directions: '中央、東北方、西南方',
+        industries: '家族信託規劃、實體資產隔離、法律合規審查、高端心理諮詢、地產基建、倉儲管理'
+    },
+    '金': {
+        numbers: '4、9',
+        colors: '白色、金色、銀灰色系列',
+        directions: '西方、西北方',
+        industries: '金融風控、精密製造、法律合規、重工重資產、證券投資、硬體研發'
+    },
+    '水': {
+        numbers: '1、6',
+        colors: '黑色、深藍色系列',
+        directions: '北方',
+        industries: '全球化物流、數位流動性資產、跨境電商、互聯網通訊、流體科技、航運貿易'
+    }
+};
+
+function getTenGod(dmStem, targetStem) {
+    const dm = STEM_PROPS[dmStem];
+    const target = STEM_PROPS[targetStem];
+    if (!dm || !target) return '';
+    
+    const samePolarity = dm.polarity === target.polarity;
+    
+    if (dm.element === target.element) {
+        return samePolarity ? '比肩' : '劫財';
+    } else if (GENERATES[dm.element] === target.element) {
+        return samePolarity ? '食神' : '傷官';
+    } else if (CONTROLS[dm.element] === target.element) {
+        return samePolarity ? '偏財' : '正財';
+    } else if (CONTROLS[target.element] === dm.element) {
+        return samePolarity ? '七殺' : '正官';
+    } else if (GENERATES[target.element] === dm.element) {
+        return samePolarity ? '偏印' : '正印';
+    }
+    return '';
+}
+
 function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem, dayBranch, timeStem, timeBranch) {
     const dmElement = STEM_ELEMENTS[dayStem];
     if (!dmElement) return null;
 
-    // 1. 量化權重矩陣 (總分 10.4)
     const weights = {
         yearStem: 1.0, yearBranch: 1.0,
         monthStem: 1.2, monthBranch: 3.5, 
@@ -42,19 +120,15 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
 
     let supportScore = 0;
     let drainScore = 0;
-    
-    // 用於 MBTI 精算的五行單獨計分
     const elementScores = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
 
-    const parentElement = GENERATED_BY[dmElement]; // 印星 (生)
-    const childElement = GENERATES[dmElement];     // 食傷 (洩)
-    const wealthElement = CONTROLS[dmElement];     // 財星 (耗)
-    const powerElement = GENERATED_BY[parentElement]; // 官殺 (克)
+    const parentElement = GENERATED_BY[dmElement];
+    const childElement = GENERATES[dmElement];
+    const wealthElement = CONTROLS[dmElement];
+    const powerElement = GENERATED_BY[parentElement];
 
-    // 2. 統計生扶 (Support) 與 克洩耗 (Drain) 兼 五行分數
     for (const [pos, element] of Object.entries(chart)) {
         elementScores[element] += weights[pos]; 
-
         if (element === dmElement || element === parentElement) {
             supportScore += weights[pos];
         } else {
@@ -63,13 +137,12 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
     }
 
     const totalScore = supportScore + drainScore;
-    const supportRatio = supportScore / totalScore; // 計算能量集中度
+    const supportRatio = supportScore / totalScore; 
     
     let isStrong = supportScore > drainScore;
     let yongShen, jiShen, patternType;
     let isSpecialPattern = false;
 
-    // 3. 識別特殊格局 (Extreme Outlier Patterns) - 能量集中度大於 85% 或小於 15%
     if (supportRatio >= 0.85) {
         isSpecialPattern = true;
         patternType = "專旺格 (Extreme Strong - Follow Pattern)";
@@ -83,7 +156,6 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
         jiShen = `${parentElement} / ${dmElement} (逆勢生扶)`;
     } 
     else {
-        // 4. 正常格局 (Normal Pattern) 扶抑平衡法
         patternType = isStrong ? "正格 - 身強 (Normal Strong)" : "正格 - 身弱 (Normal Weak)";
         if (isStrong) {
             yongShen = `${childElement} / ${wealthElement} / ${powerElement} (克洩耗)`;
@@ -94,7 +166,6 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
         }
     }
 
-    // 5. 調候機制 (Climate Adjustment Overrides) - 覆蓋常規邏輯
     let climateNote = "";
     if (!isSpecialPattern) {
         if (['亥', '子', '丑'].includes(monthBranch)) {
@@ -111,26 +182,47 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
         climateNote = " 【系統提示：此為特殊從格，氣勢極端，不適用常規調候反克】";
     }
 
-    // 🟢 6. Saju-MBTI 決定性後端演算法
+    let baziPattern = "";
+    if (isSpecialPattern) {
+        baziPattern = patternType;
+    } else {
+        const mPrincipal = BRANCH_HIDDEN_STEMS[monthBranch][0];
+        const mTenGod = getTenGod(dayStem, mPrincipal);
+        if (mTenGod === '比肩') {
+            baziPattern = '建祿格';
+        } else if (mTenGod === '劫財') {
+            baziPattern = '羊刃格 (月刃格)';
+        } else {
+            const emergedStems = [yearStem, monthStem, timeStem];
+            let foundPattern = false;
+            for (let hs of BRANCH_HIDDEN_STEMS[monthBranch]) {
+                if (emergedStems.includes(hs)) {
+                    const tg = getTenGod(dayStem, hs);
+                    if (tg !== '比肩' && tg !== '劫財') {
+                        baziPattern = `${tg}格 (透干取格)`;
+                        foundPattern = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundPattern) baziPattern = `${mTenGod}格 (本氣取格)`;
+        }
+    }
+
     const outwardScore = elementScores[childElement] + elementScores[wealthElement];
     const inwardScore = elementScores[parentElement] + elementScores[dmElement];
     const E_I = outwardScore > inwardScore ? 'E' : 'I';
-
     const concreteScore = elementScores['土'] + elementScores['金'];
     const abstractScore = elementScores['水'] + elementScores['火'] + elementScores['木'];
     const S_N = concreteScore > abstractScore ? 'S' : 'N';
-
     const objectiveScore = elementScores['金'] + elementScores['水'] + elementScores[powerElement] + elementScores[wealthElement];
     const subjectiveScore = elementScores['木'] + elementScores['火'] + elementScores[dmElement] + elementScores[parentElement];
     const T_F = objectiveScore > subjectiveScore ? 'T' : 'F';
-
     const structureScore = elementScores[parentElement] + elementScores[powerElement];
     const fluidScore = elementScores[childElement] + elementScores[wealthElement];
     const J_P = structureScore > fluidScore ? 'J' : 'P';
-
     const defaultMbti = `${E_I}${S_N}${T_F}${J_P}`;
 
-    // 🟢 7. 十神戰略矩陣 (Ten Gods Tactical Matrix)
     const strategyMatrix = {
         '印星': { action: '依靠知識產權變現、尋求大型機構與長輩權威的實質背書，用專業資質建立護城河。', detox: '戒斷對完美準備的過度執念與精神內耗，遠離喜歡用道德或恩情綁架妳的人。' },
         '比劫': { action: '尋找性格互補的合夥人共同築堤，將個人IP與團隊力量綁定，大膽爭取核心資源。', detox: '戒斷無效的社交應酬與過度泛濫的同理心，無情切割只索取不付出的「吸血型」人脈。' },
@@ -145,14 +237,14 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
         if (el === childElement) return '食傷';
         if (el === wealthElement) return '財星';
         if (el === powerElement) return '官殺';
-        return '印星'; // fallback
+        return '印星'; 
     };
 
     const extractPrimaryElement = (str) => {
         for (let el of ['木', '火', '土', '金', '水']) {
             if (str && str.includes(el)) return el;
         }
-        return parentElement; // fallback
+        return parentElement; 
     };
 
     const primaryYong = extractPrimaryElement(yongShen);
@@ -161,27 +253,55 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
     const yongShenAction = `[專屬行動：${strategyMatrix[getTenGodName(primaryYong)].action}]`;
     const jiShenDetox = `[戒斷行為：${strategyMatrix[getTenGodName(primaryJi)].detox}]`;
 
+    const vaultMap = { '水': '辰', '火': '戌', '金': '丑', '木': '未', '土': '戌' };
+    const vaultBranch = vaultMap[dmElement] || '戌';
+    const allBranches = [yearBranch, monthBranch, dayBranch, timeBranch];
+    const hasVault = allBranches.includes(vaultBranch);
+    const wealthVaultStatus = hasVault ? `命局帶有「${vaultBranch}」財庫，具備實體財富鎖定能力` : `原局無「${vaultBranch}」水/財庫，定性為『身弱無庫，防禦築堤型』`;
+
+    const formatPillarTG = (s, b) => {
+        const sTG = getTenGod(dayStem, s);
+        const hidden = BRANCH_HIDDEN_STEMS[b] || [];
+        const hDesc = hidden.map(hs => `${hs}(${getTenGod(dayStem, hs)})`).join('/');
+        return `${s}${b}[${sTG}] (藏支:${hDesc})`;
+    };
+    const tenGodsString = `年柱: ${formatPillarTG(yearStem, yearBranch)} | 月柱: ${formatPillarTG(monthStem, monthBranch)} | 日柱: ${formatPillarTG(dayStem, dayBranch)} | 時柱: ${formatPillarTG(timeStem, timeBranch)}`;
+    const natalInteractions = analyzeNatalInteractions(allBranches);
+
+    const yongElements = [];
+    for (let el of ['火', '土', '金', '水', '木']) {
+        if (yongShen.includes(el)) yongElements.push(el);
+    }
+    if (yongElements.length === 0) yongElements.push(parentElement || '火');
+
+    const nums = [...new Set(yongElements.map(e => FIVE_ELEMENT_ASSETS[e].numbers))].join('；');
+    const cols = [...new Set(yongElements.map(e => FIVE_ELEMENT_ASSETS[e].colors))].join('；');
+    const dirs = [...new Set(yongElements.map(e => FIVE_ELEMENT_ASSETS[e].directions))].join('、');
+    const inds = yongElements.map(e => `【${e}行】：${FIVE_ELEMENT_ASSETS[e].industries}`).join(' | ');
+    const auspiciousCodes = `幸運數字：${nums} | 幸運色彩：${cols} | 貴人方位：${dirs} | 專屬契合產業：${inds}`;
+
     return {
         dayMaster: dmElement,
         strength: patternType + climateNote,
+        baziPattern: baziPattern,
         supportScore: supportScore.toFixed(2),
         drainScore: drainScore.toFixed(2),
         yongShen: yongShen,
         jiShen: jiShen,
         yongShenAction: yongShenAction,
         jiShenDetox: jiShenDetox,
-        defaultMbti: defaultMbti
+        defaultMbti: defaultMbti,
+        wealthVaultStatus,
+        tenGodsString,
+        natalInteractions,
+        auspiciousCodes
     };
 }
 
-/**
- * 🟢 本地神煞字典引擎
- */
 function calculateShenSha(yearStem, yearBranch, monthStem, monthBranch, dayStem, dayBranch, timeStem, timeBranch) {
     let stars = new Set();
     const branches = [yearBranch, monthBranch, dayBranch, timeBranch];
 
-    // 天乙貴人
     const tianyiMap = {
         '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
         '乙': ['子', '申'], '己': ['子', '申'],
@@ -189,20 +309,15 @@ function calculateShenSha(yearStem, yearBranch, monthStem, monthBranch, dayStem,
         '壬': ['卯', '巳'], '癸': ['卯', '巳'],
         '辛': ['寅', '午']
     };
-    
-    // 文昌貴人
     const wenchangMap = {
         '甲': '巳', '乙': '午', '丙': '申', '戊': '申',
         '丁': '酉', '己': '酉', '庚': '亥', '辛': '子',
         '壬': '寅', '癸': '卯'
     };
-    
-    // 羊刃
     const yangrenMap = {
         '甲': '卯', '丙': '午', '戊': '午', '庚': '酉', '壬': '子'
     };
 
-    // 三合局判斷
     const getSanheGroup = (b) => {
         if (['申', '子', '辰'].includes(b)) return '申子辰';
         if (['亥', '卯', '未'].includes(b)) return '亥卯未';
@@ -230,20 +345,15 @@ function calculateShenSha(yearStem, yearBranch, monthStem, monthBranch, dayStem,
         if (yimaMap[dayGroup] === branch || yimaMap[yearGroup] === branch) stars.add('驛馬');
     });
 
-    // 魁罡
     const kuigangPillars = ['庚辰', '壬辰', '戊戌', '庚戌'];
     if (kuigangPillars.includes(dayStem + dayBranch)) stars.add('魁罡');
 
-    // 陰陽差錯
     const yinyangPillars = ['丙子', '丁丑', '戊寅', '辛卯', '壬辰', '癸巳', '丙午', '丁未', '戊申', '辛酉', '壬戌', '癸亥'];
     if (yinyangPillars.includes(dayStem + dayBranch)) stars.add('陰陽差錯');
 
     return Array.from(stars).join('、') || '命局無上述特定神煞';
 }
 
-/**
- * 🟢 流年吉凶精算與刑沖合害鎖定引擎
- */
 function analyzeAnnualPillar(yearStem, yearBranch, natalBranches, yongShen, jiShen) {
     const yStemEl = STEM_ELEMENTS[yearStem];
     const yBranchEl = BRANCH_ELEMENTS[yearBranch];
@@ -277,8 +387,123 @@ function analyzeAnnualPillar(yearStem, yearBranch, natalBranches, yongShen, jiSh
         if (yearBranch === nb && selfPunish.includes(yearBranch)) clashTags.push(`[系統警示：流年與原局${yearBranch}${yearBranch}自刑]`);
     });
     
-    clashTags = [...new Set(clashTags)]; // 移除重複的警示
+    clashTags = [...new Set(clashTags)]; 
     return scoreTag + (clashTags.length > 0 ? " " + clashTags.join(" ") : "");
 }
 
-module.exports = { calculateYongShen, calculateShenSha, analyzeAnnualPillar };
+function analyzeNatalInteractions(branches) {
+    const [yB, mB, dB, tB] = branches;
+    const pairs = [
+        { b1: yB, b2: mB, pos: '年月' },
+        { b1: yB, b2: dB, pos: '年日' },
+        { b1: yB, b2: tB, pos: '年時' },
+        { b1: mB, b2: dB, pos: '月日' },
+        { b1: mB, b2: tB, pos: '月時' },
+        { b1: dB, b2: tB, pos: '日時' }
+    ];
+
+    const clashes = { '子':'午', '丑':'未', '寅':'申', '卯':'酉', '辰':'戌', '巳':'亥', '午':'子', '未':'丑', '申':'寅', '酉':'卯', '戌':'辰', '亥':'巳' };
+    const harms = { '子':'未', '丑':'午', '寅':'巳', '卯':'辰', '辰':'卯', '巳':'寅', '午':'丑', '未':'子', '申':'亥', '酉':'戌', '戌':'酉', '亥':'申' };
+    const selfPunish = ['辰', '午', '酉', '亥'];
+
+    let results = [];
+    pairs.forEach(p => {
+        if (clashes[p.b1] === p.b2) results.push(`${p.pos}(${p.b1}${p.b2})相沖`);
+        if (harms[p.b1] === p.b2) results.push(`${p.pos}(${p.b1}${p.b2})相害`);
+    });
+    
+    const branchCounts = {};
+    branches.forEach(b => branchCounts[b] = (branchCounts[b] || 0) + 1);
+    Object.keys(branchCounts).forEach(b => {
+        if (branchCounts[b] >= 2 && selfPunish.includes(b)) {
+            results.push(`自刑(${b}${b})`);
+        }
+    });
+
+    return results.length > 0 ? results.join('、') : '原局地支無重大刑沖害';
+}
+
+function calculateSocialMagnetism(dayBranch, yearBranch, yongShen, jiShen) {
+    const sanHe = {
+        '申': ['子', '辰'], '子': ['申', '辰'], '辰': ['申', '子'],
+        '亥': ['卯', '未'], '卯': ['亥', '未'], '未': ['亥', '卯'],
+        '寅': ['午', '戌'], '午': ['寅', '戌'], '戌': ['寅', '午'],
+        '巳': ['酉', '丑'], '酉': ['巳', '丑'], '丑': ['巳', '酉']
+    };
+    const liuHe = {
+        '子': '丑', '丑': '子', '寅': '亥', '亥': '寅',
+        '卯': '戌', '戌': '卯', '辰': '酉', '酉': '辰',
+        '巳': '申', '申': '巳', '午': '未', '未': '午'
+    };
+    const clashes = { '子':'午', '丑':'未', '寅':'申', '卯':'酉', '辰':'戌', '巳':'亥', '午':'子', '未':'丑', '申':'寅', '酉':'卯', '戌':'辰', '亥':'巳' };
+    const harms = { '子':'未', '丑':'午', '寅':'巳', '卯':'辰', '辰':'卯', '巳':'寅', '午':'丑', '未':'子', '申':'亥', '酉':'戌', '戌':'酉', '亥':'申' };
+    const selfPunish = ['辰', '午', '酉', '亥'];
+
+    let bestSet = new Set();
+    let worstSet = new Set();
+
+    [dayBranch, yearBranch].forEach(branch => {
+        if (sanHe[branch]) sanHe[branch].forEach(b => bestSet.add(b));
+        if (liuHe[branch]) bestSet.add(liuHe[branch]);
+
+        if (clashes[branch]) worstSet.add(clashes[branch]);
+        if (harms[branch]) worstSet.add(harms[branch]);
+        if (selfPunish.includes(branch)) worstSet.add(branch);
+    });
+
+    worstSet.forEach(b => bestSet.delete(b));
+
+    let finalBest = [];
+    bestSet.forEach(b => {
+        const el = BRANCH_ELEMENTS[b];
+        if (!jiShen.includes(el)) finalBest.push(b);
+    });
+    if (finalBest.length === 0) finalBest = Array.from(bestSet); 
+
+    let finalWorst = [];
+    worstSet.forEach(b => {
+        const el = BRANCH_ELEMENTS[b];
+        if (!yongShen.includes(el)) finalWorst.push(b);
+    });
+    if (finalWorst.length === 0) finalWorst = Array.from(worstSet);
+
+    return `最佳合夥/伴侶地支為 ${finalBest.join('、')}；必須無情切割的地支為 ${finalWorst.join('、')}`;
+}
+
+// 🟢 流月極值鎖定引擎
+function analyzeMonthlyPillars(monthsData, yongShen, jiShen) {
+    let golden = [];
+    let highRisk = [];
+
+    monthsData.forEach(m => {
+        const mStemEl = STEM_ELEMENTS[m.ganZhi.charAt(0)];
+        const mBranchEl = BRANCH_ELEMENTS[m.ganZhi.charAt(1)];
+        
+        const isDoubleYong = yongShen.includes(mStemEl) && yongShen.includes(mBranchEl);
+        const isDoubleJi = jiShen.includes(mStemEl) && jiShen.includes(mBranchEl);
+        
+        if (isDoubleYong) golden.push(`${m.gMonth}月(${m.ganZhi})`);
+        if (isDoubleJi) highRisk.push(`${m.gMonth}月(${m.ganZhi})`);
+    });
+
+    // 🟢 如果沒有純粹的雙重用神/忌神，則放寬標準，依賴地支力量判定
+    if (golden.length === 0) {
+        monthsData.forEach(m => {
+            const mBranchEl = BRANCH_ELEMENTS[m.ganZhi.charAt(1)];
+            if (yongShen.includes(mBranchEl)) golden.push(`${m.gMonth}月(${m.ganZhi})`); 
+        });
+    }
+    if (highRisk.length === 0) {
+        monthsData.forEach(m => {
+            const mBranchEl = BRANCH_ELEMENTS[m.ganZhi.charAt(1)];
+            if (jiShen.includes(mBranchEl)) highRisk.push(`${m.gMonth}月(${m.ganZhi})`);
+        });
+    }
+
+    if (golden.length === 0) golden.push('無絕對極值月，以平穩為主');
+    if (highRisk.length === 0) highRisk.push('無絕對高危月，以平穩為主');
+
+    return `[黃金爆發期：西曆 ${golden.join('、')}]、[高危避險期：西曆 ${highRisk.join('、')}]`;
+}
+
+module.exports = { calculateYongShen, calculateShenSha, analyzeAnnualPillar, calculateSocialMagnetism, analyzeMonthlyPillars };

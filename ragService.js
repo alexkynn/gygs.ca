@@ -1,3 +1,5 @@
+// ragService.js
+
 require('dotenv').config();
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
@@ -13,7 +15,8 @@ const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
 const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7, getPromptPart8, getPromptPart9 } = require('./promptTemplates.js');
-const { calculateYongShen, calculateShenSha, analyzeAnnualPillar } = require('./baziCalculator.js'); 
+// 🟢 導入 analyzeMonthlyPillars
+const { calculateYongShen, calculateShenSha, analyzeAnnualPillar, calculateSocialMagnetism, analyzeMonthlyPillars } = require('./baziCalculator.js'); 
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
@@ -32,6 +35,26 @@ const shiTimeMap = {
     "酉時": { hour: 18, minute: 0, index: 9 },
     "戌時": { hour: 20, minute: 0, index: 10 },
     "亥時": { hour: 22, minute: 0, index: 11 }
+};
+
+const SOUL_STAR_MAP = {
+    '貪狼': '底層驅動力在於對物慾、機會與人際資源的極致追逐',
+    '巨門': '底層驅動力在於懷疑精神、深度研究與言語表達',
+    '祿存': '底層驅動力在於對安全感、財富積累與自我保護的極度渴望',
+    '文曲': '底層驅動力在於對才華展現、情感共鳴與浪漫理想的追求',
+    '廉貞': '底層驅動力在於傲骨、秩序掌控與精神層面的自我要求',
+    '武曲': '底層驅動力在於務實執行、財富掌控與剛毅不屈的行動',
+    '破軍': '底層驅動力在於顛覆現狀、消耗資源以換取開創的破壞性力量'
+};
+
+const BODY_STAR_MAP = {
+    '鈴星': '行為執行上帶有隱忍、緊繃與暗中發力的特質',
+    '天相': '行為執行上展現出注重體面、輔佐協調與循規蹈矩的特質',
+    '天機': '行為執行上表現為思維活躍、持續變動與神經緊繃的特質',
+    '天同': '行為執行上傾向於尋求安逸、避開衝突與情緒化主導的特質',
+    '文昌': '行為執行上注重條理、契約精神與憑藉專業才華行事的特質',
+    '天梁': '行為執行上帶有老成持重、愛面子與庇蔭他人的特質',
+    '火星': '行為執行上展現出爆發力強、急躁且難以持久的特質'
 };
 
 function getCityCoordinates(cityName) {
@@ -162,7 +185,31 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
             bazi.getTime().charAt(0), bazi.getTime().charAt(1)
         );
 
+        const socialMagnetism = calculateSocialMagnetism(
+            bazi.getDay().charAt(1), 
+            bazi.getYear().charAt(1), 
+            calculatedBazi.yongShen, 
+            calculatedBazi.jiShen
+        );
+
         const currentYear = new Date().getFullYear();
+
+        let currentDaYunStr = "未知";
+        try {
+            const genderIndex = userData.gender === '男' ? 1 : 0;
+            const yun = bazi.getYun(genderIndex);
+            const daYuns = yun.getDaYun();
+            for (let i = 0; i < daYuns.length; i++) {
+                const dy = daYuns[i];
+                if (currentYear >= dy.getStartYear() && currentYear <= dy.getEndYear()) {
+                    currentDaYunStr = `${dy.getGanZhi()}大運 (${dy.getStartYear()}年-${dy.getEndYear()}年)`;
+                    break;
+                }
+            }
+        } catch (e) {
+            console.error("Da Yun Error:", e);
+        }
+
         let future10Years = "";
         const natalBranches = [
             bazi.getYear().charAt(1), 
@@ -187,19 +234,25 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
         let currentLunarMonth = Math.abs(nowSolar.getLunar().getMonth()); 
         
         let future12Months = "";
+        let monthsDataForEval = []; // 🟢 收集未來12個月資料用於極值運算
         let y = currentLunarYear;
         let m = currentLunarMonth;
         let gMonth = new Date().getMonth() + 1; 
         for (let i = 0; i < 12; i++) {
             let tempMonth = LunarMonth.fromYm(y, m);
             if(tempMonth) {
-                future12Months += `- 西曆 ${gMonth} 月 (農曆 ${y}年 ${m}月): ${tempMonth.getGanZhi()}月\n`;
+                let gz = tempMonth.getGanZhi();
+                future12Months += `- 西曆 ${gMonth} 月 (農曆 ${y}年 ${m}月): ${gz}月\n`;
+                monthsDataForEval.push({ gMonth: gMonth, ganZhi: gz });
             }
             m++;
             gMonth++;
             if (m > 12) { m = 1; y++; }
             if (gMonth > 12) { gMonth = 1; }
         }
+
+        // 🟢 計算流月極值
+        const monthlyExtremes = analyzeMonthlyPillars(monthsDataForEval, calculatedBazi.yongShen, calculatedBazi.jiShen);
 
         const zodiacSign = solarDate.getXingZuo() + "座";
 
@@ -211,12 +264,13 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
 
         const dateStrForIztro = `${tst.year}-${tst.month}-${tst.day}`;
         const genderForIztro = userData.gender === '男' ? 'male' : 'female';
-        const astrolabe = astro.bySolar(dateStrForIztro, tst.solarShiIndex, genderForIztro, true, 'zh-CN');
+        
+        const astrolabe = astro.bySolar(dateStrForIztro, tst.solarShiIndex, genderForIztro, true, 'zh-TW');
 
         let palacesString = "";
         let bodyPalaceName = "未知";
-        let sanFangSiZhengStr = ""; // 🟢 三方四正矩陣
-        let siHuaStr = "";          // 🟢 生年四化樞紐
+        let sanFangSiZhengStr = ""; 
+        let siHuaStr = "";          
 
         if (astrolabe && astrolabe.palaces) {
             const bodyPalaceObj = astrolabe.palaces.find(p => p.isBodyPalace);
@@ -233,16 +287,14 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
                 if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
                 palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
 
-                // 🟢 提取生年四化落點
                 const allStars = [...(p.majorStars||[]), ...(p.minorStars||[])];
                 allStars.forEach(s => {
-                    if(s.mutagen === '祿') lu = `${p.name}(${s.name})`;
-                    if(s.mutagen === '權') quan = `${p.name}(${s.name})`;
+                    if(s.mutagen === '祿' || s.mutagen === '禄') lu = `${p.name}(${s.name})`;
+                    if(s.mutagen === '權' || s.mutagen === '权') quan = `${p.name}(${s.name})`;
                     if(s.mutagen === '科') ke = `${p.name}(${s.name})`;
                     if(s.mutagen === '忌') ji = `${p.name}(${s.name})`;
                 });
 
-                // 🟢 演算法組合三方四正
                 const opp = astrolabe.palaces[(index + 6) % 12];
                 const tri1 = astrolabe.palaces[(index + 4) % 12];
                 const tri2 = astrolabe.palaces[(index + 8) % 12];
@@ -258,6 +310,9 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
         }
 
         const inputTimeDisplay = userData.exactTime !== '未提供' ? userData.exactTime : userData.shi;
+        
+        const soulDesc = SOUL_STAR_MAP[astrolabe.soul] || '未知';
+        const bodyDesc = BODY_STAR_MAP[astrolabe.body] || '未知';
 
         return `
 [系統時空校正基準]
@@ -275,6 +330,13 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
 [系統底層四柱八字 (不可篡改數據)]
 - 西洋星座：${zodiacSign}
 - 八字干支：${baziString}
+- 系統鎖定八字格局：${calculatedBazi.baziPattern}
+- 當前大運：${currentDaYunStr}
+- 四柱十神透解：${calculatedBazi.tenGodsString}
+- 財庫狀態判定：${calculatedBazi.wealthVaultStatus}
+- 開運密碼與產業資產矩陣：${calculatedBazi.auspiciousCodes}
+- 原局刑沖害合狀態：${calculatedBazi.natalInteractions}
+- 社交磁場矩陣：${socialMagnetism}
 - 四柱神煞配置：${shenShaString}
 - 系統判定日元強度：${calculatedBazi.strength} (生扶指數: ${calculatedBazi.supportScore}, 克洩指數: ${calculatedBazi.drainScore})
 - 絕對最喜用神：${calculatedBazi.yongShen}
@@ -293,13 +355,14 @@ ${future10Years}
 
 [未來 12 個月客觀流月干支 (預測依據)]
 ${future12Months}
+- 未來12個月系統鎖定極值：${monthlyExtremes}
 
 [系統底層紫微斗數 (不可篡改數據)]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
-- 命主：${astrolabe.soul || '未知'}
-- 身主：${astrolabe.body || '未知'}
 - 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
 - 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮 (重疊於：${bodyPalaceName})
+- 命主樞紐：${astrolabe.soul} (${soulDesc})
+- 身主樞紐：${astrolabe.body} (${bodyDesc})
 - 生年四化樞紐：
 ${siHuaStr}
 - 十二宮位星曜配置：
@@ -350,7 +413,7 @@ function getRagFocus(questionStr) {
     } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情") || questionStr.includes("婚姻")) {
         return "【專屬戰略框架 - 愛情與婚姻】：核心在於『情感邊界確立』與『高維度精神共鳴』。行動指南必須聚焦於：1. 建立清晰的情感與財務防線，拒絕情感勒索，2. 尋求能在事業或智慧上提供雙向賦能的伴侶，3. 將情感轉化為共同成長的戰略同盟。";
     } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("疾病") || questionStr.includes("家庭") || questionStr.includes("移民") || questionStr.includes("居所")) {
-        return "【專屬戰略框架 - 家庭、居所與身心】：核心在於『物理環境調候』與『大腦強制斷電』。行動指南必須聚焦於：1. 依據喜用神選擇有利的居住方位與空間採光，2. 建立日常的物理隔離與冥想儀式，防範神經內耗，3. 在家庭與事業間設立防火牆。";
+        return "【專屬戰略框架 - 家庭, 居所與身心】：核心在於『物理環境調候』與『大腦強制斷電』。行動指南必須聚焦於：1. 依據喜用神選擇有利的居住方位與空間採光，2. 建立日常的物理隔離與冥想儀式，防範神經內耗，3. 在家庭與事業間設立防火牆。";
     } else {
         return "【專屬戰略框架 - 人生時機與大師破局】：核心在於『順勢爆發』與『逆勢蟄伏』。行動指南必須聚焦於：1. 精準踩準未來 12 個月的流月起伏進行資源配置，2. 針對命局最致命的盲區進行物理與心理雙重防禦，3. 押注核心優勢，執行降維打擊的破局動作。";
     }
@@ -397,10 +460,6 @@ function logTransactionForAnalytics(userData, actualQuestion, finalAiText, userE
           .catch(err => console.error("⚠️ [Analytics] Google Sheets Webhook 同步失敗:", err));
     }
 }
-
-// =========================================================================
-// 4. 核心路由生成區 (🟢 9 階段終極防截斷架構)
-// =========================================================================
 
 async function generateMasterResponse(question, mode = 'teaser', userEmail = '') {
     try {
@@ -487,7 +546,6 @@ ${contexts}
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
-        // 🟢 階段 4, 5, 6 注入 aiTextPart3 解決 Contextual Amnesia
         console.log("📝 [6/11] 生成階段四：十二宮位 (4.4 - 4.6)...");
         const promptPart4 = getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, exactFactData, userData, contexts, currentDateStr);
         const resultPart4 = await model.generateContent(promptPart4);
