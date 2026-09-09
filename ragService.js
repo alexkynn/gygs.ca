@@ -6,15 +6,14 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment-timezone');
 const cityTimezones = require('city-timezones');
-const { Solar, Lunar } = require('lunar-javascript');
+const { Solar, Lunar, LunarMonth } = require('lunar-javascript'); 
 const { astro } = require('iztro');
 
 const locationsData = require('./locations.js');
 const { generateUniqueTeaser } = require('./teaserLibrary.js');
 const boneWeightPoems = require('./boneWeightPoems.js');
-// 🟢 引入 9 階段 Prompt
 const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7, getPromptPart8, getPromptPart9 } = require('./promptTemplates.js');
-const { calculateYongShen, calculateShenSha } = require('./baziCalculator.js'); // 🟢 引入本地神煞計算
+const { calculateYongShen, calculateShenSha, analyzeAnnualPillar } = require('./baziCalculator.js'); 
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pc.Index("gygs-knowledge");
@@ -76,14 +75,11 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) 
     let calMonth = parseInt(month, 10);
     let calDay = parseInt(day, 10);
 
-    // 🟢 核心升級：加入均時差 (Equation of Time, EoT) 進行真正精密的真太陽時運算
     const dateMoment = moment(`${calYear}-${String(calMonth).padStart(2, '0')}-${String(calDay).padStart(2, '0')}`, 'YYYY-MM-DD');
     const N = dateMoment.dayOfYear();
     const B_rad = (360 / 365.24) * (N - 81) * (Math.PI / 180);
-    // 均時差公式 (單位: 分鐘)
     const eotMinutes = 9.87 * Math.sin(2 * B_rad) - 7.53 * Math.cos(B_rad) - 1.5 * Math.sin(B_rad);
 
-    // 將時區經度誤差與均時差同時加入計算
     const totalOffset = offsetMinutes + eotMinutes;
     let totalMinutes = Math.round(baseHour * 60 + baseMinute + totalOffset);
     
@@ -113,17 +109,12 @@ function calculateTrueSolarTime(year, month, day, shiName, cityName, exactTime) 
         hour: solarHour,
         minute: solarMinute,
         solarShiIndex,
-        offsetMinutes: Math.round(totalOffset), // 包含 EoT 的總偏差
+        offsetMinutes: Math.round(totalOffset), 
         providedExactTime: (exactTime && exactTime !== "未提供") ? exactTime : null
     };
 }
 
 const shiNames = ["子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
-
-function getDayMasterElement(dayGan) {
-    const elements = { "甲":"木", "乙":"木", "丙":"火", "丁":"火", "戊":"土", "己":"土", "庚":"金", "辛":"金", "壬":"水", "癸":"水" };
-    return elements[dayGan] || "未知";
-}
 
 function calculateBoneWeight(yearIndex, month, day, shiIndex) {
     const yearW = [12,9,6,7,12,5,9,8,7,8,15,9,16,8,8,19,12,6,8,7,5,15,6,16,15,7,9,12,10,7,15,6,5,14,14,9,7,7,9,12,8,7,13,5,14,5,9,17,15,7,12,8,8,6,19,6,8,16,14,7];
@@ -142,7 +133,7 @@ function getBoneWeightPoem(weightStr, gender) {
     return `骨重${weightStr}，此命局自有天地之機，詳見下方核心解析。`; 
 }
 
-function generateDeterministicFactData(userData, currentDateStr) {
+function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
     try {
         if (!userData.year || !userData.month || !userData.day) {
             return "【提示：無法獲取完整出生日期】";
@@ -157,8 +148,7 @@ function generateDeterministicFactData(userData, currentDateStr) {
         const bazi = lunarDate.getEightChar();
         const baziString = `年柱：${bazi.getYear()}，月柱：${bazi.getMonth()}，日柱：${bazi.getDay()}，時柱：${bazi.getTime()}`;
         
-        // 🟢 提取四柱神煞 (杜絕 AI 幻覺，改由本地演算法精算)
-        let shenShaString = calculateShenSha(
+        const shenShaString = calculateShenSha(
             bazi.getYear().charAt(0), bazi.getYear().charAt(1),
             bazi.getMonth().charAt(0), bazi.getMonth().charAt(1),
             bazi.getDay().charAt(0), bazi.getDay().charAt(1),
@@ -172,13 +162,43 @@ function generateDeterministicFactData(userData, currentDateStr) {
             bazi.getTime().charAt(0), bazi.getTime().charAt(1)
         );
 
-        // 🟢 產生未來 10 年的流年干支 (10-Year Annual Pillars Array)
         const currentYear = new Date().getFullYear();
         let future10Years = "";
+        const natalBranches = [
+            bazi.getYear().charAt(1), 
+            bazi.getMonth().charAt(1), 
+            bazi.getDay().charAt(1), 
+            bazi.getTime().charAt(1)
+        ];
+
         for (let i = 0; i < 10; i++) {
             let targetYear = currentYear + i;
             let tempLunar = Lunar.fromYmd(targetYear, 1, 1);
-            future10Years += `- ${targetYear}年: ${tempLunar.getYearInGanZhi()}年\n`;
+            let yearGanZhi = tempLunar.getYearInGanZhi();
+            let yearStem = yearGanZhi.charAt(0);
+            let yearBranch = yearGanZhi.charAt(1);
+            
+            let annualAnalysis = analyzeAnnualPillar(yearStem, yearBranch, natalBranches, calculatedBazi.yongShen, calculatedBazi.jiShen);
+            future10Years += `- ${targetYear}年: ${yearGanZhi}年 ${annualAnalysis}\n`;
+        }
+
+        const nowSolar = Solar.fromDate(new Date());
+        let currentLunarYear = nowSolar.getLunar().getYear();
+        let currentLunarMonth = Math.abs(nowSolar.getLunar().getMonth()); 
+        
+        let future12Months = "";
+        let y = currentLunarYear;
+        let m = currentLunarMonth;
+        let gMonth = new Date().getMonth() + 1; 
+        for (let i = 0; i < 12; i++) {
+            let tempMonth = LunarMonth.fromYm(y, m);
+            if(tempMonth) {
+                future12Months += `- 西曆 ${gMonth} 月 (農曆 ${y}年 ${m}月): ${tempMonth.getGanZhi()}月\n`;
+            }
+            m++;
+            gMonth++;
+            if (m > 12) { m = 1; y++; }
+            if (gMonth > 12) { gMonth = 1; }
         }
 
         const zodiacSign = solarDate.getXingZuo() + "座";
@@ -195,6 +215,8 @@ function generateDeterministicFactData(userData, currentDateStr) {
 
         let palacesString = "";
         let bodyPalaceName = "未知";
+        let sanFangSiZhengStr = ""; // 🟢 三方四正矩陣
+        let siHuaStr = "";          // 🟢 生年四化樞紐
 
         if (astrolabe && astrolabe.palaces) {
             const bodyPalaceObj = astrolabe.palaces.find(p => p.isBodyPalace);
@@ -202,13 +224,37 @@ function generateDeterministicFactData(userData, currentDateStr) {
                 bodyPalaceName = bodyPalaceObj.name;
             }
 
-            astrolabe.palaces.forEach(p => {
+            let lu, quan, ke, ji;
+
+            astrolabe.palaces.forEach((p, index) => {
                 let stars = [];
                 if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
                 if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
                 if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
                 palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
+
+                // 🟢 提取生年四化落點
+                const allStars = [...(p.majorStars||[]), ...(p.minorStars||[])];
+                allStars.forEach(s => {
+                    if(s.mutagen === '祿') lu = `${p.name}(${s.name})`;
+                    if(s.mutagen === '權') quan = `${p.name}(${s.name})`;
+                    if(s.mutagen === '科') ke = `${p.name}(${s.name})`;
+                    if(s.mutagen === '忌') ji = `${p.name}(${s.name})`;
+                });
+
+                // 🟢 演算法組合三方四正
+                const opp = astrolabe.palaces[(index + 6) % 12];
+                const tri1 = astrolabe.palaces[(index + 4) % 12];
+                const tri2 = astrolabe.palaces[(index + 8) % 12];
+                const getMajorStars = (pal) => {
+                    let s = [];
+                    if (pal.majorStars) s.push(...pal.majorStars.map(st => st.name + (st.mutagen ? `(化${st.mutagen})` : '')));
+                    return s.join('、') || '空宮';
+                };
+                sanFangSiZhengStr += `- 【${p.name}三方四正】：本宮(${getMajorStars(p)}) + 對宮(${getMajorStars(opp)}) + 三合(${getMajorStars(tri1)}, ${getMajorStars(tri2)})\n`;
             });
+            
+            siHuaStr = `[全盤能量樞紐]：最大資源點(化祿)落於【${lu || '未知'}】，權威控制點(化權)落於【${quan || '未知'}】，聲名貴人點(化科)落於【${ke || '未知'}】，最大業力與防守點(化忌)落於【${ji || '未知'}】`;
         }
 
         const inputTimeDisplay = userData.exactTime !== '未提供' ? userData.exactTime : userData.shi;
@@ -233,11 +279,20 @@ function generateDeterministicFactData(userData, currentDateStr) {
 - 系統判定日元強度：${calculatedBazi.strength} (生扶指數: ${calculatedBazi.supportScore}, 克洩指數: ${calculatedBazi.drainScore})
 - 絕對最喜用神：${calculatedBazi.yongShen}
 - 絕對最忌五行：${calculatedBazi.jiShen}
+- 十神戰略矩陣 (專屬行動)：${calculatedBazi.yongShenAction}
+- 十神戰略矩陣 (戒斷行為)：${calculatedBazi.jiShenDetox}
+- 系統精算預設 MBTI：${calculatedBazi.defaultMbti}
 - 袁天罡稱骨：${weightStr} (${genderStr})
 - 專屬讖語：「${weightPoem}」
 
+[專屬戰略框架]
+${ragFocusText}
+
 [未來 10 年客觀流年干支 (預測依據)]
 ${future10Years}
+
+[未來 12 個月客觀流月干支 (預測依據)]
+${future12Months}
 
 [系統底層紫微斗數 (不可篡改數據)]
 - 五行局：${astrolabe.fiveElementsClass || '未知'}
@@ -245,8 +300,12 @@ ${future10Years}
 - 身主：${astrolabe.body || '未知'}
 - 命宮位置：地支${astrolabe.earthlyBranchOfSoulPalace || '未知'}宮
 - 身宮位置：地支${astrolabe.earthlyBranchOfBodyPalace || '未知'}宮 (重疊於：${bodyPalaceName})
+- 生年四化樞紐：
+${siHuaStr}
 - 十二宮位星曜配置：
 ${palacesString}
+- 十二宮位三方四正矩陣：
+${sanFangSiZhengStr}
 `;
     } catch (e) {
         console.error("排盤運算失敗:", e);
@@ -285,15 +344,15 @@ function extractUserData(question) {
 
 function getRagFocus(questionStr) {
     if (questionStr.includes("事業") || questionStr.includes("創業") || questionStr.includes("跳槽")) {
-        return "【專屬分析重點】：評估事業格局與成就上限。精準點出事業轉折時機，並給出職場防小人與最契合的天賦行業方向。";
+        return "【專屬戰略框架 - 事業與職涯】：核心在於建立『不可替代的專業護城河』與『向上管理的槓桿』。行動指南必須聚焦於：1. 尋找高資源平台背書，2. 建立技術或管理壁壘，3. 利用信息差與人脈網絡進行降維打擊。";
     } else if (questionStr.includes("財") || questionStr.includes("投資") || questionStr.includes("資金")) {
-        return "【專屬分析重點】：結合財星格局，定調其為正財或偏財。指出資產暴漲或破財危機的高危月份，給出投資佈局建議。";
-    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情")) {
-        return "【專屬分析重點】：分析夫妻宮。描繪未來伴侶特質與紅鸞星動年份。評估感情障礙，並提供趨吉避凶的情感防線。";
-    } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("疾病")) {
-        return "【專屬分析重點】：結合五行偏枯點出先天體質弱點。梳理意外血光高危月份，給出改善健康與精神內耗的指南。";
+        return "【專屬戰略框架 - 財富與資產】：核心在於『防禦性資產隔離』與『非線性收益撬動』。行動指南必須聚焦於：1. 建立嚴格的現金流與信託防火牆，2. 剝離重資產，運用輕資產與知識產權（IP）獲取溢價，3. 杜絕高槓桿投機。";
+    } else if (questionStr.includes("姻緣") || questionStr.includes("桃花") || questionStr.includes("感情") || questionStr.includes("婚姻")) {
+        return "【專屬戰略框架 - 愛情與婚姻】：核心在於『情感邊界確立』與『高維度精神共鳴』。行動指南必須聚焦於：1. 建立清晰的情感與財務防線，拒絕情感勒索，2. 尋求能在事業或智慧上提供雙向賦能的伴侶，3. 將情感轉化為共同成長的戰略同盟。";
+    } else if (questionStr.includes("健康") || questionStr.includes("身體") || questionStr.includes("疾病") || questionStr.includes("家庭") || questionStr.includes("移民") || questionStr.includes("居所")) {
+        return "【專屬戰略框架 - 家庭、居所與身心】：核心在於『物理環境調候』與『大腦強制斷電』。行動指南必須聚焦於：1. 依據喜用神選擇有利的居住方位與空間採光，2. 建立日常的物理隔離與冥想儀式，防範神經內耗，3. 在家庭與事業間設立防火牆。";
     } else {
-        return "【專屬分析重點】：梳理十年起伏軌跡，畫出黃金爆發期與低谷期。面對人生重大抉擇，給出利弊對比與風險提示。";
+        return "【專屬戰略框架 - 人生時機與大師破局】：核心在於『順勢爆發』與『逆勢蟄伏』。行動指南必須聚焦於：1. 精準踩準未來 12 個月的流月起伏進行資源配置，2. 針對命局最致命的盲區進行物理與心理雙重防禦，3. 押注核心優勢，執行降維打擊的破局動作。";
     }
 }
 
@@ -365,8 +424,9 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             return teaserResponse + timeWarning;
         }
 
+        const ragFocusText = getRagFocus(userData.actualQuestion);
         console.log("⚡ [1/11] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
-        const exactFactData = generateDeterministicFactData(userData, currentDateStr);
+        const exactFactData = generateDeterministicFactData(userData, currentDateStr, ragFocusText);
 
         console.log("🔍 [2/11] 檢索 Pinecone 向量庫古籍知識...");
         let contexts = "";
@@ -377,14 +437,12 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
             contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || match.metadata.text || '無'}`).join('\n\n');
         }
 
-        const ragFocusText = getRagFocus(userData.actualQuestion);
-
         const systemInstruction = `你是一位精通東方哲學與現代職業戰略的首席決策顧問兼心理學家。
 【任務核心】
 基於下方 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，以及 <Pinecone文獻>，進行高維度戰略解讀。
 
 【全球通用鐵律 (Global Rules - 必須在所有生成階段嚴格遵守)】
-1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、宮位等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
+1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、生年四化、三方四正矩陣等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
 2. 【隱藏指令鐵律】：絕對禁止在報告正文中印出或提及任何 Prompt 規則指令！例如嚴禁寫出「【絕對禁止商業分析】」、「強制使用...」或「妳的專屬東方英雄原型可提煉為...」，必須默默執行，無痕融入行文中。
 3. 【大運防幻覺鐵律】：在提及任何「大運」（如辛酉大運）時，【絕對禁止】自行推算、捏造或寫出大運的起訖歲數區間（例如嚴禁寫出「12歲至21歲」等具體年齡段）。違規將導致系統嚴重錯誤！
 4. 【防迴音與去油膩鐵律】：絕對禁止反覆咀嚼同一個命理概念。嚴禁使用現代農場文職場套話。
@@ -415,7 +473,7 @@ ${contexts}
         });
 
         console.log("📝 [3/11] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
-        const promptPart1 = getPromptPart1(age, userData, exactFactData, ragFocusText, currentDateStr);
+        const promptPart1 = getPromptPart1(age, userData, exactFactData, currentDateStr);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
 
@@ -429,22 +487,22 @@ ${contexts}
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
+        // 🟢 階段 4, 5, 6 注入 aiTextPart3 解決 Contextual Amnesia
         console.log("📝 [6/11] 生成階段四：十二宮位 (4.4 - 4.6)...");
         const promptPart4 = getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, exactFactData, userData, contexts, currentDateStr);
         const resultPart4 = await model.generateContent(promptPart4);
         let aiTextPart4 = resultPart4.response.text().trim();
 
         console.log("📝 [7/11] 生成階段五：十二宮位 (4.7 - 4.9)...");
-        const promptPart5 = getPromptPart5(aiTextPart4, exactFactData, userData, contexts, currentDateStr);
+        const promptPart5 = getPromptPart5(aiTextPart3, aiTextPart4, exactFactData, userData, contexts, currentDateStr);
         const resultPart5 = await model.generateContent(promptPart5);
         let aiTextPart5 = resultPart5.response.text().trim();
 
         console.log("📝 [8/11] 生成階段六：十二宮位 (4.10 - 4.12)...");
-        const promptPart6 = getPromptPart6(aiTextPart5, exactFactData, userData, contexts, currentDateStr);
+        const promptPart6 = getPromptPart6(aiTextPart3, aiTextPart5, exactFactData, userData, contexts, currentDateStr);
         const resultPart6 = await model.generateContent(promptPart6);
         let aiTextPart6 = resultPart6.response.text().trim();
 
-        // 🟢 完美縫合紫微斗數 12 宮
         const aiTextSection4 = `${aiTextPart3}\n\n${aiTextPart4}\n\n${aiTextPart5}\n\n${aiTextPart6}`;
 
         console.log("📈 [9/11] 生成階段七：未來 10 年運勢推演 (Section 5)...");
@@ -462,7 +520,6 @@ ${contexts}
         const resultPart9 = await model.generateContent(promptPart9);
         let aiTextPart9 = resultPart9.response.text().trim();
 
-        // 🟢 最終組裝 9 階段內容
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextSection4}\n\n${aiTextPart7}\n\n${aiTextPart8}\n\n${aiTextPart9}`;
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         const startIndex = finalAiText.indexOf('## 1');
