@@ -265,7 +265,10 @@ function calculateYongShen(yearStem, yearBranch, monthStem, monthBranch, dayStem
         const hDesc = hidden.map(hs => `${hs}(${getTenGod(dayStem, hs)})`).join('/');
         return `${s}${b}[${sTG}] (藏支:${hDesc})`;
     };
-    const tenGodsString = `年柱: ${formatPillarTG(yearStem, yearBranch)} | 月柱: ${formatPillarTG(monthStem, monthBranch)} | 日柱: ${formatPillarTG(dayStem, dayBranch)} | 時柱: ${formatPillarTG(timeStem, timeBranch)}`;
+    
+    // 🟢 精確寫死四柱的大運歲數區間，徹底防止 AI 在 Section 3.1 自行腦補年紀
+    const tenGodsString = `年柱(1歲至16歲): ${formatPillarTG(yearStem, yearBranch)} | 月柱(17歲至32歲): ${formatPillarTG(monthStem, monthBranch)} | 日柱(33歲至48歲): ${formatPillarTG(dayStem, dayBranch)} | 時柱(49歲之後): ${formatPillarTG(timeStem, timeBranch)}`;
+    
     const natalInteractions = analyzeNatalInteractions(allBranches);
 
     const yongElements = [];
@@ -470,7 +473,6 @@ function calculateSocialMagnetism(dayBranch, yearBranch, yongShen, jiShen) {
     return `最佳合夥/伴侶地支為 ${finalBest.join('、')}；必須無情切割的地支為 ${finalWorst.join('、')}`;
 }
 
-// 🟢 流月極值鎖定引擎
 function analyzeMonthlyPillars(monthsData, yongShen, jiShen) {
     let golden = [];
     let highRisk = [];
@@ -486,7 +488,6 @@ function analyzeMonthlyPillars(monthsData, yongShen, jiShen) {
         if (isDoubleJi) highRisk.push(`${m.gMonth}月(${m.ganZhi})`);
     });
 
-    // 🟢 如果沒有純粹的雙重用神/忌神，則放寬標準，依賴地支力量判定
     if (golden.length === 0) {
         monthsData.forEach(m => {
             const mBranchEl = BRANCH_ELEMENTS[m.ganZhi.charAt(1)];
