@@ -1,7 +1,6 @@
 // ragService.js
 
 require('dotenv').config();
-const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
 const fs = require('fs');
@@ -17,8 +16,6 @@ const boneWeightPoems = require('./boneWeightPoems.js');
 const { getPromptPart1, getPromptPart2, getPromptPart3, getPromptPart4, getPromptPart5, getPromptPart6, getPromptPart7, getPromptPart8, getPromptPart9 } = require('./promptTemplates.js');
 const { calculateYongShen, calculateShenSha, analyzeAnnualPillar, calculateSocialMagnetism, analyzeMonthlyPillars } = require('./baziCalculator.js'); 
 
-const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-const index = pc.Index("gygs-knowledge");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const shiTimeMap = {
@@ -228,26 +225,25 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
             future10Years += `- ${targetYear}年: ${yearGanZhi}年 ${annualAnalysis}\n`;
         }
 
-        const nowSolar = Solar.fromDate(new Date());
-        let currentLunarYear = nowSolar.getLunar().getYear();
-        let currentLunarMonth = Math.abs(nowSolar.getLunar().getMonth()); 
-        
         let future12Months = "";
         let monthsDataForEval = [];
-        let y = currentLunarYear;
-        let m = currentLunarMonth;
-        let gMonth = new Date().getMonth() + 1; 
+        const evalStartDate = new Date();
+        let startYear = evalStartDate.getFullYear();
+        let startMonth = evalStartDate.getMonth() + 1; 
+
         for (let i = 0; i < 12; i++) {
-            let tempMonth = LunarMonth.fromYm(y, m);
-            if(tempMonth) {
-                let gz = tempMonth.getGanZhi();
-                future12Months += `- 西曆 ${gMonth} 月 (農曆 ${y}年 ${m}月): ${gz}月\n`;
-                monthsDataForEval.push({ gMonth: gMonth, ganZhi: gz });
+            let evalYear = startYear;
+            let evalMonth = startMonth + i;
+            if (evalMonth > 12) {
+                evalYear += Math.floor((evalMonth - 1) / 12);
+                evalMonth = ((evalMonth - 1) % 12) + 1;
             }
-            m++;
-            gMonth++;
-            if (m > 12) { m = 1; y++; }
-            if (gMonth > 12) { gMonth = 1; }
+            
+            const tempSolar = Solar.fromYmd(evalYear, evalMonth, 15);
+            const exactGanZhi = tempSolar.getLunar().getMonthInGanZhiExact();
+            
+            future12Months += `- 西曆 ${evalYear}年 ${evalMonth}月: ${exactGanZhi}月\n`;
+            monthsDataForEval.push({ gMonth: evalMonth, ganZhi: exactGanZhi });
         }
 
         const monthlyExtremes = analyzeMonthlyPillars(monthsDataForEval, calculatedBazi.yongShen, calculatedBazi.jiShen);
@@ -280,8 +276,10 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
 
             astrolabe.palaces.forEach((p, index) => {
                 let stars = [];
-                if (p.majorStars) stars.push(...p.majorStars.map(s => s.name + (s.mutagen ? `(化${s.mutagen})` : '')));
-                if (p.minorStars) stars.push(...p.minorStars.map(s => s.name));
+                // 🟢 注入主星亮度 [廟/旺/得/利/平/不/陷]
+                if (p.majorStars) stars.push(...p.majorStars.map(s => `${s.name}${s.brightness ? `[${s.brightness}]` : ''}${s.mutagen ? `(化${s.mutagen})` : ''}`));
+                // 🟢 注入輔曜亮度
+                if (p.minorStars) stars.push(...p.minorStars.map(s => `${s.name}${s.brightness ? `[${s.brightness}]` : ''}`));
                 if (p.adjectiveStars) stars.push(...p.adjectiveStars.map(s => s.name));
                 palacesString += `- 【${p.name}】: ${stars.join('、 ') || '空宮'}\n`;
 
@@ -298,7 +296,7 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
                 const tri2 = astrolabe.palaces[(index + 8) % 12];
                 const getMajorStars = (pal) => {
                     let s = [];
-                    if (pal.majorStars) s.push(...pal.majorStars.map(st => st.name + (st.mutagen ? `(化${st.mutagen})` : '')));
+                    if (pal.majorStars) s.push(...pal.majorStars.map(st => `${st.name}${st.brightness ? `[${st.brightness}]` : ''}${st.mutagen ? `(化${st.mutagen})` : ''}`));
                     return s.join('、') || '空宮';
                 };
                 sanFangSiZhengStr += `- 【${p.name}三方四正】：本宮(${getMajorStars(p)}) + 對宮(${getMajorStars(opp)}) + 三合(${getMajorStars(tri1)}, ${getMajorStars(tri2)})\n`;
@@ -363,7 +361,7 @@ ${future12Months}
 - 身主樞紐：${astrolabe.body} (${bodyDesc})
 - 生年四化樞紐：
 ${siHuaStr}
-- 十二宮位星曜配置：
+- 十二宮位星曜配置 (含廟旺平陷與生年四化)：
 ${palacesString}
 - 十二宮位三方四正矩陣：
 ${sanFangSiZhengStr}
@@ -414,16 +412,6 @@ function getRagFocus(questionStr) {
         return "【專屬戰略框架 - 家庭, 居所與身心】：核心在於『物理環境調候』與『大腦強制斷電』。行動指南必須聚焦於：1. 依據喜用神選擇有利的居住方位與空間採光，2. 建立日常的物理隔離與冥想儀式，防範神經內耗，3. 在家庭與事業間設立防火牆。";
     } else {
         return "【專屬戰略框架 - 人生時機與大師破局】：核心在於『順勢爆發』與『逆勢蟄伏』。行動指南必須聚焦於：1. 精準踩準未來 12 個月的流月起伏進行資源配置，2. 針對命局最致命的盲區進行物理與心理雙重防禦，3. 押注核心優勢，執行降維打擊的破局動作。";
-    }
-}
-
-async function generateEmbeddings(text) {
-    try {
-        const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
-        const result = await embeddingModel.embedContent(text);
-        return result.embedding.values;
-    } catch (error) {
-        return null;
     }
 }
 
@@ -482,37 +470,25 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
         }
 
         const ragFocusText = getRagFocus(userData.actualQuestion);
-        console.log("⚡ [1/11] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
+        console.log("⚡ [1/10] 執行本地物理經緯度真太陽時轉換與確定性排盤...");
         const exactFactData = generateDeterministicFactData(userData, currentDateStr, ragFocusText);
-
-        console.log("🔍 [2/11] 檢索 Pinecone 向量庫古籍知識...");
-        let contexts = "";
-        const enhanceQuery = `紫微斗數 31 特殊格局 ${userData.actualQuestion} 八字格局 調候用神 命宮 財官 吉凶`;
-        const queryEmbedding = await generateEmbeddings(enhanceQuery);
-        if (queryEmbedding) {
-            const searchResults = await index.query({ vector: queryEmbedding, topK: 15, includeMetadata: true });
-            contexts = searchResults.matches.map((match, i) => `[文獻 ${i+1}]: ${match.metadata.interpretation || match.metadata.text || '無'}`).join('\n\n');
-        }
 
         const systemInstruction = `你是一位精通東方哲學與現代職業戰略的首席決策顧問兼心理學家。
 【任務核心】
-基於下方 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，以及 <Pinecone文獻>，進行高維度戰略解讀。
+基於下方 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，進行高維度戰略解讀。
 
 【全球通用鐵律 (Global Rules - 必須在所有生成階段嚴格遵守)】
-1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、生年四化、三方四正矩陣等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
+1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、生年四化、三方四正矩陣、星曜廟旺平陷強度等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
 2. 【隱藏指令鐵律】：絕對禁止在報告正文中印出或提及任何 Prompt 規則指令！例如嚴禁寫出「【絕對禁止商業分析】」、「強制使用...」或「妳的專屬東方英雄原型可提煉為...」，必須默默執行，無痕融入行文中。
 3. 【禁止水平分割線鐵律】：絕對禁止在任何段落結尾或文字之間輸出「---」等任何形式的水平分割線符號！
-4. 【大運防幻覺鐵律】：在提及任何「大運」（如辛酉大運）時，【絕對禁止】自行推算、捏造或寫出大運的起訖歲數區間（例如嚴禁寫出「12歲至21歲」等具體年齡段）。違規將導致系統嚴重錯誤！
-5. 【防迴音與去油膩鐵律】：絕對禁止反覆咀嚼同一個命理概念。嚴禁使用現代農場文職場套話。
-6. 嚴格遵循 Prompt 指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。
+4. 【星曜廟陷力量鐵律】：凡涉及紫微斗數星曜解讀，必須嚴格依據 <FactData> 中標註的 [廟/旺/得/利/平/不/陷] 強度定性吉凶與能量發揮。廟旺者吉星增輝、煞星收斂；落陷者吉星無力、煞曜猖獗。嚴禁自行變更或顛倒星曜力量強弱。
+5. 【大運防幻覺鐵律】：在提及任何「大運」（如辛酉大運）時，【絕對禁止】自行推算、捏造或寫出大運的起訖歲數區間（例如嚴禁寫出「12歲至21歲」等具體年齡段）。違規將導致系統嚴重錯誤！
+6. 【防迴音與去油膩鐵律】：絕對禁止反覆咀嚼同一個命理概念。嚴禁使用現代農場文職場套話。
+7. 嚴格遵循 Prompt 指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。
 
 <FactData>
 ${exactFactData}
-</FactData>
-
-<Pinecone文獻>
-${contexts}
-</Pinecone文獻>`;
+</FactData>`;
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash',
@@ -530,49 +506,49 @@ ${contexts}
             }
         });
 
-        console.log("📝 [3/11] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
+        console.log("📝 [2/10] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
         const promptPart1 = getPromptPart1(age, userData, exactFactData, currentDateStr);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
 
-        console.log("📝 [4/11] 生成階段二：時空軌跡與神煞套利 (Section 3)...");
-        const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, contexts, currentDateStr);
+        console.log("📝 [3/10] 生成階段二：時空軌跡與神煞套利 (Section 3)...");
+        const promptPart2 = getPromptPart2(aiTextPart1, exactFactData, userData, currentDateStr);
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
 
-        console.log("📝 [5/11] 生成階段三：十二宮位 (4.1 - 4.3)...");
-        const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, exactFactData, userData, contexts, currentDateStr);
+        console.log("📝 [4/10] 生成階段三：十二宮位 (4.1 - 4.3)...");
+        const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, exactFactData, userData, currentDateStr);
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
-        console.log("📝 [6/11] 生成階段四：十二宮位 (4.4 - 4.6)...");
-        const promptPart4 = getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, exactFactData, userData, contexts, currentDateStr);
+        console.log("📝 [5/10] 生成階段四：十二宮位 (4.4 - 4.6)...");
+        const promptPart4 = getPromptPart4(aiTextPart1, aiTextPart2, aiTextPart3, exactFactData, userData, currentDateStr);
         const resultPart4 = await model.generateContent(promptPart4);
         let aiTextPart4 = resultPart4.response.text().trim();
 
-        console.log("📝 [7/11] 生成階段五：十二宮位 (4.7 - 4.9)...");
-        const promptPart5 = getPromptPart5(aiTextPart3, aiTextPart4, exactFactData, userData, contexts, currentDateStr);
+        console.log("📝 [6/10] 生成階段五：十二宮位 (4.7 - 4.9)...");
+        const promptPart5 = getPromptPart5(aiTextPart3, aiTextPart4, exactFactData, userData, currentDateStr);
         const resultPart5 = await model.generateContent(promptPart5);
         let aiTextPart5 = resultPart5.response.text().trim();
 
-        console.log("📝 [8/11] 生成階段六：十二宮位 (4.10 - 4.12)...");
-        const promptPart6 = getPromptPart6(aiTextPart3, aiTextPart5, exactFactData, userData, contexts, currentDateStr);
+        console.log("📝 [7/10] 生成階段六：十二宮位 (4.10 - 4.12)...");
+        const promptPart6 = getPromptPart6(aiTextPart3, aiTextPart5, exactFactData, userData, currentDateStr);
         const resultPart6 = await model.generateContent(promptPart6);
         let aiTextPart6 = resultPart6.response.text().trim();
 
         const aiTextSection4 = `${aiTextPart3}\n\n${aiTextPart4}\n\n${aiTextPart5}\n\n${aiTextPart6}`;
 
-        console.log("📈 [9/11] 生成階段七：未來 10 年運勢推演 (Section 5)...");
-        const promptPart7 = getPromptPart7(aiTextPart1, aiTextPart2, aiTextSection4, userData, contexts, currentDateStr);
+        console.log("📈 [8/10] 生成階段七：未來 10 年運勢推演 (Section 5)...");
+        const promptPart7 = getPromptPart7(aiTextPart1, aiTextPart2, aiTextSection4, userData, currentDateStr);
         const resultPart7 = await model.generateContent(promptPart7);
         let aiTextPart7 = resultPart7.response.text().trim();
 
-        console.log("📈 [10/11] 生成階段八：大師專屬行動指南 (Section 6)...");
-        const promptPart8 = getPromptPart8(aiTextPart1, aiTextSection4, aiTextPart7, userData, contexts, currentDateStr);
+        console.log("📈 [9/10] 生成階段八：大師專屬行動指南 (Section 6)...");
+        const promptPart8 = getPromptPart8(aiTextPart1, aiTextSection4, aiTextPart7, userData, currentDateStr);
         const resultPart8 = await model.generateContent(promptPart8);
         let aiTextPart8 = resultPart8.response.text().trim();
 
-        console.log("🧠 [11/11] 生成階段九：Saju-MBTI 心理分析 (Section 7)...");
+        console.log("🧠 [10/10] 生成階段九：Saju-MBTI 心理分析 (Section 7)...");
         const promptPart9 = getPromptPart9(aiTextPart1, aiTextSection4, aiTextPart8, userData, currentDateStr);
         const resultPart9 = await model.generateContent(promptPart9);
         let aiTextPart9 = resultPart9.response.text().trim();
@@ -580,7 +556,6 @@ ${contexts}
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextSection4}\n\n${aiTextPart7}\n\n${aiTextPart8}\n\n${aiTextPart9}`;
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         
-        // 🟢 徹底移除所有行首行尾的水平分割線符號 (---)
         finalAiText = finalAiText.replace(/^---+$/gm, '').replace(/\n{3,}/g, '\n\n'); 
 
         const startIndex = finalAiText.indexOf('## 1');
@@ -590,7 +565,7 @@ ${contexts}
         return finalAiText;
 
     } catch (error) {
-        console.error("RAG 流程發生錯誤:", error);
+        console.error("生成流程發生錯誤:", error);
         throw error;
     }
 }
