@@ -171,7 +171,7 @@
         option { color: #e2e8f0; background-color: #1f2937; padding: 5px 0; }
         .disclaimer-box { font-size: 0.75rem; color: #6b7280; background-color: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 1.25rem; margin-top: 2rem; line-height: 1.6; text-align: justify; }
         .select-compact { padding-left: 0.5rem; padding-right: 1.5rem; }
-        .hover-white:hover { color: #f8fafc !important; transition: color 0.2s ease; } /* Footer 連結的 Hover 效果 */
+        .hover-white:hover { color: #f8fafc !important; transition: color 0.2s ease; } 
         
         /* 🟢 FAQ 視覺區塊樣式 (與 JSON-LD 一致，提升實體權重) */
         .faq-section { max-width: 1000px; margin: 40px auto 10px auto; }
@@ -181,6 +181,89 @@
         .faq-question { color: #f8fafc; font-size: 1.05rem; font-weight: 600; margin: 0 0 10px 0; line-height: 1.5; }
         .faq-answer { color: #94a3b8; font-size: 0.95rem; margin: 0; line-height: 1.7; }
 
+        /* 🟢 新增：左側懸浮社群列 (Line-art Icon Template) */
+        .floating-social {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+        }
+        .social-line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, #8B7355); 
+            opacity: 0.6;
+        }
+        .social-line.bottom {
+            background: linear-gradient(to top, transparent, #8B7355);
+        }
+        .social-icon {
+            color: #94A3B8;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+        .social-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .social-icon:hover {
+            opacity: 1;
+            transform: scale(1.15) translateX(3px); 
+        }
+        .social-icon.fb:hover { color: #1877F2; }
+        .social-icon.in:hover { color: #0A66C2; }
+        .social-icon.ig:hover { color: #E1306C; }
+        .social-icon.yt:hover { color: #FF0000; }
+        .social-icon.x:hover { color: #E2E8F0; } 
+        .social-icon.tt:hover { color: #00F2FE; }
+
+        /* 🟢 新增：資源連結與深度證明區塊 */
+        .resource-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+        .resource-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 8px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .resource-btn:hover {
+            background-color: rgba(56, 189, 248, 0.15);
+            color: #fff;
+        }
+        .proof-card {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-left: 3px solid #6366f1;
+            border-radius: 8px;
+            padding: 1.25rem;
+            height: 100%;
+        }
+
         @media (max-width: 768px) {
             .main-title { font-size: 1.75rem; }
             header h4 { font-size: 1.15rem; }
@@ -188,6 +271,7 @@
             .engine-box { padding: 1.25rem !important; }
             .form-control, .form-select, input, select { font-size: 16px !important; }
             .faq-item { padding: 15px; }
+            .floating-social { display: none; } /* 手機端隱藏側邊懸浮列 */
         }
     </style>
     
@@ -196,6 +280,30 @@
     <script src="questionsData.js"></script>
 </head>
 <body>
+
+<!-- 🟢 側邊懸浮社群列 -->
+<div class="floating-social">
+    <div class="social-line top"></div>
+    <a href="#" class="social-icon fb" aria-label="Facebook">
+        <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3" /></svg>
+    </a>
+    <a href="#" class="social-icon in" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M8 11l0 5" /><path d="M8 8l0 .01" /><path d="M12 16l0 -5" /><path d="M16 16v-3a2 2 0 0 0 -4 0" /></svg>
+    </a>
+    <a href="https://instagram.com/gygscanada" target="_blank" class="social-icon ig" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z" /><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M16.5 7.5l0 .01" /></svg>
+    </a>
+    <a href="https://youtube.com/@gygscanada" target="_blank" class="social-icon yt" aria-label="YouTube">
+        <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z" /><path d="M10 9l5 3l-5 3z" /></svg>
+    </a>
+    <a href="#" class="social-icon x" aria-label="X (Twitter)">
+        <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4l11.733 16h4.267l-11.733 -16z" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" /></svg>
+    </a>
+    <a href="#" class="social-icon tt" aria-label="TikTok">
+        <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12a4 4 0 1 0 4 4v-12a5 5 0 0 0 5 5" /></svg>
+    </a>
+    <div class="social-line bottom"></div>
+</div>
 
 <div class="container py-5" style="max-width: 1000px;">
     
@@ -206,11 +314,49 @@
         <div class="badge-soft-launch mb-2">💡 五庫全書 AI 宗師引擎已連線</div>
         <h1 class="main-title mb-3">gygs.ca 專屬人生戰略導航</h1>
         <h4 class="text-info fw-bold mb-4" style="letter-spacing: 1px;">運勢有時，抉擇有道。<br>看清格局，走對人生。</h4>
-        <p class="text-secondary">
+        <p class="text-secondary mb-4">
             結合《紫微斗數全書》、《滴天髓》、《三命通會》、《子平真詮》、《窮通寶鑑》的宏觀智慧與 Saju-MBTI 心理深度交叉分析，<br>為您的事業、財務與人生旅程，梳理出最清晰、權威的前進方向。
         </p>
+
+        <!-- 🟢 資源連結區塊 (置於表單之上，提升信任感) -->
+        <div class="resource-links">
+            <a href="#" class="resource-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                查看完整範例報告 (Sample Dossier)
+            </a>
+            <a href="#" class="resource-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                系統運作與使用教學 (How it Works)
+            </a>
+        </div>
     </header>
 
+    <!-- 🟢 價值證明 (Proof of Depth) 模塊 -->
+    <div class="row mb-5 g-4">
+        <div class="col-12 text-center mb-2">
+            <h5 class="text-light" style="letter-spacing: 1px;">高階戰略檔案內容包含 (Inside The Dossier)</h5>
+        </div>
+        <div class="col-md-4">
+            <div class="proof-card">
+                <h6 class="text-info fw-bold mb-2">12 個月微觀行動導航</h6>
+                <p class="text-secondary small mb-0">不談籠統流年。直接鎖定未來一年內對您最有利的「黃金爆發月」與必須物理靜默的「高危避險月」。</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="proof-card">
+                <h6 class="text-info fw-bold mb-2">Saju-MBTI 認知映射</h6>
+                <p class="text-secondary small mb-0">獨家東方命理與榮格認知功能交叉分析，精準破解您的壓力暴走盲區與專屬心智重塑方案。</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="proof-card">
+                <h6 class="text-info fw-bold mb-2">專屬資產防禦矩陣</h6>
+                <p class="text-secondary small mb-0">依據您命盤中「財庫」的實質狀態，為您量身定製輕資產溢價策略或實體信託隔離的具體防線。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 表單區塊 -->
     <div class="row mb-5">
         <div class="col-12">
             <div class="engine-box p-4">
@@ -274,42 +420,32 @@
                         </div>
                     </div>
 
-                    <!-- 🟢 升級為 2 橫列佈局 (2-Row Layout) -->
-                    <!-- 性別與婚姻 -->
+                    <!-- 性別與婚姻/子女狀況 (維持原始兩列穩定佈局) -->
                     <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="col-md-3 mb-3 mb-md-0">
                             <div class="form-label text-light">性別 (Gender)</div>
                             <div class="d-flex gap-3 pt-1">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked>
-                                    <label class="form-check-label text-light" for="gender-male">男命</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female">
-                                    <label class="form-check-label text-light" for="gender-female">女命</label>
-                                </div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked><label class="form-check-label text-light" for="gender-male">男</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" id="gender-female" value="female"><label class="form-check-label text-light" for="gender-female">女</label></div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (Marital Status)</label>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label for="marriageStatus" class="form-label text-light">婚姻狀態 (選填) (Marital Status)</label>
                             <select class="form-select" id="marriageStatus">
-                                <option value="未提供" selected>未婚 / 單身</option>
+                                <option value="未提供" selected>未提供 / 保密</option>
+                                <option value="單身">單身 / 未婚</option>
                                 <option value="已婚">已婚</option>
                                 <option value="離異">離異</option>
                                 <option value="喪偶">喪偶</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- 子女狀況 -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label text-light">子女狀況 (Children)</label>
-                            <div class="d-flex gap-3">
-                                <select class="form-select" id="childrenBoy">
+                        <div class="col-md-5">
+                            <label class="form-label text-light">子女狀況 (選填) (Children)</label>
+                            <div class="d-flex gap-2">
+                                <select class="form-select text-center" id="childrenBoy">
                                     <option value="0" selected>0 男</option><option value="1">1 男</option><option value="2">2 男</option><option value="3">3 男</option><option value="4">4 男</option><option value="5">5 男</option><option value="6">6 男</option><option value="7">7 男</option><option value="8">8 男</option><option value="9">9 男</option>
                                 </select>
-                                <select class="form-select" id="childrenGirl">
+                                <select class="form-select text-center" id="childrenGirl">
                                     <option value="0" selected>0 女</option><option value="1">1 女</option><option value="2">2 女</option><option value="3">3 女</option><option value="4">4 女</option><option value="5">5 女</option><option value="6">6 女</option><option value="7">7 女</option><option value="8">8 女</option><option value="9">9 女</option>
                                 </select>
                             </div>
@@ -357,7 +493,7 @@
                                     <option value="ESTP">ESTP (企業家)</option>
                                     <option value="ESFP">ESFP (表演者)</option>
                                 </select>
-                                <div class="form-text text-secondary mt-1">提供 MBTI 將為您解鎖 Section 7 深度交叉分析。若未提供，AI 將依據命格進行盲測推演。</div>
+                                <div class="form-text text-secondary mt-1">提供 MBTI 將為您解鎖 Section 7 深度交叉分析。若未提供，演算法將依據命格進行盲測推演。</div>
                             </div>
                         </div>
                     </div>
@@ -429,7 +565,7 @@
         <div class="col-12">
             <div class="disclaimer-box mb-5">
                 <strong>免責聲明與責任限制：</strong><br>
-                gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 AI 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
+                gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
             </div>
         </div>
     </div>
@@ -473,7 +609,7 @@
             </div>
             <div class="modal-body text-light" style="font-size: 0.95rem; line-height: 1.6;">
                 <strong>嚴格的數據保護承諾：</strong><br><br>
-                gygs.ca 極度重視您的隱私與數據安全。您所輸入的任何個人資料（包括出生地、時間、婚姻狀況、電子郵件等），僅會被系統用於當次的排盤計算與 AI 報告生成。<br><br>
+                gygs.ca 極度重視您的隱私與數據安全。您所輸入的任何個人資料（包括出生地、時間、婚姻狀況、電子郵件等），僅會被系統用於當次的排盤計算與分析報告生成。<br><br>
                 我們承諾：<br>
                 1. 絕不將您的個人資料出售、出租或分享給任何第三方廣告商。<br>
                 2. 系統運算完畢且報告寄出後，您的核心生辰資訊不會作為公開用途。<br>
@@ -494,7 +630,7 @@
             </div>
             <div class="modal-body text-light" style="font-size: 0.95rem; line-height: 1.6;">
                 我們非常重視您的使用體驗與寶貴意見。<br><br>
-                如果您對 gygs.ca 的 AI 報告、系統功能有任何建議，或遇到任何技術問題，請隨時與我們聯繫。<br><br>
+                如果您對 gygs.ca 的分析報告、系統功能有任何建議，或遇到任何技術問題，請隨時與我們聯繫。<br><br>
                 請將您的意見回饋發送至：<a href="mailto:info@gygs.ca?subject=gygs.ca%20意見回饋" class="text-info text-decoration-none">info@gygs.ca</a>
             </div>
         </div>
