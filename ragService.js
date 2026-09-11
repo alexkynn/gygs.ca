@@ -553,21 +553,24 @@ ${exactFactData}
         const resultPart9 = await model.generateContent(promptPart9);
         let aiTextPart9 = resultPart9.response.text().trim();
 
-        // 🟢 將 Section 8 優惠碼更新為 STRATEGY20 並改用 HTML 圖片語法以解決破圖
+        // 🟢 將 Section 8 優化為 HTML 排版並精確植入文案，徹底解決破圖與重複聲明問題
         const staticSection8 = `## 8. 高階戰略執行與專屬提問 (Next Steps & Advanced Strategic Execution)
-本報告為您提供了宏觀的命運框架與戰略骨架。若您在微觀執行上需要更精確的落地指引，我們提供以下專屬進階服務：
+
+<div style="font-size: 1.2rem; line-height: 1.8;">
 
 *   **高階非同步諮詢 (Asynchronous Deep-Dive Consultations)**：若您面臨特定合約決策、特定投資時間線或重大人生抉擇，請將您的具體情境發送至 **myquestion@gygs.ca**。我們的首席戰略官將為您進行精準盲測與客製化解答，並透過機密郵件交付專屬微觀戰略補充檔案。為啟發更多讀者，部分獲選提問將在隱去所有個人隱私細節後，匿名發佈於 gygs.ca 首頁，確保您的絕對隱私。
 *   **商業合夥/伴侶契合度報告 (Business Partner/Spouse Compatibility Report)**：您的命局對特定地支極度敏感，強烈建議為您的核心合夥人、潛在投資者或伴侶進行深度的契合度測算，徹底排雷。
 
 **[專屬禮遇與分享]**
-Did this report provide clarity? Gift this strategic advantage to a friend or business partner. 
-Use code **STRATEGY20** for 20% off their first report at gygs.ca.
+這份報告是否為您帶來了清晰的戰略方向？將此優勢作為禮物，分享給您的摯友或商業夥伴。
+請他們在 gygs.ca 使用專屬折扣碼 **STRATEGY20**，即可享首次報告 8 折 (20% OFF) 優惠。
 
-**gygs.ca 專屬人生戰略導航**
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca" width="150" height="150" alt="gygs.ca QR Code" style="margin-top: 10px;">
+</div>
 
-<small>【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</small>`;
+<div style="text-align: right; margin-top: 50px;">
+<strong>gygs.ca 專屬人生戰略導航</strong><br>
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca" width="150" height="150" alt="gygs.ca QR Code">
+</div>`;
 
         // 🟢 精準重組架構：Part1(0-2) -> Part2(3) -> Part8(4) -> Part7(5) -> Section6(十二宮) -> Part9(7) -> Static(8)
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart8}\n\n${aiTextPart7}\n\n${aiTextSection6}\n\n${aiTextPart9}\n\n${staticSection8}`;
@@ -575,7 +578,7 @@ Use code **STRATEGY20** for 20% off their first report at gygs.ca.
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         finalAiText = finalAiText.replace(/^---+$/gm, '').replace(/\n{3,}/g, '\n\n'); 
 
-        let startIndex = finalAiText.indexOf('## 0');
+        let startIndex = finalAiText.indexOf('## 核心戰略摘要');
         if (startIndex === -1) startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
         
