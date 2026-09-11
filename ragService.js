@@ -553,6 +553,7 @@ ${exactFactData}
         const resultPart9 = await model.generateContent(promptPart9);
         let aiTextPart9 = resultPart9.response.text().trim();
 
+        // 🟢 將 Section 8 優惠碼更新為 STRATEGY20 並改用 HTML 圖片語法以解決破圖
         const staticSection8 = `## 8. 高階戰略執行與專屬提問 (Next Steps & Advanced Strategic Execution)
 本報告為您提供了宏觀的命運框架與戰略骨架。若您在微觀執行上需要更精確的落地指引，我們提供以下專屬進階服務：
 
@@ -564,7 +565,7 @@ Did this report provide clarity? Gift this strategic advantage to a friend or bu
 Use code **STRATEGY20** for 20% off their first report at gygs.ca.
 
 **gygs.ca 專屬人生戰略導航**
-![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca)
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca" width="150" height="150" alt="gygs.ca QR Code" style="margin-top: 10px;">
 
 <small>【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</small>`;
 
