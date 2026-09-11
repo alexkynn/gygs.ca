@@ -30,33 +30,57 @@
         .floating-social {
             position: fixed;
             top: 50%;
-            left: 0;
+            left: 20px;
             transform: translateY(-50%);
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-left: none;
-            border-radius: 0 8px 8px 0;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            padding: 15px 10px;
+            align-items: center;
+            gap: 20px;
             z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
         }
 
-        .floating-social a {
+        .social-line {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, #8B7355); /* Subtle gold gradient matching template */
+            opacity: 0.6;
+        }
+
+        .social-line.bottom {
+            background: linear-gradient(to top, transparent, #8B7355);
+        }
+
+        .social-icon {
             color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            padding: 5px 0;
-            transition: color 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
         }
 
-        .floating-social a:hover {
-            color: var(--primary);
+        .social-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
+
+        .social-icon:hover {
+            opacity: 1;
+            transform: scale(1.15) translateX(3px); /* Slight pop and nudge effect */
+        }
+
+        /* Brand Colors matching platform */
+        .social-icon.fb:hover { color: #1877F2; }
+        .social-icon.in:hover { color: #0A66C2; }
+        .social-icon.ig:hover { color: #E1306C; }
+        .social-icon.yt:hover { color: #FF0000; }
+        .social-icon.x:hover { color: #E2E8F0; } /* Crisp white for X on dark mode */
+        .social-icon.tt:hover { color: #00F2FE; } /* TikTok Cyan */
 
         /* 頂部導航與 Hero 區塊 */
         header {
@@ -261,6 +285,10 @@
             margin-bottom: 20px;
         }
 
+        .form-row.demographics-row {
+            grid-template-columns: 1fr 1fr 2fr;
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
@@ -341,25 +369,42 @@
 
         /* RWD 調整 */
         @media (max-width: 768px) {
-            .form-row, .matrix-grid {
+            .form-row, .form-row.demographics-row, .matrix-grid {
                 grid-template-columns: 1fr;
             }
             .form-group.full-width {
                 grid-column: span 1;
             }
             .floating-social {
-                display: none; /* 手機端隱藏側邊欄，可另作底部導航 */
+                display: none;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- 側邊懸浮社群列 -->
+    <!-- 側邊懸浮社群列 (Line-art Icon Template) -->
     <div class="floating-social">
-        <a href="https://instagram.com/gygscanada" target="_blank">Instagram</a>
-        <a href="https://youtube.com/@gygscanada" target="_blank">YouTube</a>
-        <a href="mailto:myquestion@gygs.ca">聯絡我們</a>
+        <div class="social-line top"></div>
+        <a href="#" class="social-icon fb" aria-label="Facebook">
+            <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3" /></svg>
+        </a>
+        <a href="#" class="social-icon in" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M8 11l0 5" /><path d="M8 8l0 .01" /><path d="M12 16l0 -5" /><path d="M16 16v-3a2 2 0 0 0 -4 0" /></svg>
+        </a>
+        <a href="https://instagram.com/gygscanada" target="_blank" class="social-icon ig" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4m0 4a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z" /><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M16.5 7.5l0 .01" /></svg>
+        </a>
+        <a href="https://youtube.com/@gygscanada" target="_blank" class="social-icon yt" aria-label="YouTube">
+            <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8z" /><path d="M10 9l5 3l-5 3z" /></svg>
+        </a>
+        <a href="#" class="social-icon x" aria-label="X (Twitter)">
+            <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4l11.733 16h4.267l-11.733 -16z" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" /></svg>
+        </a>
+        <a href="#" class="social-icon tt" aria-label="TikTok">
+            <svg viewBox="0 0 24 24"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12a4 4 0 1 0 4 4v-12a5 5 0 0 0 5 5" /></svg>
+        </a>
+        <div class="social-line bottom"></div>
     </div>
 
     <!-- 頂部 Hero 區塊 -->
@@ -472,7 +517,7 @@
                     </div>
                 </div>
 
-                <div class="form-row">
+                <div class="form-row demographics-row">
                     <div class="form-group">
                         <label>性別 (Gender)</label>
                         <div class="radio-group">
@@ -487,10 +532,7 @@
                             <option value="已婚">已婚</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group full-width">
+                    <div class="form-group">
                         <label>子女狀況 (Children)</label>
                         <div style="display: flex; gap: 15px;">
                             <select style="width: 50%;"><option>0 男</option><option>1 男</option></select>
