@@ -196,11 +196,11 @@
         .social-line {
             width: 1px;
             height: 40px;
-            background: linear-gradient(to bottom, transparent, #8B7355); 
+            background: linear-gradient(to bottom, transparent, #94a3b8); 
             opacity: 0.6;
         }
         .social-line.bottom {
-            background: linear-gradient(to top, transparent, #8B7355);
+            background: linear-gradient(to top, transparent, #94a3b8);
         }
         .social-icon {
             color: #94A3B8;
@@ -420,13 +420,19 @@
                         </div>
                     </div>
 
-                    <!-- 性別與婚姻/子女狀況 (維持原始兩列穩定佈局) -->
+                    <!-- 🟢 性別與婚姻/子女狀況 (更新：放大性別標籤與選項) -->
                     <div class="row mb-3">
                         <div class="col-md-3 mb-3 mb-md-0">
-                            <div class="form-label text-light">性別 (Gender)</div>
-                            <div class="d-flex gap-3 pt-1">
-                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" checked><label class="form-check-label text-light" for="gender-male">男</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" id="gender-female" value="female"><label class="form-check-label text-light" for="gender-female">女</label></div>
+                            <div class="form-label text-light fw-bold" style="font-size: 1.2rem;">性別 (Gender)</div>
+                            <div class="d-flex gap-4 pt-1">
+                                <div class="form-check d-flex align-items-center">
+                                    <input class="form-check-input" type="radio" name="gender" id="gender-male" value="male" style="width: 1.5rem; height: 1.5rem; margin-top: 0; cursor: pointer;" checked>
+                                    <label class="form-check-label text-light fw-bold ms-2" style="font-size: 1.3rem; cursor: pointer;" for="gender-male">男</label>
+                                </div>
+                                <div class="form-check d-flex align-items-center">
+                                    <input class="form-check-input" type="radio" name="gender" id="gender-female" value="female" style="width: 1.5rem; height: 1.5rem; margin-top: 0; cursor: pointer;">
+                                    <label class="form-check-label text-light fw-bold ms-2" style="font-size: 1.3rem; cursor: pointer;" for="gender-female">女</label>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3 mb-md-0">
@@ -493,7 +499,7 @@
                                     <option value="ESTP">ESTP (企業家)</option>
                                     <option value="ESFP">ESFP (表演者)</option>
                                 </select>
-                                <div class="form-text text-secondary mt-1">提供 MBTI 將為您解鎖 Section 7 深度交叉分析。若未提供，演算法將依據命格進行盲測推演。</div>
+                                <div class="form-text text-secondary mt-1">提供 MBTI 將為您解鎖 Section 7 深度交叉分析。若未提供，AI 將依據命格進行盲測推演。</div>
                             </div>
                         </div>
                     </div>
@@ -565,7 +571,7 @@
         <div class="col-12">
             <div class="disclaimer-box mb-5">
                 <strong>免責聲明與責任限制：</strong><br>
-                gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
+                gygs.ca 所提供的所有資訊、分析、演算法與戰略概念（包含但不限於 AI 生成之報告與諮詢服務），僅供教育、資訊參考與個人規劃之用途，並不構成任何具認證資格之財務、投資、法律、會計、醫療或專業建議。宏觀與微觀雙引擎架構為一理論數據模型，不應被視為進行交易、投資或重大人生決策的唯一依據。使用者須對自身的所有行為與風險管理負起完全責任。與 gygs.ca 相關之創作者、開發者、分析師及營運者，對於因使用或解讀本平台內容而導致的任何直接、間接、附帶、衍生性或財務損失，概不負責。過去的歷史關聯性或演算法結果，亦不保證未來的表現或特定結果。
             </div>
         </div>
     </div>
