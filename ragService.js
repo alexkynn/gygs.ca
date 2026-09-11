@@ -504,7 +504,7 @@ ${exactFactData}
             }
         });
 
-        console.log("📝 [2/10] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
+        console.log("📝 [2/10] 生成階段一：系統定盤與財庫分析 (Sections 0-2)...");
         const promptPart1 = getPromptPart1(age, userData, currentDateStr);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
@@ -514,52 +514,68 @@ ${exactFactData}
         const resultPart2 = await model.generateContent(promptPart2);
         let aiTextPart2 = resultPart2.response.text().trim();
 
-        console.log("📝 [4/10] 生成階段三：十二宮位 (4.1 - 4.3)...");
+        console.log("📝 [4/10] 生成階段三：十二宮位 (6.1 - 6.3)...");
         const promptPart3 = getPromptPart3(aiTextPart1, aiTextPart2, userData, currentDateStr);
         const resultPart3 = await model.generateContent(promptPart3);
         let aiTextPart3 = resultPart3.response.text().trim();
 
-        console.log("📝 [5/10] 生成階段四：十二宮位 (4.4 - 4.6)...");
+        console.log("📝 [5/10] 生成階段四：十二宮位 (6.4 - 6.6)...");
         const promptPart4 = getPromptPart4(aiTextPart3, userData, currentDateStr);
         const resultPart4 = await model.generateContent(promptPart4);
         let aiTextPart4 = resultPart4.response.text().trim();
 
-        console.log("📝 [6/10] 生成階段五：十二宮位 (4.7 - 4.9)...");
+        console.log("📝 [6/10] 生成階段五：十二宮位 (6.7 - 6.9)...");
         const promptPart5 = getPromptPart5(aiTextPart3, aiTextPart4, userData, currentDateStr);
         const resultPart5 = await model.generateContent(promptPart5);
         let aiTextPart5 = resultPart5.response.text().trim();
 
-        console.log("📝 [7/10] 生成階段六：十二宮位 (4.10 - 4.12)...");
+        console.log("📝 [7/10] 生成階段六：十二宮位 (6.10 - 6.12)...");
         const promptPart6 = getPromptPart6(aiTextPart3, aiTextPart5, userData, currentDateStr);
         const resultPart6 = await model.generateContent(promptPart6);
         let aiTextPart6 = resultPart6.response.text().trim();
 
-        const aiTextSection4 = `${aiTextPart3}\n\n${aiTextPart4}\n\n${aiTextPart5}\n\n${aiTextPart6}`;
+        // 重新組合十二宮位為 Section 6 的內容
+        const aiTextSection6 = `${aiTextPart3}\n\n${aiTextPart4}\n\n${aiTextPart5}\n\n${aiTextPart6}`;
 
         console.log("📈 [8/10] 生成階段七：未來 10 年運勢推演 (Section 5)...");
-        // 🟢 瘦身：十年運勢推演僅需原局八字基礎（Part 1 & 2），解除十二宮全文冗餘綁定
         const promptPart7 = getPromptPart7(aiTextPart1, aiTextPart2, userData, currentDateStr);
         const resultPart7 = await model.generateContent(promptPart7);
         let aiTextPart7 = resultPart7.response.text().trim();
 
-        console.log("📈 [9/10] 生成階段八：大師專屬行動指南 (Section 6)...");
-        // 🟢 瘦身：精準傳入 2.2 生存法則(Part 1)、4.9 官祿宮(Part 5) 與十年運勢(Part 7)，剔除無關宮位
+        console.log("📈 [9/10] 生成階段八：大師專屬行動指南 (Section 4)...");
+        // 傳入 2.2 生存法則(Part 1)、6.9 官祿宮(Part 5) 與十年運勢(Part 7)
         const promptPart8 = getPromptPart8(aiTextPart1, aiTextPart5, aiTextPart7, userData, currentDateStr);
         const resultPart8 = await model.generateContent(promptPart8);
         let aiTextPart8 = resultPart8.response.text().trim();
 
         console.log("🧠 [10/10] 生成階段九：Saju-MBTI 心理分析 (Section 7)...");
-        // 🟢 瘦身：僅傳入八字本氣(Part 1) 與行動破局(Part 8)，解除十二宮全文冗餘綁定
         const promptPart9 = getPromptPart9(aiTextPart1, aiTextPart8, userData, currentDateStr);
         const resultPart9 = await model.generateContent(promptPart9);
         let aiTextPart9 = resultPart9.response.text().trim();
 
-        let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextSection4}\n\n${aiTextPart7}\n\n${aiTextPart8}\n\n${aiTextPart9}`;
-        finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
+        const staticSection8 = `## 8. 高階戰略執行與專屬提問 (Next Steps & Advanced Strategic Execution)
+本報告為您提供了宏觀的命運框架與戰略骨架。若您在微觀執行上需要更精確的落地指引，我們提供以下專屬進階服務：
+
+*   **高階非同步諮詢 (Asynchronous Deep-Dive Consultations)**：若您面臨特定合約決策、特定投資時間線或重大人生抉擇，請將您的具體情境發送至 **myquestion@gygs.ca**。我們的首席戰略官將為您進行精準盲測與客製化解答，並透過機密郵件交付專屬微觀戰略補充檔案。為啟發更多讀者，部分獲選提問將在隱去所有個人隱私細節後，匿名發佈於 gygs.ca 首頁，確保您的絕對隱私。
+*   **商業合夥/伴侶契合度報告 (Business Partner/Spouse Compatibility Report)**：您的命局對特定地支極度敏感，強烈建議為您的核心合夥人、潛在投資者或伴侶進行深度的契合度測算，徹底排雷。
+
+**[專屬禮遇與分享]**
+Did this report provide clarity? Gift this strategic advantage to a friend or business partner. 
+Use code **STRATEGY20** for 20% off their first report at gygs.ca.
+
+**gygs.ca 專屬人生戰略導航**
+![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca)
+
+<small>【免責聲明】本報告基於東方命理與現代心理學交叉分析生成，內容僅供戰略參考與個人成長啟發，不構成任何醫療、法律、財務或實質性投資之專業指導。重大人生與商業決策請綜合客觀現實，並諮詢相關領域之專業人士。</small>`;
+
+        // 🟢 精準重組架構：Part1(0-2) -> Part2(3) -> Part8(4) -> Part7(5) -> Section6(十二宮) -> Part9(7) -> Static(8)
+        let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart8}\n\n${aiTextPart7}\n\n${aiTextSection6}\n\n${aiTextPart9}\n\n${staticSection8}`;
         
+        finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         finalAiText = finalAiText.replace(/^---+$/gm, '').replace(/\n{3,}/g, '\n\n'); 
 
-        const startIndex = finalAiText.indexOf('## 1');
+        let startIndex = finalAiText.indexOf('## 0');
+        if (startIndex === -1) startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
         
         logTransactionForAnalytics(userData, userData.actualQuestion, finalAiText, extractedEmail);
