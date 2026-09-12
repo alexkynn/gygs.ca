@@ -328,15 +328,15 @@ function generateDeterministicFactData(userData, currentDateStr, ragFocusText) {
 - 當前大運：${currentDaYunStr}
 - 四柱十神透解：${calculatedBazi.tenGodsString}
 - 財庫狀態判定：${calculatedBazi.wealthVaultStatus}
-- 開運密碼與產業資產矩陣：${calculatedBazi.auspiciousCodes}
+- 開運密碼與產業資產板塊：${calculatedBazi.auspiciousCodes}
 - 原局刑沖害合狀態：${calculatedBazi.natalInteractions}
-- 社交磁場矩陣：${socialMagnetism}
+- 社交磁場板塊：${socialMagnetism}
 - 四柱神煞配置：${shenShaString}
 - 系統判定日元強度：${calculatedBazi.strength} (生扶指數: ${calculatedBazi.supportScore}, 克洩指數: ${calculatedBazi.drainScore})
 - 絕對最喜用神：${calculatedBazi.yongShen}
 - 絕對最忌五行：${calculatedBazi.jiShen}
-- 十神戰略矩陣 (專屬行動)：${calculatedBazi.yongShenAction}
-- 十神戰略矩陣 (戒斷行為)：${calculatedBazi.jiShenDetox}
+- 十神戰略板塊 (專屬行動)：${calculatedBazi.yongShenAction}
+- 十神戰略板塊 (戒斷行為)：${calculatedBazi.jiShenDetox}
 - 系統精算預設 MBTI：${calculatedBazi.defaultMbti}
 - 袁天罡稱骨：${weightStr} (${genderStr})
 - 專屬讖語：「${weightPoem}」
@@ -361,7 +361,7 @@ ${future12Months}
 ${siHuaStr}
 - 十二宮位星曜配置 (含廟旺平陷與生年四化)：
 ${palacesString}
-- 十二宮位三方四正矩陣：
+- 十二宮位三方四正組合：
 ${sanFangSiZhengStr}
 `;
     } catch (e) {
@@ -476,13 +476,14 @@ async function generateMasterResponse(question, mode = 'teaser', userEmail = '')
 基於下方 <FactData> 中由系統底層天文排盤引擎計算出的「不可篡改數據」，進行高維度戰略解讀。
 
 【全球通用鐵律 (Global Rules - 必須在所有生成階段嚴格遵守)】
-1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、生年四化、三方四正矩陣、星曜廟旺平陷強度等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
+1. 嚴格遵守 <FactData>，包含真太陽時、五行局、命/身主、生年四化、三方四正組合、星曜廟旺平陷強度等，【絕對禁止】自行推算、張冠李戴或憑空發明。若數據與你內建知識衝突，以 <FactData> 為絕對準則！若 <FactData> 未提供，請寫「未提供」，嚴禁瞎猜。
 2. 【隱藏指令鐵律】：絕對禁止在報告正文中印出或提及任何 Prompt 規則指令！例如嚴禁寫出「【絕對禁止商業分析】」、「強制使用...」或「妳的專屬東方英雄原型可提煉為...」，必須默默執行，無痕融入行文中。
 3. 【禁止水平分割線鐵律】：絕對禁止在任何段落結尾或文字之間輸出「---」等任何形式的水平分割線符號！
 4. 【星曜廟陷力量鐵律】：凡涉及紫微斗數星曜解讀，必須嚴格依據 <FactData> 中標註的 [廟/旺/得/利/平/不/陷] 強度定性吉凶與能量發揮。廟旺者吉星增輝、煞星收斂；落陷者吉星無力、煞曜猖獗。嚴禁自行變更或顛倒星曜力量強弱。
 5. 【大運防幻覺鐵律】：在提及任何「大運」（如辛酉大運）時，【絕對禁止】自行推算、捏造或寫出大運的起訖歲數區間（例如嚴禁寫出「12歲至21歲」等具體年齡段）。違規將導致系統嚴重錯誤！
 6. 【防迴音與去油膩鐵律】：絕對禁止反覆咀嚼同一個命理概念。嚴禁使用現代農場文職場套話。
 7. 嚴格遵循 Prompt 指定的層級編號格式 (1., 1.1, 1.1.1)，不可發明新的排版。
+8. 【防圖表鐵律】：【絕對禁止】繪製任何表格、圖表或矩陣！所有內容必須以純文字與標準段落/列點呈現。
 
 <FactData>
 ${exactFactData}
@@ -553,24 +554,19 @@ ${exactFactData}
         const resultPart9 = await model.generateContent(promptPart9);
         let aiTextPart9 = resultPart9.response.text().trim();
 
-        // 🟢 將 Section 8 優化為 HTML 排版並精確植入文案，徹底解決破圖與重複聲明問題
+        // 🟢 將 Section 8 恢復標準 Markdown 排版，並更新專屬提問的行銷飛輪文案
         const staticSection8 = `## 8. 高階戰略執行與專屬提問 (Next Steps & Advanced Strategic Execution)
 
-<div style="font-size: 1.2rem; line-height: 1.8;">
+本報告為您提供了宏觀的命運框架與戰略骨架。若您在微觀執行上需要更精確的落地指引或有特定疑惑，歡迎提交您的**專屬提問**：
 
-*   **高階非同步諮詢 (Asynchronous Deep-Dive Consultations)**：若您面臨特定合約決策、特定投資時間線或重大人生抉擇，請將您的具體情境發送至 **myquestion@gygs.ca**。我們的首席戰略官將為您進行精準盲測與客製化解答，並透過機密郵件交付專屬微觀戰略補充檔案。為啟發更多讀者，部分獲選提問將在隱去所有個人隱私細節後，匿名發佈於 gygs.ca 首頁，確保您的絕對隱私。
-*   **商業合夥/伴侶契合度報告 (Business Partner/Spouse Compatibility Report)**：您的命局對特定地支極度敏感，強烈建議為您的核心合夥人、潛在投資者或伴侶進行深度的契合度測算，徹底排雷。
+請將您的具體情境與提問發送至 **myquestion@gygs.ca**。為啟發更多讀者，部分獲選之「專屬提問」（僅限提問內容，不含個人解答）將在隱去所有隱私細節後，匿名收錄於 gygs.ca 首頁的熱門問題清單中。
 
 **[專屬禮遇與分享]**
 這份報告是否為您帶來了清晰的戰略方向？將此優勢作為禮物，分享給您的摯友或商業夥伴。
 請他們在 gygs.ca 使用專屬折扣碼 **STRATEGY20**，即可享首次報告 8 折 (20% OFF) 優惠。
 
-</div>
-
-<div style="text-align: right; margin-top: 50px;">
-<strong>gygs.ca 專屬人生戰略導航</strong><br>
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca" width="150" height="150" alt="gygs.ca QR Code">
-</div>`;
+**gygs.ca 專屬人生戰略導航**
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca" width="150" height="150" alt="gygs.ca QR Code">`;
 
         // 🟢 精準重組架構：Part1(0-2) -> Part2(3) -> Part8(4) -> Part7(5) -> Section6(十二宮) -> Part9(7) -> Static(8)
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart8}\n\n${aiTextPart7}\n\n${aiTextSection6}\n\n${aiTextPart9}\n\n${staticSection8}`;
