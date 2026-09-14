@@ -555,7 +555,7 @@ ${exactFactData}
         let aiTextPart9 = resultPart9.response.text().trim();
 
         // 🟢 將 Section 8 恢復標準 Markdown 排版，並更新專屬提問的行銷飛輪文案
-        const staticSection8 = `## 8. 高階戰略執行與專屬提問 (Next Steps & Advanced Strategic Execution)
+        const staticSection8 = `## 8. 專屬提問 (Next Steps)
 
 本報告為您提供了宏觀的命運框架與戰略骨架。若您在微觀執行上需要更精確的落地指引或有特定疑惑，歡迎提交您的**專屬提問**：
 
@@ -566,7 +566,7 @@ ${exactFactData}
 請他們在 gygs.ca 使用專屬折扣碼 **STRATEGY20**，即可享首次報告 8 折 (20% OFF) 優惠。
 
 **gygs.ca 專屬人生戰略導航**
-![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca)`;
+https://gygs.ca`;
 
         // 🟢 精準重組架構：Part1(1-2) -> Part2(3) -> Part8(4) -> Part7(5) -> Section6(十二宮) -> Part9(7) -> Static(8)
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart8}\n\n${aiTextPart7}\n\n${aiTextSection6}\n\n${aiTextPart9}\n\n${staticSection8}`;
