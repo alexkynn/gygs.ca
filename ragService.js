@@ -505,7 +505,7 @@ ${exactFactData}
             }
         });
 
-        console.log("📝 [2/10] 生成階段一：系統定盤與財庫分析 (Sections 0-2)...");
+        console.log("📝 [2/10] 生成階段一：系統定盤與財庫分析 (Sections 1-2)...");
         const promptPart1 = getPromptPart1(age, userData, currentDateStr);
         const resultPart1 = await model.generateContent(promptPart1);
         let aiTextPart1 = resultPart1.response.text().trim();
@@ -566,16 +566,15 @@ ${exactFactData}
 請他們在 gygs.ca 使用專屬折扣碼 **STRATEGY20**，即可享首次報告 8 折 (20% OFF) 優惠。
 
 **gygs.ca 專屬人生戰略導航**
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca" width="150" height="150" alt="gygs.ca QR Code">`;
+![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://gygs.ca)`;
 
-        // 🟢 精準重組架構：Part1(0-2) -> Part2(3) -> Part8(4) -> Part7(5) -> Section6(十二宮) -> Part9(7) -> Static(8)
+        // 🟢 精準重組架構：Part1(1-2) -> Part2(3) -> Part8(4) -> Part7(5) -> Section6(十二宮) -> Part9(7) -> Static(8)
         let finalAiText = `${aiTextPart1}\n\n${aiTextPart2}\n\n${aiTextPart8}\n\n${aiTextPart7}\n\n${aiTextSection6}\n\n${aiTextPart9}\n\n${staticSection8}`;
         
         finalAiText = finalAiText.replace(/^```markdown\n/gm, '').replace(/^```\n/gm, '').replace(/```$/gm, ''); 
         finalAiText = finalAiText.replace(/^---+$/gm, '').replace(/\n{3,}/g, '\n\n'); 
 
-        let startIndex = finalAiText.indexOf('## 核心戰略摘要');
-        if (startIndex === -1) startIndex = finalAiText.indexOf('## 1');
+        let startIndex = finalAiText.indexOf('## 1');
         if (startIndex > 0) finalAiText = finalAiText.substring(startIndex);
         
         logTransactionForAnalytics(userData, userData.actualQuestion, finalAiText, extractedEmail);
